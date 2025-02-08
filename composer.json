@@ -5,7 +5,8 @@
         }
     },
     "require-dev": {
-        "wp-coding-standards/wpcs": "^3.0"
+        "wp-coding-standards/wpcs": "^3.0",
+        "wpreadme2markdown/wp2md": "*"
     },
     "scripts": {
         "diff": "diff -r . ./congress-volume",
@@ -22,6 +23,7 @@
         "fix": ["@fix:php", "@fix:js", "@fix:css"],
         "dev": "npx wp-scripts start --webpack-copy-php --source-path=./blocks/src --output-path=./blocks/build",
         "build": "npx wp-scripts build --webpack-copy-php --source-path=./blocks/src --output-path=./blocks/build; npx wp-scripts plugin-zip",
-        "packages-update": "npx wp-scripts packages-update"
+        "packages-update": "npx wp-scripts packages-update",
+        "update-readme.md": "wp2md -i readme.txt -o README.md"
     }
 }
