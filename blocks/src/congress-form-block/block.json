@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "create-block/congress-form-block",
+  "version": "0.1.0",
+  "title": "Congress Contact Block",
+  "category": "widgets",
+  "description": "A form that can be filled out to contact congress.",
+  "example": {},
+  "attributes": {
+    "isStatePolicy": {
+      "type": "boolean"
+    },
+    "campaign": {
+      "type": "string"
+    },
+    "hasEmailTemplates": {
+        "type": "boolean"
+    }
+  },
+  "supports": {
+    "color": {
+      "background": false,
+      "text": false
+    },
+    "html": false,
+    "typography": {
+      "fontSize": false
+    }
+  },
+  "textdomain": "congress-form-block",
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "style": "file:./style-index.css",
+  "render": "file:./render.php",
+  "viewScript": "file:./view.js"
+}

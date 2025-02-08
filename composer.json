@@ -9,8 +9,8 @@
         "wpreadme2markdown/wp2md": "*"
     },
     "scripts": {
-        "diff": "diff -r . ./congress-volume",
-        "cp-to-volume": "sudo rsync -av --progress --chown=www-data:www-data ./* ./congress-volume/ --exclude node_modules --exclude congress-volume --exclude vendor --exclude docker --exclude .git --exclude .gitignore --exclude congress.zip",
+        "diff": "diff -r . ./congress-volume --exclude vendor --exclude docker --exclude .git --exclude .gitignore --exclude congress.zip --exclude node_modules --exclude build",
+        "cp-to-volume": "sudo rsync -av --progress --chown=www-data:www-data ./* ./congress-volume/ --exclude node_modules --exclude congress-volume --exclude vendor --exclude docker --exclude .git --exclude .gitignore --exclude congress.zip; sudo setfacl -R -m \"u:$(whoami):rwx\" ./congress-volume/;",
         "cp-from-volume": "rsync -av --progress ./congress-volume/* . --exclude node_modules --exclude vendor",
         "format": "prettier --write .",
         "lint:php": "vendor/bin/phpcs --standard=WordPress --extensions=php --ignore=vendor,node_modules,build,congress-volume .",
