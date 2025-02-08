@@ -7,3 +7,6 @@ indent_size = 4
 [*.php]
 indent_style = tab
 indent_size = 4
+
+[*.jsx]
+indent_size = 2
