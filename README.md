@@ -1,6 +1,6 @@
 # Contact Congress Plugin
 
-**Contributors:** (this should be a list of wordpress.org userid's) \
+**Contributors:** rsauers \
 **Donate link:** http://example.com/ \
 **Tags:** comments, spam \
 **Requires at least:** 3.0.1 \
