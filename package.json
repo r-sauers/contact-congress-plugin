@@ -1,0 +1,55 @@
+{
+    "name": "congress",
+    "version": "0.1.0",
+    "description": "A wordpress plugin to contact members of congress",
+    "author": "Ryan Sauers",
+    "license": "GPL-2.0-or-later",
+    "scripts": {
+        "diff": "composer run diff",
+        "cp-to-volume": "composer run cp-to-volume",
+        "cp-from-volume": "composer run cp-from-volume",
+        "format": "composer run format",
+        "lint:php": "composer run lint:php",
+        "fix:php": "composer run fix:php",
+        "lint:js": "composer run lint:js",
+        "fix:js": "composer run fix:js",
+        "lint:css": "composer run lint:css",
+        "fix:css": "composer run fix:css",
+        "lint": "composer run lint",
+        "fix": "composer run fix",
+        "dev": "composer run dev",
+        "build": "composer run build",
+        "packages-update": "composer run packages-update"
+
+    },
+    "dependencies": {
+        "prop-types": "^15.8.1",
+        "postcss": "^8.0.0"
+    },
+    "devDependencies": {
+        "@wordpress/scripts": "^30.10.0",
+        "@eslint/eslintrc": "^3.2.0",
+        "@eslint/js": "^9.19.0",
+        "@prettier/plugin-php": "^0.22.4",
+        "eslint": "^9.20.0",
+        "eslint-config-wordpress": "^2.0.0",
+        "eslint-plugin-react": "^7.37.4",
+        "stylelint": "^13.13.1",
+        "stylelint-config-wordpress": "^17.0.0"
+    },
+    "files": [
+        "uninstall.php",
+        "README.md",
+        "public",
+        "LICENSE.txt",
+        "languages",
+        "includes",
+        "congress.php",
+        "CHANGELOG.md",
+        "admin",
+        "blocks/blocks.php",
+        "blocks/build",
+        "composer.json",
+        "package.json"
+    ]
+}

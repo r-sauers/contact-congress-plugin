@@ -1,0 +1,27 @@
+{
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "require-dev": {
+        "wp-coding-standards/wpcs": "^3.0"
+    },
+    "scripts": {
+        "diff": "diff -r . ./congress-volume",
+        "cp-to-volume": "rsync -av --progress --chown=www-data:www-data ./* ./congress-volume/ --exclude node_modules --exclude congress-volume --exclude vendor --exclude docker --exclude .git --exclude .gitignore",
+        "cp-from-volume": "rsync -av --progress ./congress-volume/* . --exclude node_modules --exclude vendor",
+        "format": "prettier --write .",
+        "lint:php": "vendor/bin/phpcs --standard=WordPress --extensions=php --ignore=vendor,node_modules,build,congress-volume .",
+        "fix:php": "vendor/bin/phpcbf --standard=WordPress --extensions=php --ignore=vendor,node_modules,build,congress-volume .",
+        "lint:js": "npx eslint \"./admin/js/*.js\" \"./public/js/*.js\" \"./blocks/src/*/*.jsx\"",
+        "fix:js": "npx eslint --fix \"./admin/js/*.js\" \"./public/js/*.js\" \"./blocks/src/*/*.jsx\"",
+        "lint:css": "npx stylelint \"./admin/css/*.css\" \"./public/css/*.css\" \"./blocks/src/*/*.css\"",
+        "fix:css": "npx stylelint --fix \"./admin/css/*.css\" \"./public/css/*.css\" \"./blocks/src/*/*.css\"",
+        "lint": ["@lint:php", "@lint:js", "@lint:css"],
+        "fix": ["@fix:php", "@fix:js", "@fix:css"],
+        "dev": "npx wp-scripts start --webpack-copy-php --source-path=./blocks/src --output-path=./blocks/build",
+        "build": "npx wp-scripts build --webpack-copy-php --source-path=./blocks/src --output-path=./blocks/build; npx wp-scripts plugin-zip",
+        "packages-update": "npx wp-scripts packages-update"
+    }
+}
