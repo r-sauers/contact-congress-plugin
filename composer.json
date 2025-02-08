@@ -10,7 +10,7 @@
     },
     "scripts": {
         "diff": "diff -r . ./congress-volume",
-        "cp-to-volume": "rsync -av --progress --chown=www-data:www-data ./* ./congress-volume/ --exclude node_modules --exclude congress-volume --exclude vendor --exclude docker --exclude .git --exclude .gitignore",
+        "cp-to-volume": "sudo rsync -av --progress --chown=www-data:www-data ./* ./congress-volume/ --exclude node_modules --exclude congress-volume --exclude vendor --exclude docker --exclude .git --exclude .gitignore --exclude congress.zip",
         "cp-from-volume": "rsync -av --progress ./congress-volume/* . --exclude node_modules --exclude vendor",
         "format": "prettier --write .",
         "lint:php": "vendor/bin/phpcs --standard=WordPress --extensions=php --ignore=vendor,node_modules,build,congress-volume .",
