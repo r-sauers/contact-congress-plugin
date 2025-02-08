@@ -15,8 +15,7 @@ blocks/yarn-error.log*
 # Coverage directory used by tools like istanbul
 blocks/coverage
 
-# Compiled binary addons (https://nodejs.org/api/addons.html)
-blocks/build/Release
+blocks/build
 
 # Dependency directories
 blocks/node_modules/
