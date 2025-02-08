@@ -1,3 +1,37 @@
 congress-volume
 thoughts.txt
-run.sh
+vendor
+node_modules
+
+
+## Blocks ##
+# Logs
+blocks/logs
+blocks/*.log
+blocks/npm-debug.log*
+blocks/yarn-debug.log*
+blocks/yarn-error.log*
+
+# Coverage directory used by tools like istanbul
+blocks/coverage
+
+# Compiled binary addons (https://nodejs.org/api/addons.html)
+blocks/build/Release
+
+# Dependency directories
+blocks/node_modules/
+
+# Optional npm cache directory
+blocks/.npm
+
+# Optional eslint cache
+blocks/.eslintcache
+
+# Output of `npm pack`
+blocks/*.tgz
+
+# Output of `wp-scripts plugin-zip`
+blocks/*.zip
+
+# dotenv environment variables file
+blocks/.env

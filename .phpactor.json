@@ -1,0 +1,5 @@
+{
+    "php_code_sniffer.enabled": true,
+    "php_code_sniffer.bin": "%project_root%/vendor/bin/phpcs",
+    "php_code_sniffer.args": ["--standard=WordPress", "--ignore=vendor"]
+}
