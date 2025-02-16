@@ -36,7 +36,7 @@ class Congress_Admin_Stacked_Input {
 	 */
 	public static function display( string $id, string $label, string $name, string $value, string $input_type = 'text', string $placeholder = '', string $size = '20' ): void {
 		?>
-		<div class="congress__stacked-input">
+		<div class="congress-stacked-input">
 			<label for='<?php echo esc_attr( $id ); ?>'><?php echo esc_html( $label ); ?></label>
 			<?php
 			if ( strcmp( $input_type, 'state' ) === 0 ) {
