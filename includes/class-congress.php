@@ -168,6 +168,16 @@ class Congress {
 			$plugin_admin,
 			'enqueue_scripts'
 		);
+		$this->loader->add_action(
+			'admin_init',
+			$plugin_admin,
+			'init_settings'
+		);
+		$this->loader->add_action(
+			'admin_menu',
+			$plugin_admin,
+			'init_options_page'
+		);
 	}
 
 	/**
