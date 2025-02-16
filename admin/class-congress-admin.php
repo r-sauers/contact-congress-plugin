@@ -144,10 +144,8 @@ class Congress_Admin {
 
 	/**
 	 * API keys section callback function.
-	 *
-	 * @param array $args  The settings array, defining title, id, callback.
 	 */
-	public function section_api_keys_callback( $args ): void {
+	public function section_api_keys_callback(): void {
 		?>
 		<?php
 	}
@@ -240,7 +238,7 @@ class Congress_Admin {
 
 		// check if the user have submitted the settings.
 		// WordPress will add the "settings-updated" $_GET parameter to the url.
-		if ( isset( $_GET['settings-updated'] ) ) {
+		if ( isset( $_GET['settings-updated'] ) && check_admin_referer( 'update-api-keys' ) ) {
 			// add settings saved message with the class of "updated".
 			add_settings_error( 'congress_messages', 'congress_message', __( 'Settings Saved', 'congress' ), 'updated' );
 		}
@@ -260,6 +258,9 @@ class Congress_Admin {
 
 				// output save settings button.
 				submit_button( 'Save Settings' );
+
+				// nonce for security.
+				wp_nonce_field( 'update-api-keys' );
 				?>
 			</form>
 		</div>
@@ -275,17 +276,6 @@ class Congress_Admin {
 			return;
 		}
 
-		// add error/update messages.
-
-		// check if the user have submitted the settings.
-		// WordPress will add the "settings-updated" $_GET parameter to the url.
-		if ( isset( $_GET['settings-updated'] ) ) {
-			// add settings saved message with the class of "updated".
-			add_settings_error( 'congress_messages', 'congress_message', __( 'Settings Saved', 'congress' ), 'updated' );
-		}
-
-		// show error/update messages.
-		settings_errors( 'congress_messages' );
 		?>
 		<div class="wrap">
 			<?php

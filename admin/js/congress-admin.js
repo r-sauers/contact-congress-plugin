@@ -1,4 +1,4 @@
-(function($) {
+( function( $ ) {
   "use strict";
 
   /**
@@ -47,7 +47,7 @@
       this.addEditingEvents();
     }
     toggleEdit() {
-      this.$el.toggleClass( "congress__editable" );
+      this.$el.toggleClass( "congress-editable" );
     }
     removeTemplate() {
       this.$el.remove();
@@ -97,12 +97,12 @@
       evt.data.this[evt.data.funcName]( evt );
     }
     addEditingEvents() {
-      const $readonlyContainer = this.$el.children( ".congress__official-readonly" ).first();
-      const $editableContainer = this.$el.children( ".congress__official-editable" ).first();
+      const $readonlyContainer = this.$el.children( ".congress-official-readonly" ).first();
+      const $editableContainer = this.$el.children( ".congress-official-editable" ).first();
 
       // enable editing toggling
       $readonlyContainer
-        .find( ".congress__edit-button" )
+        .find( ".congress-edit-button" )
         .first()
         .on( "click", null, {funcName: "toggleEdit", this: this}, this._eventListenerHelper );
 
@@ -119,7 +119,7 @@
 
       // enable representative deletion
       $readonlyContainer
-        .find( ".congress__delete-button" )
+        .find( ".congress-delete-button" )
         .first()
         .on( "click", null, {funcName: "delete", this: this}, this._eventListenerHelper );
     }
@@ -148,14 +148,14 @@
     constructor({ repID, $repContainer }) {
       super();
       this.repID = repID;
-      this.$container = $repContainer.find( ".congress__staffers-list" );
-      this.$template = $( "#congress__staffer-template" );
+      this.$container = $repContainer.find( ".congress-staffers-list" );
+      this.$template = $( "#congress-staffer-template" );
       this.created = false;
     }
     static fromHTML( $el, args ) {
       const staffer = new Staffer( args );
       staffer.$el = $el;
-      staffer.stafferID = $el[0].id.replace( "congress__staffer-", "" );
+      staffer.stafferID = $el[0].id.replace( "congress-staffer-", "" );
       staffer.created = true;
       return staffer;
     }
@@ -185,14 +185,14 @@
     repID;
     constructor() {
       super();
-      this.$container = $( "#congress__reps-container" );
-      this.$template = $( "#congress__rep-template" );
+      this.$container = $( "#congress-reps-container" );
+      this.$template = $( "#congress-rep-template" );
       this.created = false;
     }
     static fromHTML( $el ) {
       const rep = new Rep();
       rep.$el = $el;
-      rep.repID = $el[0].id.replace( "congress__rep-", "" );
+      rep.repID = $el[0].id.replace( "congress-rep-", "" );
       rep.created = true;
       return rep;
     }
@@ -219,13 +219,13 @@
     addEditingEvents() {
       super.addEditingEvents();
       const instance = this;
-      this.$el.find( ".congress__staffer-toggle" ).each( function() {
+      this.$el.find( ".congress-staffer-toggle" ).each( function() {
         $( this ).on( "click", null, instance.$el, instance.toggleStaffers );
       });
     }
     toggleStaffers( evt ) {
       evt.preventDefault();
-      evt.data.toggleClass( "congress__closed" );
+      evt.data.toggleClass( "congress-closed" );
     }
     getID() {
       return this.repID;
@@ -257,12 +257,12 @@
   $( () => {
 
     const repFactory = new OfficialFactory( "rep" );
-    $( "#congress__add-rep-button" ).on( "click", null, repFactory, addOfficial );
+    $( "#congress-add-rep-button" ).on( "click", null, repFactory, addOfficial );
 
-    $( ".congress__rep-container" ).each( function() {
+    $( ".congress-rep-container" ).each( function() {
 
-      const $stafferContainer = $( this ).children( ".congress__staffer-container" ).first();
-      const $staffersList = $stafferContainer.children( ".congress__staffers-list" ).first();
+      const $stafferContainer = $( this ).children( ".congress-staffer-container" ).first();
+      const $staffersList = $stafferContainer.children( ".congress-staffers-list" ).first();
 
       const rep = Rep.fromHTML( $( this ) );
       rep.addEditingEvents();
@@ -272,7 +272,7 @@
         repID: rep.getID(),
         $repContainer: $repContainer
       });
-      $stafferContainer.find( ".congress__add-staffer-button" ).first().on( "click", null, stafferFactory, addOfficial );
+      $stafferContainer.find( ".congress-add-staffer-button" ).first().on( "click", null, stafferFactory, addOfficial );
 
 
       $staffersList.children().each( function() {

@@ -2,81 +2,92 @@
  * All of the CSS for your admin-specific functionality should be
  * included in this file.
  */
-.congress__rep-container {
-    border: 1px solid #CCCCCC;
-    border-radius: 0.5rem;
-    margin-bottom: 1em;
+.congress-rep-container {
+	border: 1px solid #ccc;
+	border-radius: 0.5rem;
+	margin-bottom: 1em;
 }
 
-.congress__rep-container > .congress__official-readonly, .congress__rep-container > .congress__official-editable {
-    padding: 1em;
-    background-color: #E9E9E9;
-    border-bottom: 1px solid #CCCCCC;
-    border-radius: 0.5rem;
-}
-.congress__closed > .congress__rep-readonly {
-    border: none;
-    border-radius: 0.5rem;
+.congress-official-readonly {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
 }
 
-.congress__staffer-container {
-    background-color: #EEEEEE;
-    min-height: 2em;
-    padding: 1em;
-    border-radius: 0.5rem;
-}
-.congress__closed > .congress__staffer-container {
-    display: none;
+.congress-official-editable {
+	display: none;
 }
 
-.congress__official-editable {
-    display: none;
-}
-.congress__editable > .congress__official-editable {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.congress__official-readonly {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.congress__editable > .congress__official-readonly {
-    display: none;
+.congress-rep-container > .congress-official-readonly,
+.congress-rep-container > .congress-official-editable {
+	padding: 1em;
+	background-color: #e9e9e9;
+	border-bottom: 1px solid #ccc;
+	border-radius: 0.5rem;
 }
 
-.congress__icon-button::after {
-    content: "";
-    background-size: contain;
-    width: 1.5em;
-    height: 1.5em;
-    display: inline-block;
-    cursor: pointer;
-}
-.congress__edit-button::after {
-    background-image: url('../icons/edit-icon.svg');
-}
-.congress__delete-button::after {
-    background-image: url('../icons/delete-icon.svg');
-}
-.congress__cancel-button::after {
-    background-image: url('../icons/cancel-icon.svg');
-}
-.congress__confirm-button::after {
-    background-image: url('../icons/confirm-icon.svg');
+.congress-closed > .congress-rep-readonly {
+	border: none;
+	border-radius: 0.5rem;
 }
 
-#congress__add-rep-button {
-    width: 30em;
-    margin-left: 20em;
-    margin-top: 1em;
+.congress-staffer-container {
+	background-color: #eee;
+	min-height: 2em;
+	padding: 1em;
+	border-radius: 0.5rem;
 }
-.congress__add-staffer-button {
-    width: 30%;
-    margin-left: 35% !important;
+
+.congress-closed > .congress-staffer-container {
+	display: none;
 }
-#congress__reps-container {
-    max-width: 70em;
+
+.congress-editable > .congress-official-editable {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.congress-editable > .congress-official-readonly {
+	display: none;
+}
+
+.congress-icon-button::after {
+	content: "";
+	background-size: contain;
+	width: 1.5em;
+	height: 1.5em;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.congress-edit-button::after {
+	background-image: url(../icons/edit-icon.svg);
+}
+
+.congress-delete-button::after {
+	background-image: url(../icons/delete-icon.svg);
+}
+
+.congress-cancel-button::after {
+	background-image: url(../icons/cancel-icon.svg);
+}
+
+.congress-confirm-button::after {
+	background-image: url(../icons/confirm-icon.svg);
+}
+
+#congress-add-rep-button {
+	width: 30em;
+	margin-left: 20em;
+	margin-top: 1em;
+}
+
+.congress-add-staffer-button {
+	width: 30%;
+	margin-left: 35% !important;
+}
+
+#congress-reps-container {
+	max-width: 70em;
 }

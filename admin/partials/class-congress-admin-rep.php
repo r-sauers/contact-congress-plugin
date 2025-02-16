@@ -122,13 +122,13 @@ class Congress_Admin_Rep {
 	public function display( bool $editing = false ): void {
 		?>
 		<div
-			id="<?php echo esc_attr( 'congress__rep-' . $this->rep_id ); ?>"
-			class="congress__rep-container congress__closed <?php echo esc_attr( $editing ? 'congress__editable' : '' ); ?>"
+			id="<?php echo esc_attr( 'congress-rep-' . $this->rep_id ); ?>"
+			class="congress-rep-container congress-closed <?php echo esc_attr( $editing ? 'congress-editable' : '' ); ?>"
 		>
-			<form class="congress__official-editable">
+			<form class="congress-official-editable">
 				<?php
 					Congress_Admin_Stacked_Input::display(
-						id: 'congress__rep-' . $this->rep_id . '-title',
+						id: 'congress-rep-' . $this->rep_id . '-title',
 						label: 'Title',
 						name: 'title',
 						value: $this->title,
@@ -136,28 +136,28 @@ class Congress_Admin_Rep {
 						size: '15',
 					);
 					Congress_Admin_Stacked_Input::display(
-						id: 'congress__rep-' . $this->rep_id . '-first-name',
+						id: 'congress-rep-' . $this->rep_id . '-first-name',
 						label: 'First Name',
 						name: 'first_name',
 						value: $this->first_name,
 						size: '15',
 					);
 					Congress_Admin_Stacked_Input::display(
-						id: 'congress__rep-' . $this->rep_id . '-last_name',
+						id: 'congress-rep-' . $this->rep_id . '-last_name',
 						label: 'Last Name',
 						name: 'last_name',
 						value: $this->last_name,
 						size: '15',
 					);
 					Congress_Admin_Stacked_Input::display(
-						id: 'congress__rep-' . $this->rep_id . '-state',
+						id: 'congress-rep-' . $this->rep_id . '-state',
 						label: 'State',
 						name: 'state',
 						value: $this->state,
 						input_type: 'state',
 					);
 					Congress_Admin_Stacked_Input::display(
-						id: 'congress__rep-' . $this->rep_id . '-district',
+						id: 'congress-rep-' . $this->rep_id . '-district',
 						label: 'District',
 						name: 'district',
 						value: $this->district,
@@ -165,7 +165,7 @@ class Congress_Admin_Rep {
 						size: '4em',
 					);
 					Congress_Admin_Stacked_Input::display(
-						id: 'congress__rep-' . $this->rep_id . '-level',
+						id: 'congress-rep-' . $this->rep_id . '-level',
 						label: 'Level',
 						name: 'level',
 						value: $this->level,
@@ -175,20 +175,20 @@ class Congress_Admin_Rep {
 				?>
 				<input name="repID" value="<?php echo esc_attr( $this->rep_id ); ?>" hidden />
 				<div style="flex-shrink: 0;">
-					<button type="submit" value="confirm" class="congress__confirm-button congress__icon-button"></button>
-					<button type="submit" value="cancel" class="congress__cancel-button congress__icon-button"></button>
+					<button type="submit" value="confirm" class="congress-confirm-button congress-icon-button"></button>
+					<button type="submit" value="cancel" class="congress-cancel-button congress-icon-button"></button>
 				</div>
 			</form>
-			<div class="congress__official-readonly">
+			<div class="congress-official-readonly">
 				<span><?php echo esc_html( "$this->level $this->title $this->first_name $this->last_name ($this->state District $this->district)" ); ?></span>
-				<button class="congress__staffer-toggle button">Staffers &gt;</button>
+				<button class="congress-staffer-toggle button">Staffers &gt;</button>
 				<div>
-					<button class="congress__edit-button congress__icon-button"></button>
-					<button class="congress__delete-button congress__icon-button"></button>
+					<button class="congress-edit-button congress-icon-button"></button>
+					<button class="congress-delete-button congress-icon-button"></button>
 				</div>
 			</div>
-			<div class="congress__staffer-container">
-				<div class="congress__staffers-list">
+			<div class="congress-staffer-container">
+				<div class="congress-staffers-list">
 				<?php
 					$staffer = new Congress_Admin_Staffer(
 						rep_id: '5',
@@ -202,8 +202,8 @@ class Congress_Admin_Rep {
 				?>
 				</div>
 				<button 
-					id="<?php echo esc_attr( 'congress__rep-' . $this->rep_id . '-add-staffer' ); ?>" 
-					class="button button-primary congress__add-staffer-button"
+					id="<?php echo esc_attr( 'congress-rep-' . $this->rep_id . '-add-staffer' ); ?>" 
+					class="button button-primary congress-add-staffer-button"
 				>Add Staffer</button>
 			</div>
 		</div>
@@ -222,10 +222,10 @@ class Congress_Admin_Rep {
 	 * Gets a list of representatives from the DB.
 	 *
 	 * @param string $state is the state code e.g. 'MN'.
-	 * @return array
+	 * @return array<Congress_Admin_Rep>
 	 */
 	public static function get_reps_from_db( string $state = 'all' ): array {
-		return array();
+		return array( $state );
 	}
 
 	/**
@@ -233,10 +233,10 @@ class Congress_Admin_Rep {
 	 *
 	 * @param string $api_key is an api key.
 	 * @param string $state is the state code e.g. 'MN'.
-	 * @return array
+	 * @return array<Congress_Admin_Rep>
 	 */
 	public static function get_reps_from_api( string $api_key, string $state = 'all' ): array {
-		return array();
+		return array( $api_key, $state );
 	}
 }
 ?>
