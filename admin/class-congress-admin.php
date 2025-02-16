@@ -104,4 +104,194 @@ class Congress_Admin {
 			false
 		);
 	}
+
+	/**
+	 * Initializes admin settings for the plugin.
+	 *
+	 * @since 1.0.0
+	 */
+	public function init_settings(): void {
+
+		register_setting( 'congress', 'congress_options' );
+		add_settings_section(
+			'congress_section_api_keys',
+			__( 'Contact Congress API keys', 'congress' ),
+			array( $this, 'section_api_keys_callback' ),
+			'congress'
+		);
+
+		add_settings_field(
+			'congress_field_google',
+			__( 'Google API Key', 'congress' ),
+			array( $this, 'congress_field_google_cb' ),
+			'congress',
+			'congress_section_api_keys',
+			array(
+				'label_for' => 'congress_field_google',
+			)
+		);
+		add_settings_field(
+			'congress_field_democracy',
+			__( 'Democracy.io API Key', 'congress' ),
+			array( $this, 'congress_field_democracy_cb' ),
+			'congress',
+			'congress_section_api_keys',
+			array(
+				'label_for' => 'congress_field_democracy',
+			)
+		);
+	}
+
+	/**
+	 * API keys section callback function.
+	 *
+	 * @param array $args  The settings array, defining title, id, callback.
+	 */
+	public function section_api_keys_callback( $args ): void {
+		?>
+		<?php
+	}
+
+	/**
+	 * Democracy.io API Key callback function.
+	 *
+	 * WordPress has magic interaction with the following keys: label_for, class.
+	 * - the "label_for" key value is used for the "for" attribute of the <label>.
+	 * - the "class" key value is used for the "class" attribute of the <tr> containing the field.
+	 * Note: you can add custom key value pairs to be used inside your callbacks.
+	 *
+	 * @param array $args include "label_for", "class", and custom arguments defined in add_settings_field.
+	 */
+	public function congress_field_democracy_cb( $args ): void {
+		$options = get_option( 'congress_options' );
+		?>
+		<input 
+			id="<?php echo esc_attr( $args['label_for'] ); ?>"
+			type="text"
+			name="congress_options[<?php echo esc_attr( $args['label_for'] ); ?>]"
+			value="<?php echo esc_attr( isset( $options['congress_field_democracy'] ) ? $options['congress_field_democracy'] : '' ); ?>"
+		/>
+		<p class="description">
+			Democracy.io is a service that sends emails to congress members.
+			This plugin cannot send emails to federal representatives without it.
+			Contact <a href="">Democracy.io</a> for an API key.
+		</p>
+		<?php
+	}
+
+	/**
+	 * Google API Key callback function.
+	 *
+	 * WordPress has magic interaction with the following keys: label_for, class.
+	 * - the "label_for" key value is used for the "for" attribute of the <label>.
+	 * - the "class" key value is used for the "class" attribute of the <tr> containing the field.
+	 * Note: you can add custom key value pairs to be used inside your callbacks.
+	 *
+	 * @param array $args include "label_for", "class", and custom arguments defined in add_settings_field.
+	 */
+	public function congress_field_google_cb( $args ): void {
+		$options = get_option( 'congress_options' );
+		?>
+		<input 
+			id="<?php echo esc_attr( $args['label_for'] ); ?>"
+			type="text"
+			name="congress_options[<?php echo esc_attr( $args['label_for'] ); ?>]"
+			value="<?php echo esc_attr( isset( $options['congress_field_google'] ) ? $options['congress_field_google'] : '' ); ?>"
+		/>
+		<p class="description">
+			Google Civic API is a service that identifies representatives using an address
+			This plugin cannot identify someone's representative without it.
+			See <a href="">Google</a> to get an API key.
+		</p>
+		<?php
+	}
+
+	/**
+	 * Add the top level menu page.
+	 */
+	public function init_options_page(): void {
+		add_menu_page(
+			'Congress',
+			'Congress',
+			'manage_options',
+			'congress',
+			array( $this, 'congress_options_page_html' )
+		);
+		add_submenu_page(
+			'congress',
+			'Representatives',
+			'Representatives',
+			'manage_options',
+			'congress_rep',
+			array( $this, 'congress_rep_page_html' )
+		);
+	}
+
+	/**
+	 * Top level menu callback function
+	 */
+	public function congress_options_page_html(): void {
+		// check user capabilities.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		// add error/update messages.
+
+		// check if the user have submitted the settings.
+		// WordPress will add the "settings-updated" $_GET parameter to the url.
+		if ( isset( $_GET['settings-updated'] ) ) {
+			// add settings saved message with the class of "updated".
+			add_settings_error( 'congress_messages', 'congress_message', __( 'Settings Saved', 'congress' ), 'updated' );
+		}
+
+		// show error/update messages.
+		settings_errors( 'congress_messages' );
+		?>
+		<div class="wrap">
+			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+			<form action="options.php" method="post">
+				<?php
+				// output security fields for the registered setting "congress".
+				settings_fields( 'congress' );
+				// output setting sections and their fields.
+				// (sections are registered for "wporg", each field is registered to a specific section).
+				do_settings_sections( 'congress' );
+
+				// output save settings button.
+				submit_button( 'Save Settings' );
+				?>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Representatives menu callback function.
+	 */
+	public function congress_rep_page_html(): void {
+		// check user capabilities.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		// add error/update messages.
+
+		// check if the user have submitted the settings.
+		// WordPress will add the "settings-updated" $_GET parameter to the url.
+		if ( isset( $_GET['settings-updated'] ) ) {
+			// add settings saved message with the class of "updated".
+			add_settings_error( 'congress_messages', 'congress_message', __( 'Settings Saved', 'congress' ), 'updated' );
+		}
+
+		// show error/update messages.
+		settings_errors( 'congress_messages' );
+		?>
+		<div class="wrap">
+			<?php
+				require_once plugin_dir_path( __FILE__ ) . 'partials/congress-admin-rep-display.php';
+			?>
+		</div>
+		<?php
+	}
 }
