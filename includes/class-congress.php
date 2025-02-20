@@ -123,6 +123,12 @@ class Congress {
 		require_once plugin_dir_path( __DIR__ ) .
 			'public/class-congress-public.php';
 
+		/**
+		 * The class responsible for AJAX handlers
+		 */
+		require_once plugin_dir_path( __DIR__ ) .
+			'includes/class-congress-ajax.php';
+
 		$this->loader = new Congress_Loader();
 	}
 
@@ -178,6 +184,14 @@ class Congress {
 			$plugin_admin,
 			'init_options_page'
 		);
+		$congress_ajax = Congress_AJAX::get_instance();
+		foreach ( $congress_ajax->get_admin_handlers() as $handler ) {
+			$this->loader->add_action(
+				'wp_ajax_' . $handler['ajax_name'],
+				$congress_ajax,
+				$handler['func'],
+			);
+		}
 	}
 
 	/**
@@ -203,6 +217,15 @@ class Congress {
 			$plugin_public,
 			'enqueue_scripts'
 		);
+
+		$congress_ajax = Congress_AJAX::get_instance();
+		foreach ( $congress_ajax->get_public_handlers() as $handler ) {
+			$this->loader->add_action(
+				'wp_ajax_nopriv_' . $handler->ajax_name,
+				$congress_ajax,
+				$handler->func,
+			);
+		}
 	}
 
 	/**

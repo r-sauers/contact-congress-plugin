@@ -20,6 +20,12 @@ require_once plugin_dir_path( __FILE__ ) . 'class-congress-admin-stacked-input.p
 require_once plugin_dir_path( __FILE__ ) . 'class-congress-admin-staffer.php';
 
 /**
+ * Imports Table Manager for getting table names;
+ */
+require_once plugin_dir_path( __FILE__ ) .
+	'../../includes/class-congress-table-manager.php';
+
+/**
  * Responsible for displaying representatives in the admin menu.
  */
 class Congress_Admin_Rep {
@@ -125,55 +131,61 @@ class Congress_Admin_Rep {
 			id="<?php echo esc_attr( 'congress-rep-' . $this->rep_id ); ?>"
 			class="congress-rep-container congress-closed <?php echo esc_attr( $editing ? 'congress-editable' : '' ); ?>"
 		>
-			<form class="congress-official-editable">
+			<form class="congress-official-editable congress-rep-edit-form congress-official-edit-form">
 				<?php
-					Congress_Admin_Stacked_Input::display(
-						id: 'congress-rep-' . $this->rep_id . '-title',
-						label: 'Title',
-						name: 'title',
-						value: $this->title,
-						placeholder: 'Senator',
-						size: '15',
-					);
-					Congress_Admin_Stacked_Input::display(
-						id: 'congress-rep-' . $this->rep_id . '-first-name',
-						label: 'First Name',
-						name: 'first_name',
-						value: $this->first_name,
-						size: '15',
-					);
-					Congress_Admin_Stacked_Input::display(
-						id: 'congress-rep-' . $this->rep_id . '-last_name',
-						label: 'Last Name',
-						name: 'last_name',
-						value: $this->last_name,
-						size: '15',
-					);
-					Congress_Admin_Stacked_Input::display(
-						id: 'congress-rep-' . $this->rep_id . '-state',
-						label: 'State',
-						name: 'state',
-						value: $this->state,
-						input_type: 'state',
-					);
-					Congress_Admin_Stacked_Input::display(
-						id: 'congress-rep-' . $this->rep_id . '-district',
-						label: 'District',
-						name: 'district',
-						value: $this->district,
-						input_type: 'number',
-						size: '4em',
-					);
-					Congress_Admin_Stacked_Input::display(
-						id: 'congress-rep-' . $this->rep_id . '-level',
-						label: 'Level',
-						name: 'level',
-						value: $this->level,
-						input_type: 'level',
-					);
+				Congress_Admin_Stacked_Input::display(
+					id: 'congress-rep-' . $this->rep_id . '-title',
+					label: 'Title',
+					name: 'title',
+					value: $this->title,
+					placeholder: 'Senator',
+					size: '15',
+				);
+				Congress_Admin_Stacked_Input::display(
+					id: 'congress-rep-' . $this->rep_id . '-first-name',
+					label: 'First Name',
+					name: 'first_name',
+					value: $this->first_name,
+					size: '15',
+				);
+				Congress_Admin_Stacked_Input::display(
+					id: 'congress-rep-' . $this->rep_id . '-last_name',
+					label: 'Last Name',
+					name: 'last_name',
+					value: $this->last_name,
+					size: '15',
+				);
+				Congress_Admin_Stacked_Input::display(
+					id: 'congress-rep-' . $this->rep_id . '-state',
+					label: 'State',
+					name: 'state',
+					value: $this->state,
+					input_type: 'state',
+				);
+				Congress_Admin_Stacked_Input::display(
+					id: 'congress-rep-' . $this->rep_id . '-district',
+					label: 'District',
+					name: 'district',
+					value: $this->district,
+					input_type: 'number',
+					size: '4em',
+				);
+				Congress_Admin_Stacked_Input::display(
+					id: 'congress-rep-' . $this->rep_id . '-level',
+					label: 'Level',
+					name: 'level',
+					value: $this->level,
+					input_type: 'level',
+				);
+
+				if ( '' === $this->rep_id ) {
+					wp_nonce_field( 'create-rep' );
+				} else {
+					wp_nonce_field( 'edit-rep_' . $this->rep_id );
+				}
 
 				?>
-				<input name="repID" value="<?php echo esc_attr( $this->rep_id ); ?>" hidden />
+				<input type="hidden" name="rep_id" value="<?php echo esc_attr( $this->rep_id ); ?>"/>
 				<div style="flex-shrink: 0;">
 					<button type="submit" value="confirm" class="congress-confirm-button congress-icon-button"></button>
 					<button type="submit" value="cancel" class="congress-cancel-button congress-icon-button"></button>
@@ -184,26 +196,36 @@ class Congress_Admin_Rep {
 				<button class="congress-staffer-toggle button">Staffers &gt;</button>
 				<div>
 					<button class="congress-edit-button congress-icon-button"></button>
-					<button class="congress-delete-button congress-icon-button"></button>
+					<form class="congress-official-delete-form congress-rep-delete-form">
+						<button class="congress-delete-button congress-icon-button"></button>
+						<?php
+						wp_nonce_field( 'delete-rep_' . $this->rep_id );
+						?>
+					</form>
 				</div>
 			</div>
 			<div class="congress-staffer-container">
 				<div class="congress-staffers-list">
 				<?php
-					$staffer = new Congress_Admin_Staffer(
-						rep_id: '5',
-						staffer_id: '6',
-						first_name: 'Frank',
-						last_name: 'jones',
-						position: 'chief of staff',
-						email: 'frank.jones@gov',
-					);
-					$staffer->display();
+				if ( '' !== $this->rep_id ) {
+					$staffers = Congress_Admin_Staffer::get_staffers( $this->rep_id );
+					foreach ( $staffers as $staffer ) {
+						$staffer->display();
+					}
+				}
 				?>
 				</div>
 				<button 
 					id="<?php echo esc_attr( 'congress-rep-' . $this->rep_id . '-add-staffer' ); ?>" 
 					class="button button-primary congress-add-staffer-button"
+					<?php
+					if ( '' !== $this->rep_id ) {
+						$nonce = wp_create_nonce( 'create-staffer_' . $this->rep_id );
+						?>
+						createNonce="<?php echo esc_attr( $nonce ); ?>"
+						<?php
+					}
+					?>
 				>Add Staffer</button>
 			</div>
 		</div>
@@ -225,7 +247,38 @@ class Congress_Admin_Rep {
 	 * @return array<Congress_Admin_Rep>
 	 */
 	public static function get_reps_from_db( string $state = 'all' ): array {
-		return array( $state );
+		global $wpdb;
+		$tablename = Congress_Table_Manager::get_table_name( 'representative' );
+
+		if ( 'all' === $state ) {
+			$result = $wpdb->get_results( // phpcs:ignore
+				"SELECT * FROM $tablename", // phpcs:ignore
+			);
+		} else {
+			$result = $wpdb->get_results( // phpcs:ignore
+				$wpdb->prepare(
+					"SELECT * FROM $tablename WHERE state=%s", // phpcs:ignore
+					array( $state )
+				)
+			);
+		}
+
+		$reps = array();
+		foreach ( $result as $rep_result ) {
+			array_push(
+				$reps,
+				new Congress_Admin_Rep(
+					$rep_result->id,
+					$rep_result->first_name,
+					$rep_result->last_name,
+					$rep_result->title,
+					$rep_result->district,
+					$rep_result->state,
+					$rep_result->level,
+				)
+			);
+		}
+		return $reps;
 	}
 
 	/**
