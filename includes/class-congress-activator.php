@@ -66,6 +66,7 @@ class Congress_Activator {
 			array(
 				'id mediumint(9) NOT NULL AUTO_INCREMENT',
 				'title tinytext NOT NULL',
+				'state tinytext NOT NULL',
 				'district tinytext NOT NULL',
 				'first_name tinytext NOT NULL',
 				'last_name tinytext NOT NULL',

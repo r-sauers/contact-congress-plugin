@@ -28,8 +28,10 @@ require_once plugin_dir_path( __FILE__ ) . 'class-congress-admin-staffer.php';
 	<h1>Representatives</h1>
 	<div id="congress-reps-container">
 		<?php
-			$rep = new Congress_Admin_Rep( first_name: 'Amy', last_name: 'Klobuchar', district: 5, level: 'Federal', rep_id: '5', title: 'Senator', state: 'MN' );
+		$reps = Congress_Admin_Rep::get_reps_from_db();
+		foreach ( $reps as $rep ) {
 			$rep->display();
+		}
 		?>
 	</div>
 	<button id="congress-add-rep-button" class="buttton button-primary">Add Representative</button>

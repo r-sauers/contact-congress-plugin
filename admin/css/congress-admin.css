@@ -14,6 +14,10 @@
 	align-items: center;
 }
 
+.congress-official-readonly > div {
+	display: flex;
+}
+
 .congress-official-editable {
 	display: none;
 }
@@ -50,6 +54,10 @@
 
 .congress-editable > .congress-official-readonly {
 	display: none;
+}
+
+.congress-icon-button {
+	margin: 0.25em;
 }
 
 .congress-icon-button::after {

@@ -48,11 +48,11 @@ class Congress_Admin_Staffer {
 	private string $last_name;
 
 	/**
-	 * The position of the staffer (e.g. Chief of Staff).
+	 * The title of the staffer (e.g. Chief of Staff).
 	 *
-	 * @var string $position
+	 * @var string $title
 	 */
-	private string $position;
+	private string $title;
 
 	/**
 	 * The email of the staffer.
@@ -69,7 +69,7 @@ class Congress_Admin_Staffer {
 	 * @param string $first_name is the staffer's first name.
 	 * @param string $last_name is the staffer's last name.
 	 * @param string $email is the rep's email.
-	 * @param string $position is the staffer's position (e.g. Senator).
+	 * @param string $title is the staffer's title (e.g. Chief of Staff).
 	 */
 	public function __construct(
 		string $rep_id,
@@ -77,14 +77,14 @@ class Congress_Admin_Staffer {
 		string $first_name,
 		string $last_name,
 		string $email,
-		string $position
+		string $title
 	) {
 		$this->rep_id     = $rep_id;
 		$this->staffer_id = $staffer_id;
 		$this->first_name = $first_name;
 		$this->last_name  = $last_name;
 		$this->email      = $email;
-		$this->position   = $position;
+		$this->title      = $title;
 	}
 
 	/**
@@ -97,49 +97,62 @@ class Congress_Admin_Staffer {
 		<div 
 			id="<?php echo esc_attr( 'congress-staffer-' . $this->rep_id . '-' . $this->staffer_id ); ?>"
 			class="congress-staffer-container congress-closed <?php echo esc_attr( $editing ? 'congress-editable' : '' ); ?>">
-			<form class="congress-official-editable">
+			<form class="congress-official-editable congress-official-edit-form congress-staffer-edit-form">
 				<?php
-					Congress_Admin_Stacked_Input::display(
-						id: 'congress-staffer-' . $this->rep_id . '-' . $this->staffer_id . '-first-name',
-						label: 'First Name',
-						name: 'first_name',
-						value: $this->first_name,
-						size: '15',
-					);
-					Congress_Admin_Stacked_Input::display(
-						id: 'congress-staffer-' . $this->rep_id . '-' . $this->staffer_id . '-last-name',
-						label: 'Last Name',
-						name: 'last_name',
-						value: $this->last_name,
-						size: '15',
-					);
-					Congress_Admin_Stacked_Input::display(
-						id: 'congress-staffer-' . $this->rep_id . '-' . $this->staffer_id . '-position',
-						label: 'Position',
-						name: 'position',
-						value: $this->position,
-						placeholder: 'Chief of Staff',
-						size: '20',
-					);
-					Congress_Admin_Stacked_Input::display(
-						id: 'congress-staffer-' . $this->rep_id . '-' . $this->staffer_id . '-email',
-						label: 'Email',
-						name: 'email',
-						value: $this->email,
-						size: '20',
-					);
+				Congress_Admin_Stacked_Input::display(
+					id: 'congress-staffer-' . $this->rep_id . '-' . $this->staffer_id . '-first-name',
+					label: 'First Name',
+					name: 'first_name',
+					value: $this->first_name,
+					size: '15',
+				);
+				Congress_Admin_Stacked_Input::display(
+					id: 'congress-staffer-' . $this->rep_id . '-' . $this->staffer_id . '-last-name',
+					label: 'Last Name',
+					name: 'last_name',
+					value: $this->last_name,
+					size: '15',
+				);
+				Congress_Admin_Stacked_Input::display(
+					id: 'congress-staffer-' . $this->rep_id . '-' . $this->staffer_id . '-title',
+					label: 'Position',
+					name: 'title',
+					value: $this->title,
+					placeholder: 'Chief of Staff',
+					size: '20',
+				);
+				Congress_Admin_Stacked_Input::display(
+					id: 'congress-staffer-' . $this->rep_id . '-' . $this->staffer_id . '-email',
+					label: 'Email',
+					name: 'email',
+					value: $this->email,
+					size: '20',
+				);
+
+				if ( '' === $this->staffer_id ) {
+					wp_nonce_field( 'create-staffer_' . $this->rep_id );
+				} else {
+					wp_nonce_field( 'edit-staffer_' . $this->rep_id . '-' . $this->staffer_id );
+				}
 
 				?>
+				<input type="hidden" name="rep_id" value="<?php echo esc_attr( $this->rep_id ); ?>"/>
+				<input type="hidden" name="staffer_id" value="<?php echo esc_attr( $this->staffer_id ); ?>"/>
 				<div style="flex-shrink: 0;">
 					<button value="confirm" class="congress-confirm-button congress-icon-button"></button>
 					<button value="cancel" class="congress-cancel-button congress-icon-button"></button>
 				</div>
 			</form>
 			<div class="congress-official-readonly">
-				<span><?php echo esc_html( "$this->position $this->first_name $this->last_name" ); ?></span>
+				<span><?php echo esc_html( "$this->title $this->first_name $this->last_name ($this->email)" ); ?></span>
 				<div style="float: right;">
 					<button class="congress-edit-button congress-icon-button"></button>
-					<button class="congress-delete-button congress-icon-button"></button>
+					<form class="congress-official-delete-form congress-staffer-delete-form">
+						<button class="congress-delete-button congress-icon-button"></button>
+						<?php
+						wp_nonce_field( 'delete-staffer_' . $this->rep_id . '-' . $this->staffer_id );
+						?>
+					</form>
 				</div>
 			</div>
 		</div>
@@ -157,11 +170,36 @@ class Congress_Admin_Staffer {
 	/**
 	 * Gets a list of staffers from the database.
 	 *
-	 * @param string $rep_id is the id of the staffer's representative.
+	 * @param int $rep_id is the id of the staffer's representative.
 	 * @return array<Congress_Admin_Staffer>
 	 */
-	public static function get_staffers( string $rep_id ): array {
-		return array( $rep_id );
+	public static function get_staffers( int $rep_id ): array {
+		global $wpdb;
+		$tablename = Congress_Table_Manager::get_table_name( 'staffer' );
+		$result    = $wpdb->get_results( // phpcs:ignore
+			$wpdb->prepare(
+				"SELECT * FROM $tablename WHERE representative=%d", // phpcs:ignore
+				array(
+					$rep_id,
+				)
+			)
+		);
+
+		$staffers = array();
+		foreach ( $result as $staffer_result ) {
+			array_push(
+				$staffers,
+				new Congress_Admin_Staffer(
+					$staffer_result->representative,
+					$staffer_result->id,
+					$staffer_result->first_name,
+					$staffer_result->last_name,
+					$staffer_result->email,
+					$staffer_result->title,
+				)
+			);
+		}
+		return $staffers;
 	}
 }
 

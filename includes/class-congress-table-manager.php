@@ -74,7 +74,8 @@ class Congress_Table_Manager {
 	 * @param string $name is the name of the table.
 	 */
 	public static function delete_table( string $name ): void {
+		global $wpdb;
 		$table_name = self::get_table_name( $name );
-		dbDelta( "DROP TABLE $table_name" );
+		$wpdb->query( "DROP TABLE IF EXISTS $table_name;" ); // phpcs:ignore
 	}
 }

@@ -19,9 +19,23 @@ class Congress_Admin_Stacked_Input {
 	 *
 	 * @var array $states
 	 */
-	private static array $states = array(
-		'MN',
-	);
+	private static array $states = array( 'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY' );
+
+
+	/**
+	 * Draws select option tags.
+	 *
+	 * @param array<string> $options is an array of option text.
+	 * @param string        $value is the sleect value.
+	 */
+	private static function display_select_options( array $options, string $value ): void {
+		foreach ( $options as $option ) {
+			?>
+			<option <?php echo esc_html( $option === $value ? 'selected' : '' ); ?>
+				><?php echo esc_html( $option ); ?></option>
+			<?php
+		}
+	}
 
 	/**
 	 * Displays an input field with small label text above.
@@ -47,11 +61,7 @@ class Congress_Admin_Stacked_Input {
 						value='<?php echo esc_attr( $value ); ?>'
 					>
 						<?php
-						foreach ( self::$states as $state ) {
-							?>
-							<option><?php echo esc_html( $state ); ?></option>
-							<?php
-						}
+							self::display_select_options( self::$states, $value );
 						?>
 					</select>
 				<?php
@@ -62,8 +72,15 @@ class Congress_Admin_Stacked_Input {
 						name='<?php echo esc_attr( $name ); ?>'
 						value='<?php echo esc_attr( $value ); ?>'
 					>
-						<option>Federal</option>
-						<option>State</option>
+						<?php
+						self::display_select_options(
+							array(
+								'Federal',
+								'State',
+							),
+							$value,
+						);
+						?>
 					</select>
 				<?php
 			} else {
