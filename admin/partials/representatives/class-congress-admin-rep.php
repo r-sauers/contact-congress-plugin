@@ -12,7 +12,7 @@
 /**
  * A component for stacked inputs in forms.
  */
-require_once plugin_dir_path( __FILE__ ) . 'class-congress-admin-stacked-input.php';
+require_once plugin_dir_path( __FILE__ ) . '../class-congress-admin-stacked-input.php';
 
 /**
  * A component for staffers.
@@ -23,7 +23,7 @@ require_once plugin_dir_path( __FILE__ ) . 'class-congress-admin-staffer.php';
  * Imports Table Manager for getting table names;
  */
 require_once plugin_dir_path( __FILE__ ) .
-	'../../includes/class-congress-table-manager.php';
+	'../../../includes/class-congress-table-manager.php';
 
 /**
  * Responsible for displaying representatives in the admin menu.
@@ -133,7 +133,7 @@ class Congress_Admin_Rep {
 		>
 			<form class="congress-official-editable congress-rep-edit-form congress-official-edit-form">
 				<?php
-				Congress_Admin_Stacked_Input::display(
+				Congress_Admin_Stacked_Input::display_text(
 					id: 'congress-rep-' . $this->rep_id . '-title',
 					label: 'Title',
 					name: 'title',
@@ -141,41 +141,42 @@ class Congress_Admin_Rep {
 					placeholder: 'Senator',
 					size: '15',
 				);
-				Congress_Admin_Stacked_Input::display(
+				Congress_Admin_Stacked_Input::display_text(
 					id: 'congress-rep-' . $this->rep_id . '-first-name',
 					label: 'First Name',
 					name: 'first_name',
 					value: $this->first_name,
 					size: '15',
 				);
-				Congress_Admin_Stacked_Input::display(
+				Congress_Admin_Stacked_Input::display_text(
 					id: 'congress-rep-' . $this->rep_id . '-last_name',
 					label: 'Last Name',
 					name: 'last_name',
 					value: $this->last_name,
 					size: '15',
 				);
-				Congress_Admin_Stacked_Input::display(
+				Congress_Admin_Stacked_Input::display_state_dropdown(
 					id: 'congress-rep-' . $this->rep_id . '-state',
 					label: 'State',
 					name: 'state',
 					value: $this->state,
-					input_type: 'state',
 				);
-				Congress_Admin_Stacked_Input::display(
+				Congress_Admin_Stacked_Input::display_number(
 					id: 'congress-rep-' . $this->rep_id . '-district',
 					label: 'District',
 					name: 'district',
 					value: $this->district,
-					input_type: 'number',
 					size: '4em',
 				);
-				Congress_Admin_Stacked_Input::display(
+				Congress_Admin_Stacked_Input::display_dropdown(
 					id: 'congress-rep-' . $this->rep_id . '-level',
 					label: 'Level',
 					name: 'level',
 					value: $this->level,
-					input_type: 'level',
+					options: array(
+						'Federal',
+						'State',
+					),
 				);
 
 				if ( '' === $this->rep_id ) {

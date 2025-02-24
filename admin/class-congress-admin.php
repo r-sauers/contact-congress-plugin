@@ -96,13 +96,23 @@ class Congress_Admin {
 		 * class.
 		 */
 
-		wp_enqueue_script(
-			$this->congress,
-			plugin_dir_url( __FILE__ ) . 'js/congress-admin.js',
-			array( 'jquery' ),
-			$this->version,
-			false
-		);
+		if ( isset( $_GET['page'] ) && 'congress_rep' === $_GET['page'] ) { // phpcs:ignore
+			wp_enqueue_script(
+				$this->congress,
+				plugin_dir_url( __FILE__ ) . 'js/congress-admin-rep.js',
+				array( 'jquery' ),
+				$this->version,
+				false
+			);
+		} elseif ( isset( $_GET['page'] ) && 'congress_campaign' === $_GET['page'] ) { // phpcs:ignore
+			wp_enqueue_script(
+				$this->congress,
+				plugin_dir_url( __FILE__ ) . 'js/congress-admin-campaign.js',
+				array( 'jquery' ),
+				$this->version,
+				false
+			);
+		}
 	}
 
 	/**
@@ -217,6 +227,14 @@ class Congress_Admin {
 		);
 		add_submenu_page(
 			'congress',
+			'Campaigns',
+			'Campaigns',
+			'manage_options',
+			'congress_campaign',
+			array( $this, 'congress_campaign_page_html' )
+		);
+		add_submenu_page(
+			'congress',
 			'Representatives',
 			'Representatives',
 			'manage_options',
@@ -279,7 +297,25 @@ class Congress_Admin {
 		?>
 		<div class="wrap">
 			<?php
-				require_once plugin_dir_path( __FILE__ ) . 'partials/congress-admin-rep-display.php';
+				require_once plugin_dir_path( __FILE__ ) . 'partials/representatives/congress-admin-rep-display.php';
+			?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Campaigns menu callback function.
+	 */
+	public function congress_campaign_page_html(): void {
+		// check user capabilities.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		?>
+		<div class="wrap">
+			<?php
+				require_once plugin_dir_path( __FILE__ ) . 'partials/campaigns/congress-admin-campaign-display.php';
 			?>
 		</div>
 		<?php
