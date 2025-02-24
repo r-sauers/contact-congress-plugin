@@ -2,47 +2,78 @@
  * All of the CSS for your admin-specific functionality should be
  * included in this file.
  */
-.congress-rep-container {
-	border: 1px solid #ccc;
-	border-radius: 0.5rem;
-	margin-bottom: 1em;
+:root {
+	--congress-border-color: #ccc;
+	--congress-border-color-dark: #aaa;
+	--congress-hover-color: #d6d6d6;
+	--congress-bg-color: #e6e6e6;
+	--congress-bg-color-light: #eee;
+	--congress-bg-color-lighter: #f6f6f6;
+	--congress-bg-color-lightest: #fdfdfd;
+	--congress-danger: #b61616;
 }
 
-.congress-official-readonly {
+.congress-official-readonly,
+.congress-card-header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-}
-
-.congress-official-readonly > div {
-	display: flex;
 }
 
 .congress-official-editable {
 	display: none;
 }
 
-.congress-rep-container > .congress-official-readonly,
-.congress-rep-container > .congress-official-editable {
-	padding: 1em;
-	background-color: #e9e9e9;
-	border-bottom: 1px solid #ccc;
+
+.congress-rep-container,
+.congress-card {
+	border: 1px solid var(--congress-border-color);
 	border-radius: 0.5rem;
+	margin-bottom: 1em;
+
+	& > .congress-official-readonly,
+	& > .congress-official-editable,
+	& > .congress-card-header {
+		padding: 1em;
+		background-color: var(--congress-bg-color);
+		border-bottom: 1px solid var(--congress-border-color);
+		border-radius: 0.5rem;
+
+	}
 }
 
-.congress-closed > .congress-rep-readonly {
+.congress-hidden {
+	display: none;
+}
+
+.congress-campaign-top-body {
+	display: flex;
+
+	& > * {
+		width: 50%;
+	}
+}
+
+.congress-official-readonly > div {
+	display: flex;
+}
+
+.congress-closed > .congress-rep-readonly,
+.congress-card.congress-closed > .congress-card-header {
 	border: none;
 	border-radius: 0.5rem;
 }
 
-.congress-staffer-container {
-	background-color: #eee;
+.congress-staffer-container,
+.congress-card-body {
+	background-color: var(--congress-bg-color-light);
 	min-height: 2em;
 	padding: 1em;
 	border-radius: 0.5rem;
 }
 
-.congress-closed > .congress-staffer-container {
+.congress-closed > .congress-staffer-container,
+.congress-closed > .congress-card-body {
 	display: none;
 }
 
@@ -98,4 +129,150 @@
 
 #congress-reps-container {
 	max-width: 70em;
+}
+
+.congress-nav {
+	display: flex;
+	justify-content: flex-start;
+	background-color: var(--congress-bg-color-light);
+	margin: 0;
+
+	a {
+		border-block: 1px solid var(--congress-border-color-dark);
+		border-inline: none;
+		background-color: var(--congress-bg-color);
+		color: #000;
+		display: inline-block;
+		padding: 0.5em 2em;
+		font-weight: 400;
+		font-size: 1.1em;
+		-webkit-touch-callout: none; /* iOS Safari */
+		-webkit-user-select: none; /* Safari */
+		-khtml-user-select: none; /* Konqueror HTML */
+		-moz-user-select: none; /* Old versions of Firefox */
+		-ms-user-select: none; /* Internet Explorer/Edge */
+		user-select: none; /* Non-prefixed version, currently
+                        supported by Chrome, Edge, Opera and Firefox */
+		&.congress-active {
+			background-color: var(--congress-bg-color-lightest);
+			font-weight: 600;
+			border-bottom: 1px solid var(--congress-bg-color-lightest);
+			border-inline: 1px solid var(--congress-border-color-dark);
+		}
+
+		&:hover {
+			background-color: var(--congress-bg-color-lighter);
+			cursor: pointer;
+		}
+
+		&:active {
+			background-color: var(--congress-bg-color-lightest);
+		}
+
+		li:nth-last-child(2) > & {
+			border-right: 1px solid var(--congress-border-color-dark);
+		}
+
+		li:first-child > & {
+			border-left: 1px solid var(--congress-border-color-dark);
+		}
+	}
+
+	li {
+		display: inline-block;
+		margin: 0;
+
+		&:last-child {
+			border-bottom: 1px solid var(--congress-border-color-dark);
+			flex-grow: 1;
+		}
+	}
+}
+
+.congress-form-group {
+	display: block;
+	margin-block: 0.75em;
+
+	label {
+		display: inline-block;
+		width: 15%;
+		font-size: 1.2em;
+	}
+
+	input,
+	select {
+		display: inline-block;
+		width: 30%;
+	}
+
+	button {
+		margin-left: 7.5% !important;
+		width: 30%;
+	}
+}
+
+.congress-campaign-pages-container {
+	background-color: var(--congress-bg-color-lightest);
+	margin-block: 1em;
+	margin-inline: 2em;
+}
+
+.congress-campaign-page-container {
+	padding: 1em;
+	padding-top: 2em;
+	border-inline: 1px solid var(--congress-border-color-dark);
+	border-bottom: 1px solid var(--congress-border-color-dark);
+
+	& ul {
+		border-top: 1px solid var(--congress-border-color);
+		max-height: 50vh;
+		overflow: scroll;
+		background-color: var(--congress-bg-color-lighter);
+		margin-inline: -1em;
+		margin-top: 1em;
+		margin-bottom: -1em;
+	}
+}
+
+.congress-stacked-input {
+	display: flex;
+	flex-direction: column;
+
+	label {
+		margin-left: 0.25em;
+		max-width: 30em;
+	}
+
+	input,
+	select {
+		max-width: 30em;
+	}
+}
+
+.congress-flex-row {
+	display: flex;
+	gap: 2em;
+
+	* {
+		flex-grow: 1;
+	}
+}
+
+.congress-campaign-email-container {
+	padding: 1em;
+
+	& > h3 {
+		margin-top: 0;
+	}
+}
+
+li:not(:last-child) > .congress-campaign-email-container {
+	border-bottom: 1px solid var(--congress-border-color);
+	padding-bottom: 1em;
+}
+
+.congress-button-danger {
+	background-color: var(--congress-danger) !important;
+	border-color: var(--congress-danger) !important;
+	color: #fff !important;
 }
