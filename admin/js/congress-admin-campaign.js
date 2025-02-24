@@ -29,8 +29,18 @@
    * practising this, we should strive to set a better example in our own work.
    */
 
+  /**
+   * Holds state for campaign pages.
+   *
+   * Key is the campaignID, and the value is an obect containing the current page's body and link ($page, $link).
+   */
   const currentPages = {};
 
+  /**
+   * Handles switching the page in a campaign.
+   *
+   * @param evt {jQueryEvent} A jQuery event with a data object containing the campaign $page, $link, and campaignID.
+   */
   function switchCampaignPage( evt ) {
     evt.data.$page.toggleClass( "congress-hidden" );
     evt.data.$link.toggleClass( "congress-active" );
@@ -42,6 +52,11 @@
     };
   }
 
+  /**
+   * Sets the page for the campaign, and adds event listeners for page switches.
+   *
+   * @param {HTMLLIElement} li is the campaign list element.
+   */
   function initCampaignPage( li ) {
 
       const campaignID = parseInt( li.id.match( /congress-campaign-(\d*)/ )[1]);
@@ -90,9 +105,53 @@
       }
   }
 
+  /**
+   * Handles toggling a campaign to expand/collapse.
+   *
+   * @param evt {jQueryEvent} A jQuery event with a data object containing the campaign $toggle and $body.
+   */
+  function onCampaignExpandToggle( evt ) {
+    const $toggle = evt.data.$toggle;
+    const $body = evt.data.$body;
+    const isHidden = ! $body.hasClass( "congress-hidden" );
+
+    $body.toggleClass( "congress-hidden", isHidden );
+    if ( isHidden ) {
+      $toggle.text( "More >" );
+    } else {
+      $toggle.text( "Less ^" );
+    }
+
+  }
+
+  /**
+   * Collapses the campaign, and add an event listener.
+   *
+   * @param {HTMLLIElement} li is the campaign list element.
+   */
+  function initCampaignExpand( li ) {
+
+    const $toggle = $( li ).find( ".congress-campaign-toggle" ).first();
+    const $body = $( li ).find( ".congress-card-body" ).first();
+    const data = {
+      $toggle: $toggle,
+      $body: $body
+    };
+    const isHidden = $body.hasClass( "congress-hidden" );
+
+    if ( isHidden ) {
+      $toggle.text( "More >" );
+    } else {
+      $toggle.text( "Less ^" );
+    }
+    $toggle.on( "click", null, data, onCampaignExpandToggle );
+
+  }
+
   $( () => {
     $( "#congress-active-campaigns-container > .congress-campaign-list > li" ).each( function() {
-      initCampaignPage( li );
+      initCampaignPage( this );
+      initCampaignExpand( this );
     });
 
   });
