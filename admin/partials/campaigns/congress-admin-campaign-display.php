@@ -29,11 +29,13 @@ $display_campaign_type = 'active';
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
 <div>
 	<h1>Campaigns
-		<select>
+		<select id="congress-campaign-archive-toggle">
 			<option 
+				value="active"
 				<?php echo esc_attr( 'active' === $display_campaign_type ? 'selected' : '' ); ?>
 			>Active</option>
 			<option
+				value="archived"
 				<?php echo esc_attr( 'archived' === $display_campaign_type ? 'selected' : '' ); ?>
 			>Archived</option>
 		</select>
