@@ -148,11 +148,56 @@
 
   }
 
+  /**
+   * Handles switching the page to show 'archived' or 'active' campaigns.
+   *
+   * @param evt {jQueryEvent} A jQuery event with a data object containing the $dropdown, $archiveContainer, and $activeContainer.
+   */
+  function onArchiveToggle( evt ) {
+    const $dropdown = evt.data.$dropdown;
+    const $archiveContainer = evt.data.$archiveContainer;
+    const $activeContainer = evt.data.$activeContainer;
+
+    if ( "active" === $dropdown[0].value ) {
+      $activeContainer.toggleClass( "congress-hidden", false );
+      $archiveContainer.toggleClass( "congress-hidden", true );
+    } else {
+      $activeContainer.toggleClass( "congress-hidden", true );
+      $archiveContainer.toggleClass( "congress-hidden", false );
+    }
+  }
+
+  /**
+   * Displays the current page, hides the other page, and adds an event listener.
+   */
+  function initArchiveToggle() {
+    const $dropdown = $( "#congress-campaign-archive-toggle" ).first();
+    const $activeContainer = $( "#congress-active-campaigns-container" ).first();
+    const $archiveContainer = $( "#congress-archived-campaigns-container" ).first();
+    const data = {
+      $dropdown,
+      $activeContainer,
+      $archiveContainer
+    };
+
+    if ( "active" === $dropdown[0].value ) {
+      $activeContainer.toggleClass( "congress-hidden", false );
+      $archiveContainer.toggleClass( "congress-hidden", true );
+    } else {
+      $activeContainer.toggleClass( "congress-hidden", true );
+      $archiveContainer.toggleClass( "congress-hidden", false );
+    }
+
+    $dropdown.on( "input", null, data, onArchiveToggle );
+
+  }
+
   $( () => {
     $( "#congress-active-campaigns-container > .congress-campaign-list > li" ).each( function() {
       initCampaignPage( this );
       initCampaignExpand( this );
     });
+    initArchiveToggle();
 
   });
 
