@@ -42,14 +42,14 @@
     };
   }
 
-  $( () => {
-    $( "#congress-active-campaigns-container > .congress-campaign-list > li" ).each( function() {
-      const campaignID = parseInt( this.id.match( /congress-campaign-(\d*)/ )[1]);
-      const $pages = $( this )
+  function initCampaignPage( li ) {
+
+      const campaignID = parseInt( li.id.match( /congress-campaign-(\d*)/ )[1]);
+      const $pages = $( li )
         .find( ".congress-campaign-pages-container" )
         .first()
         .children( ".congress-campaign-page-container" );
-      const $links = $( this )
+      const $links = $( li )
         .find( ".congress-nav" )
         .first()
         .find( "a" );
@@ -88,6 +88,11 @@
         }
 
       }
+  }
+
+  $( () => {
+    $( "#congress-active-campaigns-container > .congress-campaign-list > li" ).each( function() {
+      initCampaignPage( li );
     });
 
   });
