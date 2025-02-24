@@ -12,7 +12,13 @@
 /**
  * A component for stacked inputs in forms.
  */
-require_once plugin_dir_path( __FILE__ ) . 'class-congress-admin-stacked-input.php';
+require_once plugin_dir_path( __FILE__ ) . '../class-congress-admin-stacked-input.php';
+
+/**
+ * Imports Table Manager for getting table names;
+ */
+require_once plugin_dir_path( __FILE__ ) .
+	'../../../includes/class-congress-table-manager.php';
 
 /**
  * Responsible for displaying staffers in the admin menu.
@@ -99,21 +105,21 @@ class Congress_Admin_Staffer {
 			class="congress-staffer-container congress-closed <?php echo esc_attr( $editing ? 'congress-editable' : '' ); ?>">
 			<form class="congress-official-editable congress-official-edit-form congress-staffer-edit-form">
 				<?php
-				Congress_Admin_Stacked_Input::display(
+				Congress_Admin_Stacked_Input::display_text(
 					id: 'congress-staffer-' . $this->rep_id . '-' . $this->staffer_id . '-first-name',
 					label: 'First Name',
 					name: 'first_name',
 					value: $this->first_name,
 					size: '15',
 				);
-				Congress_Admin_Stacked_Input::display(
+				Congress_Admin_Stacked_Input::display_text(
 					id: 'congress-staffer-' . $this->rep_id . '-' . $this->staffer_id . '-last-name',
 					label: 'Last Name',
 					name: 'last_name',
 					value: $this->last_name,
 					size: '15',
 				);
-				Congress_Admin_Stacked_Input::display(
+				Congress_Admin_Stacked_Input::display_text(
 					id: 'congress-staffer-' . $this->rep_id . '-' . $this->staffer_id . '-title',
 					label: 'Position',
 					name: 'title',
@@ -121,7 +127,7 @@ class Congress_Admin_Staffer {
 					placeholder: 'Chief of Staff',
 					size: '20',
 				);
-				Congress_Admin_Stacked_Input::display(
+				Congress_Admin_Stacked_Input::display_email(
 					id: 'congress-staffer-' . $this->rep_id . '-' . $this->staffer_id . '-email',
 					label: 'Email',
 					name: 'email',
