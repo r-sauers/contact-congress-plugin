@@ -1,6 +1,5 @@
 ( function( $ ) {
   "use strict";
-  alert( "hello world!" );
 
   /**
    * All of the code for your public-facing JavaScript source
