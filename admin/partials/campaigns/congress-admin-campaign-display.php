@@ -21,6 +21,11 @@ require plugin_dir_path( __FILE__ ) . 'class-congress-admin-archived-campaign.ph
  */
 require plugin_dir_path( __FILE__ ) . 'class-congress-admin-active-campaign.php';
 
+/**
+ * A component for stacked inputs in forms.
+ */
+require_once plugin_dir_path( __FILE__ ) . '../class-congress-admin-stacked-input.php';
+
 $display_campaign_type = 'active';
 
 ?>
@@ -44,17 +49,49 @@ $display_campaign_type = 'active';
 		id="congress-active-campaigns-container" 
 		class="<?php echo esc_attr( 'active' === $display_campaign_type ? '' : 'congress-hidden' ); ?>"
 	>
+		<form id="congress-campaign-add" class="congress-inline-form-group">
+			<button type="submit" class="button button-primary">Add Campaign</button>
+			<?php
+			Congress_Admin_Stacked_Input::display_dropdown(
+				id: 'congress-campaign-add-level',
+				label: 'Level',
+				name: 'level',
+				value: 'federal',
+				options: array(
+					array(
+						'label' => 'Federal',
+						'value' => 'federal',
+					),
+					array(
+						'label' => 'State',
+						'value' => 'state',
+					),
+				),
+			);
+			wp_nonce_field( 'create-campaign' );
+			Congress_Admin_Stacked_Input::display_text(
+				id: 'congress-campaign-add-name',
+				label: 'Campaign Name',
+				name: 'name',
+				value: '',
+			);
+			?>
+		</form>
 		<ul class="congress-campaign-list">
 		<?php
-		$campaign = new Congress_Admin_Active_Campaign( 0, 'EATS Act', 'Federal', 12 );
-		?>
+		$campaigns = Congress_Admin_Active_Campaign::get_from_db();
+		foreach ( $campaigns as $campaign ) {
+			?>
 			<li id="<?php echo esc_attr( 'congress-campaign-' . $campaign->get_id() ); ?>">
 			<?php
-			$campaign->display( true );
+				$campaign->display( false );
 			?>
 			</li>
+			<?php
+
+		}
+		?>
 		</ul>
-		<button>Add Campaign</button>
 	</div>
 	<div
 		id="congress-archived-campaigns-container"
