@@ -146,6 +146,7 @@
 		padding: 0.5em 2em;
 		font-weight: 400;
 		font-size: 1.1em;
+		text-decoration: none;
 		-webkit-touch-callout: none; /* iOS Safari */
 		-webkit-user-select: none; /* Safari */
 		-khtml-user-select: none; /* Konqueror HTML */
@@ -165,7 +166,14 @@
 			cursor: pointer;
 		}
 
-		&:active {
+		&:focus {
+			box-shadow: none;
+			outline: none;
+			border: 1px solid #000 !important;
+		}
+
+		&:active,
+		&:focus {
 			background-color: var(--congress-bg-color-lightest);
 		}
 
@@ -275,4 +283,53 @@ li:not(:last-child) > .congress-campaign-email-container {
 	background-color: var(--congress-danger) !important;
 	border-color: var(--congress-danger) !important;
 	color: #fff !important;
+}
+
+.congress-inline-form-group {
+	--radius: 0.4em;
+	display: flex;
+	align-items: flex-end;
+
+	button {
+		height: 1em;
+	}
+
+	input,
+	select,
+	button {
+		border-radius: 0;
+	}
+
+	* {
+		margin: 0;
+	}
+
+	& > *:last-child input,
+	& > *:last-child select,
+	& > *:last-child button,
+	& > input:last-child,
+	& > select:last-child,
+	& > button:last-child {
+		border-bottom-right-radius: var(--radius);
+		border-top-right-radius: var(--radius);
+		border-bottom-left-radius: 0;
+		border-top-left-radius: 0;
+	}
+
+	& > *:first-child input,
+	& > *:first-child select,
+	& > *:first-child button,
+	& > input:first-child,
+	& > select:first-child,
+	& > button:first-child {
+		border-bottom-right-radius: 0;
+		border-top-right-radius: 0;
+		border-bottom-left-radius: var(--radius);
+		border-top-left-radius: var(--radius);
+	}
+}
+
+#congress-campaign-add {
+	margin-block: 4em;
+	justify-content: center;
 }

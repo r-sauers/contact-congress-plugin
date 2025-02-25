@@ -86,6 +86,10 @@ class Congress_AJAX {
 				'ajax_name' => 'update_staffer',
 				'func'      => 'update_staffer',
 			),
+			array(
+				'ajax_name' => 'add_campaign',
+				'func'      => 'insert_campaign',
+			),
 		);
 	}
 
@@ -651,5 +655,77 @@ class Congress_AJAX {
 		}
 
 		wp_send_json( $result );
+	}
+
+	/**
+	 * Handles AJAX requests to add campaigns to the table.
+	 * Sends a JSON response with the id and nonces.
+	 */
+	public function insert_campaign(): void {
+
+		if (
+			! isset( $_POST['name'] ) ||
+			! isset( $_POST['level'] )
+		) {
+			wp_send_json(
+				array(
+					'error' => 'Missing parameters',
+				),
+				400
+			);
+		}
+
+		if ( ! check_ajax_referer( 'create-campaign', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+		}
+
+		global $wpdb;
+
+		$tablename = Congress_Table_Manager::get_table_name( 'campaign' );
+		// phpcs:ignore
+		$result    = $wpdb->insert(
+			$tablename,
+			array(
+				'name'  => sanitize_text_field(
+					wp_unslash( $_POST['name'] ),
+				),
+				'level' => sanitize_text_field(
+					wp_unslash( $_POST['level'] ),
+				),
+			)
+		);
+
+		if ( false === $result ) {
+			wp_send_json(
+				array(
+					'error' => 'DB error',
+				),
+				500
+			);
+		}
+
+		if ( 0 === $result ) {
+			wp_send_json(
+				array(
+					'error' => 'Malformed request.',
+				),
+				400
+			);
+		}
+
+		$campaign_id = $wpdb->insert_id;
+
+		wp_send_json(
+			array(
+				'id'           => $campaign_id,
+				'editNonce'    => wp_create_nonce( "edit-campaign_$campaign_id" ),
+				'archiveNonce' => wp_create_nonce( "archive-campaign_$campaign_id" ),
+			)
+		);
 	}
 }

@@ -30,121 +30,297 @@
    */
 
   /**
-   * Holds state for campaign pages.
+   * Extension of string to transform text to Proper Case e.g. 'hello world' => 'Hello World'.
    *
-   * Key is the campaignID, and the value is an obect containing the current page's body and link ($page, $link).
+   * Credit To: https://stackoverflow.com/questions/196972/convert-string-to-title-case-with-javascript
    */
-  const currentPages = {};
+  String.prototype.toProperCase = function() {
+      return this.replace( /\w\S*/g, function( txt ) {
+        return txt.charAt( 0 ).toUpperCase() + txt.slice( 1 ).toLowerCase();
+      });
+  };
 
   /**
-   * Handles switching the page in a campaign.
-   *
-   * @param evt {jQueryEvent} A jQuery event with a data object containing the campaign $page, $link, and campaignID.
+   * The Campaign class helps initialize html and event handlers, and it
+   * also helps carry state across different events.
    */
-  function switchCampaignPage( evt ) {
-    evt.data.$page.toggleClass( "congress-hidden" );
-    evt.data.$link.toggleClass( "congress-active" );
-    currentPages[ evt.data.campaignID ].$page.toggleClass( "congress-hidden" );
-    currentPages[ evt.data.campaignID ].$link.toggleClass( "congress-active" );
-    currentPages[ evt.data.campaignID ] = {
-      $page: evt.data.$page,
-      $link: evt.data.$link
-    };
-  }
+  class Campaign {
 
-  /**
-   * Sets the page for the campaign, and adds event listeners for page switches.
-   *
-   * @param {HTMLLIElement} li is the campaign list element.
-   */
-  function initCampaignPage( li ) {
+    /**
+     * Generates a Campaign from html drawn by the server.
+     *
+     * @param {jQueryElement} $li is the root of the campaign's DOM.
+     * @return {Campaign} campaign
+     */
+    static fromHTML( $li ) {
+      const id = $li[0].id.match( /congress-campaign-(\d*)/ )[1];
+      const form = $li.find( ".congress-campaign-edit-form" )[0];
+      const name = form.name.value;
+      const level = form.level.value;
+      const campaign = new Campaign( id, name, level, $li );
+      campaign.changePage( "edit" );
+      return campaign;
+    }
 
-      const campaignID = parseInt( li.id.match( /congress-campaign-(\d*)/ )[1]);
-      const $pages = $( li )
-        .find( ".congress-campaign-pages-container" )
-        .first()
-        .children( ".congress-campaign-page-container" );
-      const $links = $( li )
-        .find( ".congress-nav" )
-        .first()
-        .find( "a" );
+    /**
+     * Generates a Campaign by sending a create request to the server.
+     *
+     * @param {FormData} formData is the form data for the create campaign form.
+     *
+     * @returns {Promise<Campaign>}
+     */
+    static fromCreateRequest( formData ) {
+      return new Promise( ( res ) => {
+        $.post(
+          ajaxurl,
+          {
+            action: "add_campaign",
+            name: formData.get( "name" ),
+            level: formData.get( "level" ),
+            _wpnonce: formData.get( "_wpnonce" )
+          },
+          function({ id, editNonce, archiveNonce }) {
+            const template = Campaign.createTemplate();
+            const container = Campaign.getContainer();
+            const li = document.createElement( "li" );
+            li.append( template );
+            container.prepend( li );
 
-      if ( $pages.length != $links.length ) {
-        throw "There is not 1 link for every campaign page!";
-      }
+            const campaign = new Campaign( id, formData.get( "name" ), formData.get( "level" ), $( li ) );
+            campaign.changePage( "templates" );
+            campaign.toggleExpansion( false );
+            campaign.setHeader();
 
-      for ( let i = 0; i < $pages.length; i++ ) {
-        const $page = $( $pages[i]);
-        const $link = $( $links[i]);
+            res( campaign );
+
+          }
+        );
+      });
+    }
+
+    /**
+     * Gets the container that campaign elements are stored in.
+     *
+     * @returns {HTMLUListElement}
+     */
+    static getContainer() {
+      return $( "#congress-active-campaigns-container .congress-campaign-list" )[0];
+    }
+
+    /**
+     * Creates a Campaign DOM from the template.
+     *
+     * @returns {HTMLDivElement}
+     */
+    static createTemplate() {
+      const template = $( "#congress-campaign-template" )[0];
+      return template.content.cloneNode( true );
+    }
+
+    /**
+     * $root is the root of the Campaign DOM.
+     *
+     * @type {HTMLLIElement}
+     */
+    $root;
+
+    /**
+     * The current page of the campaign.
+     *
+     * @type {string}
+     */
+    currentPage;
+
+    /**
+     * An object that maps page names to the html links.
+     *
+     * The page name values are based on the html class
+     * congress-campaign-{id}-{pageName}-page.
+     *
+     * @type {Object<string,jQueryAnchorElement>}
+     */
+    $pageLinks = {};
+
+    /**
+     * A reference to the toggle button used for expanding and
+     * collapsing the campaign.
+     *
+     * @type {jQueryButtonElement}
+     */
+    $expandToggle;
+
+    /**
+     * A reference to the body of the campaign that can be expanded or collapsed.
+     *
+     * @type {jQueryDivElement}
+     */
+    $campaignBody;
+
+    /**
+     * The database id of the campaign.
+     *
+     * @type {number}
+     */
+    id;
+
+    /**
+     * The name of the campaign.
+     *
+     * @type {string}
+     */
+    name;
+
+    /**
+     * The level of the campaign.
+     *
+     * @type {'federal' | 'state'}
+     */
+    level;
+
+    /**
+     * Constructs a Campaign and adds event listeners.
+     *
+     * @param {number} id is the database id of the campaign.
+     * @param {string} name is the name of the campaign.
+     * @param {'federal'|'state'} level is the level of the campaign.
+     * @param {jQueryElement} $root is the root of the Campaign's DOM.
+     */
+    constructor( id, name, level, $root ) {
+
+      this.id = id;
+      this.name = name;
+      this.level = level;
+      this.$root = $root;
+      this._initPageLinks();
+      this._initExpansionToggle();
+
+    }
+
+    /**
+     * Initializes that no pages are selected, and adds event handlers.
+     */
+    _initPageLinks() {
+      const $pageLinks = this.$root.find( ".congress-nav" ).first().children( "li" );
+      const I = this;
+      $pageLinks.each( function() {
+        const $childLI = $( this ).children( "a" ).first();
+        if ( 0 === $childLI.length ) {
+          return;
+        }
+        const $pageLink = $childLI.first();
+        const href = $pageLink.attr( "href" );
+        const name = href.match( /#congress-campaign-(\d*)-([A-z]*)-page/ )[2];
+
+        I.$pageLinks[name] = $pageLink;
+        $( href ).toggleClass( "congress-hidden", true );
+        $pageLink.toggleClass( "congress-active", false );
+
         const data = {
-          campaignID: campaignID,
-          $page: $page,
-          $link: $link
+          self: I,
+          func: I.changePage,
+          args: [ name ]
         };
+        $pageLink.on( "click", null, data, I._handleEvent );
+      });
+    }
 
-        $link.on( "click", null, data, switchCampaignPage );
+    /**
+     * Initializes the state of toggle for expanding/collapsing the campaign
+     * and adds event handlers.
+     */
+    _initExpansionToggle() {
+      this.$expandToggle = this.$root.find( ".congress-campaign-toggle" ).first();
+      this.$campaignBody = this.$root.find( ".congress-card-body" ).first();
+      const isHidden = this.$campaignBody.hasClass( "congress-hidden" );
 
-        const isCurrentPage = 0 === i;
-        if ( isCurrentPage ) {
-          currentPages[campaignID] = {
-            $page: $page,
-            $link: $link
-          };
-        }
-        if ( ! isCurrentPage && ! $page.hasClass( "congress-hidden" ) ) {
-          $page.addClass( "congress-hidden" );
-        } else if ( isCurrentPage && $page.hasClass( "congress-hidden" ) ) {
-          $page.removeClass( "congress-hidden" );
-        }
-        if ( ! isCurrentPage && $link.hasClass( "congress-active" ) ) {
-          $link.removeClass( "congress-active" );
-        } else if ( isCurrentPage && ! $link.hasClass( "congress-active" ) ) {
-          $link.addClass( "congress-active" );
-        }
-
+      if ( isHidden ) {
+        this.$expandToggle.text( "More >" );
+      } else {
+        this.$expandToggle.text( "Less ^" );
       }
-  }
+      const data = {
+        self: this,
+        func: this.toggleExpansion,
+        args: []
+      };
+      this.$expandToggle.on( "click", null, data, this._handleEvent );
 
-  /**
-   * Handles toggling a campaign to expand/collapse.
-   *
-   * @param evt {jQueryEvent} A jQuery event with a data object containing the campaign $toggle and $body.
-   */
-  function onCampaignExpandToggle( evt ) {
-    const $toggle = evt.data.$toggle;
-    const $body = evt.data.$body;
-    const isHidden = ! $body.hasClass( "congress-hidden" );
-
-    $body.toggleClass( "congress-hidden", isHidden );
-    if ( isHidden ) {
-      $toggle.text( "More >" );
-    } else {
-      $toggle.text( "Less ^" );
     }
 
-  }
+    /**
+     * Sets the header text of the campaign's header.
+     *
+     * Used when creating/editing.
+     */
+    setHeader() {
+      this.$root
+        .find( ".congress-card-header > span" )
+        .first()
+        .text( `${this.name} (${this.level.toProperCase()})` );
+    }
 
-  /**
-   * Collapses the campaign, and add an event listener.
-   *
-   * @param {HTMLLIElement} li is the campaign list element.
-   */
-  function initCampaignExpand( li ) {
+    /**
+     * Toggles whether the campaign is expanded or collapsed.
+     *
+     * @param {boolean|null} isHiddenState will cause this function to
+     * set the state instead of toggling.
+     */
+    toggleExpansion( isHiddenState = null ) {
+      let isHidden;
+      if ( null !== isHiddenState ) {
+        isHidden = isHiddenState;
+      } else {
+        isHidden = ! this.$campaignBody.hasClass( "congress-hidden" );
+      }
 
-    const $toggle = $( li ).find( ".congress-campaign-toggle" ).first();
-    const $body = $( li ).find( ".congress-card-body" ).first();
-    const data = {
-      $toggle: $toggle,
-      $body: $body
+      this.$campaignBody.toggleClass( "congress-hidden", isHidden );
+      if ( isHidden ) {
+        this.$expandToggle.text( "More >" );
+      } else {
+        this.$expandToggle.text( "Less ^" );
+      }
+    }
+
+    /**
+     * Changes the page to pageName.
+     *
+     * pageName's possible values are based on the html class
+     * congress-campaign-{id}-{pageName}-page.
+     *
+     * @param {string} pageName
+     */
+    changePage( pageName ) {
+
+      if ( this.currentPage ) {
+        const $oldPageLink = this.$pageLinks[this.currentPage];
+        const $oldPageBody = $( $oldPageLink.attr( "href" ) );
+        $oldPageLink.toggleClass( "congress-active", false );
+        $oldPageBody.toggleClass( "congress-hidden", true );
+      }
+
+      this.currentPage = pageName;
+
+      const $pageLink = this.$pageLinks[pageName];
+      const $pageBody = $( $pageLink.attr( "href" ) );
+      $pageLink.toggleClass( "congress-active", true );
+      $pageBody.toggleClass( "congress-hidden", false );
     };
-    const isHidden = $body.hasClass( "congress-hidden" );
 
-    if ( isHidden ) {
-      $toggle.text( "More >" );
-    } else {
-      $toggle.text( "Less ^" );
-    }
-    $toggle.on( "click", null, data, onCampaignExpandToggle );
+    /**
+     * A helper function to call methods from an event.
+     *
+     * @param {jQueryEvent} evt should have data fields:
+     *  - self {Campaign}
+     *  - func {CampaignFunction}
+     *  - args {array}
+     */
+    _handleEvent( evt ) {
+      evt.preventDefault();
+      const self = evt.data.self;
+      const func = evt.data.func;
+      const args = evt.data.args;
+      self[func.name]( ...args );
+    };
 
   }
 
@@ -192,12 +368,23 @@
 
   }
 
+  /**
+   * Initializes the add campaign button.
+   *
+   * @param {SubmitEvent} evt
+   */
+  function addCampaign( evt ) {
+    evt.preventDefault();
+    Campaign.fromCreateRequest( new FormData( evt.target ) );
+  }
+
   $( () => {
     $( "#congress-active-campaigns-container > .congress-campaign-list > li" ).each( function() {
-      initCampaignPage( this );
-      initCampaignExpand( this );
+      Campaign.fromHTML( $( this ) );
     });
     initArchiveToggle();
+
+    $( "#congress-campaign-add" ).first().on( "submit", addCampaign );
 
   });
 
