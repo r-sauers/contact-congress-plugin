@@ -41,6 +41,38 @@
   };
 
   /**
+   * A helper function to make an Ajax call using a form submit evt.
+   *
+   * @param {jQuerySubmitEvent} evt should have data fields:
+   *  - object {Obect}
+   *  - success {object.Function}
+   *  - error {object.Function}
+   */
+  function ajaxHandler( evt ) {
+    evt.preventDefault();
+    const form = evt.target;
+    const formData = new FormData( form );
+    const formMethod = form.attributes?.method?.nodeValue || "get";
+
+    const object = evt.data.object;
+    const success = evt.data.success;
+    const error = evt.data.error;
+
+    const body = {
+      action: form.attributes.action.nodeValue
+    };
+    for ( const pair of formData.entries() ) {
+      body[pair[0]] = pair[1];
+    }
+    $[formMethod](
+      ajaxurl,
+      body,
+      ( data ) => object[success.name]( data )
+    ).fail( ( err ) => object[error.name]( err.responseJSON.error ) );
+  }
+
+
+  /**
    * The Campaign class helps initialize html and event handlers, and it
    * also helps carry state across different events.
    */
@@ -63,39 +95,31 @@
     }
 
     /**
-     * Generates a Campaign by sending a create request to the server.
+     * Generates a Campaign from the response of an Ajax create campaign request.
      *
-     * @param {FormData} formData is the form data for the create campaign form.
+     * @param {number} id  is the id of the campaign.
+     * @param {number} name  is the name of the campaign.
+     * @param {number} level  is the level of the campaign.
+     * @param {number} editNonce  is the nonce used for the edit form.
+     * @param {number} archiveNonce  is the nonce used for the archive button.
      *
-     * @returns {Promise<Campaign>}
+     * @returns {Campaign}
      */
-    static fromCreateRequest( formData ) {
-      return new Promise( ( res ) => {
-        $.post(
-          ajaxurl,
-          {
-            action: "add_campaign",
-            name: formData.get( "name" ),
-            level: formData.get( "level" ),
-            _wpnonce: formData.get( "_wpnonce" )
-          },
-          function({ id, editNonce, archiveNonce }) {
-            const template = Campaign.createTemplate();
-            const container = Campaign.getContainer();
-            const li = document.createElement( "li" );
-            li.append( template );
-            container.prepend( li );
+    static fromCreateRequest({id, name, level, editNonce, archiveNonce }) {
+      const template = Campaign.createTemplate();
+      const container = Campaign.getContainer();
+      const li = document.createElement( "li" );
+      li.append( template );
+      container.prepend( li );
 
-            const campaign = new Campaign( id, formData.get( "name" ), formData.get( "level" ), $( li ) );
-            campaign.changePage( "templates" );
-            campaign.toggleExpansion( false );
-            campaign.setHeader();
+      const campaign = new Campaign( -1, "", "", $( li ) );
+      campaign.changePage( "templates" );
+      campaign.toggleExpansion( false );
+      campaign.setID( id );
+      campaign.setCampaignData( name, level );
+      campaign.updateEditNonce( editNonce );
 
-            res( campaign );
-
-          }
-        );
-      });
+      return campaign;
     }
 
     /**
@@ -118,18 +142,34 @@
     }
 
     /**
+     * A helper function to call methods from an event.
+     *
+     * @param {jQueryEvent} evt should have data fields:
+     *  - campaign {Campaign}
+     *  - func {CampaignFunction}
+     *  - args {array}
+     */
+    static _handleEvent( evt ) {
+      evt.preventDefault();
+      const campaign = evt.data.campaign;
+      const func = evt.data.func;
+      const args = evt.data.args;
+      campaign[func.name]( ...args );
+    };
+
+    /**
      * $root is the root of the Campaign DOM.
      *
      * @type {HTMLLIElement}
      */
-    $root;
+    _$root;
 
     /**
      * The current page of the campaign.
      *
      * @type {string}
      */
-    currentPage;
+    _currentPage;
 
     /**
      * An object that maps page names to the html links.
@@ -139,7 +179,7 @@
      *
      * @type {Object<string,jQueryAnchorElement>}
      */
-    $pageLinks = {};
+    _$pageLinks = {};
 
     /**
      * A reference to the toggle button used for expanding and
@@ -147,35 +187,44 @@
      *
      * @type {jQueryButtonElement}
      */
-    $expandToggle;
+    _$expandToggle;
 
     /**
      * A reference to the body of the campaign that can be expanded or collapsed.
      *
      * @type {jQueryDivElement}
      */
-    $campaignBody;
+    _$campaignBody;
 
     /**
      * The database id of the campaign.
      *
+     * Setting this variable must be done through @see setID
+     * The only exception is the constructor.
+     *
      * @type {number}
      */
-    id;
+    _id;
 
     /**
      * The name of the campaign.
      *
+     * Setting this variable must be done through @see setCampaignData
+     * The only exception is the constructor.
+     *
      * @type {string}
      */
-    name;
+    _name;
 
     /**
      * The level of the campaign.
      *
+     * Setting this variable must be done through @see setCampaignData.
+     * The only exception is the constructor.
+     *
      * @type {'federal' | 'state'}
      */
-    level;
+    _level;
 
     /**
      * Constructs a Campaign and adds event listeners.
@@ -187,20 +236,70 @@
      */
     constructor( id, name, level, $root ) {
 
-      this.id = id;
-      this.name = name;
-      this.level = level;
-      this.$root = $root;
+      this._id = id;
+      this._name = name;
+      this._level = level;
+      this._$root = $root;
       this._initPageLinks();
       this._initExpansionToggle();
+      this._initEditForm();
 
+    }
+
+    /**
+     * Sets the campaign id.
+     *
+     * @param {number} id
+     */
+    setID( id ) {
+
+      /*
+       * The id is used extensively in the HTML:
+       * - hidden form fields
+       * - form labels' for attribute and input ids
+       * - page href attributes
+       */
+
+      const idPlaceholder = "campaign_id";
+
+      // edit form
+      const form = this._$root.find( ".congress-campaign-edit-form" )[0];
+      $( form ).find( "label" ).each( function() {
+        const oldID = $( this ).attr( "for" );
+        const field = $( "#" + oldID )[0];
+        const newID = oldID.replace( idPlaceholder, id );
+        field.id = newID;
+        $( this ).attr( "for", newID );
+      });
+      form.name.id = form.name.id.replace( idPlaceholder, id );
+      form.level.id = form.level.id.replace( idPlaceholder, id );
+      form.id.value = id;
+
+      // pages
+      for ( const $link of Object.values( this._$pageLinks ) ) {
+        const pageID = $link.attr( "href" ).slice( 1 );
+        const newPageID = pageID.replace( idPlaceholder, id );
+        $link.attr( "href", "#" + newPageID );
+        $( "#" + pageID )[0].id = newPageID;
+      }
+
+      this._id = id;
+    }
+
+    /**
+     * Gets the campaign id.
+     *
+     * @return number
+     */
+    getID() {
+      return this._id;
     }
 
     /**
      * Initializes that no pages are selected, and adds event handlers.
      */
     _initPageLinks() {
-      const $pageLinks = this.$root.find( ".congress-nav" ).first().children( "li" );
+      const $pageLinks = this._$root.find( ".congress-nav" ).first().children( "li" );
       const I = this;
       $pageLinks.each( function() {
         const $childLI = $( this ).children( "a" ).first();
@@ -209,18 +308,18 @@
         }
         const $pageLink = $childLI.first();
         const href = $pageLink.attr( "href" );
-        const name = href.match( /#congress-campaign-(\d*)-([A-z]*)-page/ )[2];
+        const name = href.match( /#congress-campaign-([^-]*)-([A-z]*)-page/ )[2];
 
-        I.$pageLinks[name] = $pageLink;
+        I._$pageLinks[name] = $pageLink;
         $( href ).toggleClass( "congress-hidden", true );
         $pageLink.toggleClass( "congress-active", false );
 
         const data = {
-          self: I,
+          campaign: I,
           func: I.changePage,
           args: [ name ]
         };
-        $pageLink.on( "click", null, data, I._handleEvent );
+        $pageLink.on( "click", null, data, Campaign._handleEvent );
       });
     }
 
@@ -229,35 +328,98 @@
      * and adds event handlers.
      */
     _initExpansionToggle() {
-      this.$expandToggle = this.$root.find( ".congress-campaign-toggle" ).first();
-      this.$campaignBody = this.$root.find( ".congress-card-body" ).first();
-      const isHidden = this.$campaignBody.hasClass( "congress-hidden" );
+      this._$expandToggle = this._$root.find( ".congress-campaign-toggle" ).first();
+      this._$campaignBody = this._$root.find( ".congress-card-body" ).first();
+      const isHidden = this._$campaignBody.hasClass( "congress-hidden" );
 
       if ( isHidden ) {
-        this.$expandToggle.text( "More >" );
+        this._$expandToggle.text( "More >" );
       } else {
-        this.$expandToggle.text( "Less ^" );
+        this._$expandToggle.text( "Less ^" );
       }
       const data = {
-        self: this,
+        campaign: this,
         func: this.toggleExpansion,
         args: []
       };
-      this.$expandToggle.on( "click", null, data, this._handleEvent );
+      this._$expandToggle.on( "click", null, data, Campaign._handleEvent );
 
     }
 
     /**
-     * Sets the header text of the campaign's header.
+     * Sets campaign data.
+     *
+     * This should be used instead of setting @see _name and @see _level manually.
      *
      * Used when creating/editing.
      */
-    setHeader() {
-      this.$root
+    setCampaignData( name, level ) {
+
+      // header
+      this._$root
         .find( ".congress-card-header > span" )
         .first()
-        .text( `${this.name} (${this.level.toProperCase()})` );
+        .text( `${name} (${level.toProperCase()})` );
+
+      // edit form
+      const form = this._$root.find( ".congress-campaign-edit-form" )[0];
+      form.name.value = this._name;
+      form.level.value = this._level;
+      form.id.value = this._id;
+
+      this._name = name;
+      this._level = level;
     }
+
+    /**
+     * Updates the edit form nonce.
+     */
+    updateEditNonce( editNonce ) {
+      const form = this._$root.find( ".congress-campaign-edit-form" )[0];
+      if ( editNonce ) {
+        form._wpnonce.value = editNonce;
+      }
+    };
+
+    /**
+     * Initializes the event listener for the campaign edit form.
+     */
+    _initEditForm() {
+      const data = {
+        object: this,
+        success: this.handleEdit,
+        error: this.handleEditError
+      };
+      this._$root
+        .find( ".congress-campaign-edit-form" )
+        .first()
+        .on( "submit", null, data, ajaxHandler );
+    };
+
+    /**
+     * Handles an the Ajax edit campaign response.
+     *
+     * @param {string} name
+     * @param {'federal'|'state'} level
+     */
+    handleEdit({ name, level }) {
+      this._name = name;
+      this._level = level;
+      this.setHeader();
+      const $form = this._$root.find( ".congress-campaign-edit-form" ).first();
+      $form.find( ".congress-form-error" ).text( "" );
+    }
+
+    /**
+     * Handles errors from the edit campaign Ajax request.
+     *
+     * @param {string} err
+     */
+    handleEditError( err ) {
+      const $form = this._$root.find( ".congress-campaign-edit-form" ).first();
+      $form.find( ".congress-form-error" ).text( err );
+    }
+
 
     /**
      * Toggles whether the campaign is expanded or collapsed.
@@ -270,14 +432,14 @@
       if ( null !== isHiddenState ) {
         isHidden = isHiddenState;
       } else {
-        isHidden = ! this.$campaignBody.hasClass( "congress-hidden" );
+        isHidden = ! this._$campaignBody.hasClass( "congress-hidden" );
       }
 
-      this.$campaignBody.toggleClass( "congress-hidden", isHidden );
+      this._$campaignBody.toggleClass( "congress-hidden", isHidden );
       if ( isHidden ) {
-        this.$expandToggle.text( "More >" );
+        this._$expandToggle.text( "More >" );
       } else {
-        this.$expandToggle.text( "Less ^" );
+        this._$expandToggle.text( "Less ^" );
       }
     }
 
@@ -291,37 +453,20 @@
      */
     changePage( pageName ) {
 
-      if ( this.currentPage ) {
-        const $oldPageLink = this.$pageLinks[this.currentPage];
+      if ( this._currentPage ) {
+        const $oldPageLink = this._$pageLinks[this._currentPage];
         const $oldPageBody = $( $oldPageLink.attr( "href" ) );
         $oldPageLink.toggleClass( "congress-active", false );
         $oldPageBody.toggleClass( "congress-hidden", true );
       }
 
-      this.currentPage = pageName;
+      this._currentPage = pageName;
 
-      const $pageLink = this.$pageLinks[pageName];
+      const $pageLink = this._$pageLinks[pageName];
       const $pageBody = $( $pageLink.attr( "href" ) );
       $pageLink.toggleClass( "congress-active", true );
       $pageBody.toggleClass( "congress-hidden", false );
-    };
-
-    /**
-     * A helper function to call methods from an event.
-     *
-     * @param {jQueryEvent} evt should have data fields:
-     *  - self {Campaign}
-     *  - func {CampaignFunction}
-     *  - args {array}
-     */
-    _handleEvent( evt ) {
-      evt.preventDefault();
-      const self = evt.data.self;
-      const func = evt.data.func;
-      const args = evt.data.args;
-      self[func.name]( ...args );
-    };
-
+    }
   }
 
   /**
@@ -384,7 +529,21 @@
     });
     initArchiveToggle();
 
-    $( "#congress-campaign-add" ).first().on( "submit", addCampaign );
+    const object = {
+      addCampaign: ( data ) => {
+        Campaign.fromCreateRequest( data );
+        $( "#congress-campaign-add-error" ).first().text( "" );
+      },
+      addCompaignFailed: ( err ) => {
+        $( "#congress-campaign-add-error" ).first().text( err );
+      }
+    };
+    const data = {
+      object: object,
+      success: object.addCampaign,
+      error: object.addCompaignFailed
+    };
+    $( "#congress-campaign-add" ).first().on( "submit", null, data, ajaxHandler );
 
   });
 
