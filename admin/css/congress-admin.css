@@ -197,26 +197,44 @@
 	}
 }
 
+.congress-inline-form-group button {
+	height: 1em;
+	border-radius: 0;
+}
+
 .congress-form-group {
-	display: block;
+	display: flex;
+	width: 45%;
 	margin-block: 0.75em;
+	justify-content: center;
+	align-items: center;
 
 	label {
-		display: inline-block;
-		width: 15%;
+		width: 35%;
 		font-size: 1.2em;
 	}
 
 	input,
 	select {
-		display: inline-block;
-		width: 30%;
+		width: 65%;
+		flex-grow: 2;
 	}
 
-	button {
-		margin-left: 7.5% !important;
-		width: 30%;
+	div {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+
+		button {
+			width: 60%;
+		}
 	}
+}
+
+.congress-form-error {
+	color: #f00;
+	margin-inline: 0.5em;
 }
 
 .congress-campaign-pages-container {
@@ -290,13 +308,8 @@ li:not(:last-child) > .congress-campaign-email-container {
 	display: flex;
 	align-items: flex-end;
 
-	button {
-		height: 1em;
-	}
-
 	input,
-	select,
-	button {
+	select {
 		border-radius: 0;
 	}
 
@@ -330,6 +343,9 @@ li:not(:last-child) > .congress-campaign-email-container {
 }
 
 #congress-campaign-add {
-	margin-block: 4em;
+	margin-block: 3em;
+	display: flex;
 	justify-content: center;
+	flex-direction: column;
+	align-items: center;
 }

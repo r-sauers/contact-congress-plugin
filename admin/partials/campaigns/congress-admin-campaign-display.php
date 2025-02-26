@@ -49,33 +49,36 @@ $display_campaign_type = 'active';
 		id="congress-active-campaigns-container" 
 		class="<?php echo esc_attr( 'active' === $display_campaign_type ? '' : 'congress-hidden' ); ?>"
 	>
-		<form id="congress-campaign-add" class="congress-inline-form-group">
-			<button type="submit" class="button button-primary">Add Campaign</button>
-			<?php
-			Congress_Admin_Stacked_Input::display_dropdown(
-				id: 'congress-campaign-add-level',
-				label: 'Level',
-				name: 'level',
-				value: 'federal',
-				options: array(
-					array(
-						'label' => 'Federal',
-						'value' => 'federal',
+		<form id="congress-campaign-add" method="post" action="add_campaign">
+			<div class="congress-inline-form-group">
+				<button type="submit" class="button button-primary">Add Campaign</button>
+				<?php
+				Congress_Admin_Stacked_Input::display_dropdown(
+					id: 'congress-campaign-add-level',
+					label: 'Level',
+					name: 'level',
+					value: 'federal',
+					options: array(
+						array(
+							'label' => 'Federal',
+							'value' => 'federal',
+						),
+						array(
+							'label' => 'State',
+							'value' => 'state',
+						),
 					),
-					array(
-						'label' => 'State',
-						'value' => 'state',
-					),
-				),
-			);
-			wp_nonce_field( 'create-campaign' );
-			Congress_Admin_Stacked_Input::display_text(
-				id: 'congress-campaign-add-name',
-				label: 'Campaign Name',
-				name: 'name',
-				value: '',
-			);
-			?>
+				);
+				wp_nonce_field( 'create-campaign' );
+				Congress_Admin_Stacked_Input::display_text(
+					id: 'congress-campaign-add-name',
+					label: 'Campaign Name',
+					name: 'name',
+					value: '',
+				);
+				?>
+			</div>
+			<span id="congress-campaign-add-error" class="congress-form-error"></span>
 		</form>
 		<ul class="congress-campaign-list">
 		<?php

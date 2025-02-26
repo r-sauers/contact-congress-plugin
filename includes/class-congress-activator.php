@@ -43,8 +43,10 @@ class Congress_Activator {
 				'id mediumint(9) NOT NULL AUTO_INCREMENT',
 				'name tinytext NOT NULL',
 				'email_count int NOT NULL DEFAULT 0',
-				"level ENUM('federal', 'state')",
+				"level ENUM('federal', 'state') NOT NULL",
 				'PRIMARY KEY (id)',
+				'CHECK (level <> "")',
+				'CHECK (name <> "")',
 			)
 		);
 

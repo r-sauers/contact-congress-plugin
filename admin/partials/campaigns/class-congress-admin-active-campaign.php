@@ -38,6 +38,15 @@ class Congress_Admin_Active_Campaign {
 	private int $id;
 
 	/**
+	 * The id of the campaign.
+	 *
+	 * When the id is -1, this will be 'campaign_id'.
+	 *
+	 * @var string $id
+	 */
+	private string $string_id;
+
+	/**
 	 * The name of the campaign.
 	 *
 	 * @var string $name
@@ -61,7 +70,7 @@ class Congress_Admin_Active_Campaign {
 	/**
 	 * Constructs the Campaign object.
 	 *
-	 * @param int    $id The id of the campaign.
+	 * @param int    $id The id of the campaign (-1 means it doesn't exist in db).
 	 * @param string $name The name of the campaign.
 	 * @param string $level The level of the campaign ('federal' or 'state').
 	 * @param int    $num_emails The number of emails sent in the campaign.
@@ -71,6 +80,12 @@ class Congress_Admin_Active_Campaign {
 		$this->name       = $name;
 		$this->level      = $level;
 		$this->num_emails = $num_emails;
+
+		if ( -1 === $this->id ) {
+			$this->string_id = 'campaign_id';
+		} else {
+			$this->string_id = strval( $id );
+		}
 	}
 
 	/**
@@ -91,45 +106,75 @@ class Congress_Admin_Active_Campaign {
 			<ul class="congress-nav">
 				<li>
 					<a 
-					href="#<?php echo esc_attr( "congress-campaign-$this->id-edit-page" ); ?>" 
+					href="#<?php echo esc_attr( "congress-campaign-$this->string_id-edit-page" ); ?>" 
 					>Edit</a>
 				</li>
 				<li>
 					<a 
-					href="#<?php echo esc_attr( "congress-campaign-$this->id-templates-page" ); ?>" 
+					href="#<?php echo esc_attr( "congress-campaign-$this->string_id-templates-page" ); ?>" 
 					>Email Templates</a>
 				</li>
 				<li>
 					<a 
-					href="#<?php echo esc_attr( "congress-campaign-$this->id-metrics-page" ); ?>" 
+					href="#<?php echo esc_attr( "congress-campaign-$this->string_id-metrics-page" ); ?>" 
 					>Metrics</a>
 				</li>
 				<li></li>
 			</ul>
 			<div 
-				id="<?php echo esc_attr( "congress-campaign-$this->id-edit-page" ); ?>" 
+				id="<?php echo esc_attr( "congress-campaign-$this->string_id-edit-page" ); ?>" 
 				class="congress-campaign-page-container congress-hidden"
 			>
-				<form class="congress-campaign-edit-form">
+				<form 
+					class="congress-campaign-edit-form"
+					action="update_campaign"
+					method="post"
+				>
 					<h2>Edit Campaign</h2>
 					<div class="congress-form-group">
-						<label>Name:</label>
-						<input type="text"/>
+						<label
+							for="<?php echo esc_attr( "congress-campaign-$this->string_id-edit-name" ); ?>"
+						>Name:</label>
+						<input
+							id="<?php echo esc_attr( "congress-campaign-$this->string_id-edit-name" ); ?>"
+							type="text"
+							name="name"
+							value="<?php echo esc_attr( $this->name ); ?>"/>
 					</div>
 					<div class="congress-form-group">
-						<label>Level:</label>
-						<select name="level">
-							<option value="federal">Federal</option>
-							<option value="state">State</option>
+						<label
+							for="<?php echo esc_attr( "congress-campaign-$this->string_id-edit-level" ); ?>"
+						>Level:</label>
+						<select 
+							id="<?php echo esc_attr( "congress-campaign-$this->string_id-edit-level" ); ?>"
+							name="level"
+						>
+							<option 
+								value="federal"
+								<?php echo esc_attr( 'federal' === $this->level ? 'selected' : '' ); ?>
+							>Federal</option>
+							<option 
+								value="state"
+								<?php echo esc_attr( 'state' === $this->level ? 'selected' : '' ); ?>
+							>State</option>
 						</select>
 					</div>
 					<div class="congress-form-group">
-						<button type="submit" class="button button-primary">Update</button>
+						<div>
+							<button type="submit" class="button button-primary">Update</button>
+							<span class="congress-form-error"></span>
+						</div>
 					</div>
+					<div class="congress-form-group">
+					</div>
+					<input type="hidden" name="id" value="<?php echo esc_attr( $this->id ); ?>"/>
+					<?php
+						wp_nonce_field( "update-campaign-$this->id" );
+					?>
 				</form>
 			</div>
 			<div
-				id="<?php echo esc_attr( "congress-campaign-$this->id-metrics-page" ); ?>" 
+				id="<?php echo esc_attr( "congress-campaign-$this->string_id-metrics-page" ); ?>" 
 				class="congress-campaign-page-container congress-hidden"
 			>
 				<div>
@@ -137,7 +182,7 @@ class Congress_Admin_Active_Campaign {
 				</div>
 			</div>
 			<div
-				id="<?php echo esc_attr( "congress-campaign-$this->id-templates-page" ); ?>" 
+				id="<?php echo esc_attr( "congress-campaign-$this->string_id-templates-page" ); ?>" 
 				class="congress-campaign-page-container"
 			>
 				<div style="display: flex; justify-content: space-between;">
@@ -185,7 +230,7 @@ class Congress_Admin_Active_Campaign {
 	 * Returns an HTML template to be used by JQuery when new representatives are added.
 	 */
 	public static function get_html_template(): void {
-		$template = new Congress_Admin_Active_Campaign( 0, '', '', 0 );
+		$template = new Congress_Admin_Active_Campaign( -1, '', '', 0 );
 		$template->display( false );
 	}
 
