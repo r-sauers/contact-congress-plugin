@@ -37,6 +37,10 @@ class Congress_Deactivator {
 	public static function deactivate(): void {
 
 		Congress_Table_Manager::delete_table( 'campaign' );
+		Congress_Table_Manager::delete_table( 'active_campaign' );
+		Congress_Table_Manager::delete_table( 'archived_campaign' );
+		Congress_Table_Manager::delete_table( 'referer' );
+		Congress_Table_Manager::delete_table( 'email' );
 		Congress_Table_Manager::delete_table( 'email_template' );
 		Congress_Table_Manager::delete_table( 'representative' );
 		Congress_Table_Manager::delete_table( 'staffer' );
