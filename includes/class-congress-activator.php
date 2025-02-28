@@ -14,6 +14,11 @@
  */
 require_once plugin_dir_path( __FILE__ ) .
 	'class-congress-table-manager.php';
+/**
+ * Imports dbDelta for altering tables.
+ */
+require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
 
 /**
  * Fired during plugin activation.
@@ -37,20 +42,70 @@ class Congress_Activator {
 	 */
 	public static function activate(): void {
 
-		Congress_Table_Manager::create_table(
+		global $wpdb;
+
+		$referer = Congress_Table_Manager::create_table(
+			'referer',
+			array(
+				'id mediumint(9) NOT NULL AUTO_INCREMENT',
+				'campaign_id mediumint(9) NOT NULL',
+				'url_name tinytext NOT NULL',
+				'real_name tinytext NOT NULL',
+				'PRIMARY KEY (id, campaign_id)',
+				'CHECK (url_name <> "")',
+				'CHECK (real_name <> "")',
+			)
+		);
+
+		$email = Congress_Table_Manager::create_table(
+			'email',
+			array(
+				'id mediumint(9) NOT NULL AUTO_INCREMENT',
+				'campaign_id mediumint(9) NOT NULL',
+				'referer_id mediumint(9)',
+				'sent_date DATE NOT NULL DEFAULT (CURRENT_DATE)',
+				"FOREIGN KEY referer_id REFERENCES $referer(id)",
+				'PRIMARY KEY (id, campaign_id)',
+			)
+		);
+
+		$campaign = Congress_Table_Manager::create_table(
 			'campaign',
 			array(
 				'id mediumint(9) NOT NULL AUTO_INCREMENT',
 				'name tinytext NOT NULL',
-				'email_count int NOT NULL DEFAULT 0',
 				"level ENUM('federal', 'state') NOT NULL",
+				'created_date DATE NOT NULL DEFAULT (CURRENT_DATE)',
 				'PRIMARY KEY (id)',
 				'CHECK (level <> "")',
 				'CHECK (name <> "")',
 			)
 		);
 
-		$campaign_table = Congress_Table_Manager::get_table_name( 'campaign' );
+		$active_campaign = Congress_Table_Manager::get_table_name( 'active_campaign' );
+		Congress_Table_Manager::create_table(
+			'active_campaign',
+			array(
+				'id mediumint(9) NOT NULL',
+				'PRIMARY KEY (id)',
+				"FOREIGN KEY id REFERENCES $campaign(id) ON DELETE CASCADE",
+			)
+		);
+
+		dbDelta( "ALTER TABLE $referer ADD FOREIGN KEY campaign_id REFERENCES $active_campaign(id) ON DELETE CASCADE;" );
+		dbDelta( "ALTER TABLE $email ADD FOREIGN KEY campaign_id REFERENCES $active_campaign(id) ON DELETE CASCADE;" );
+
+		$archived_campaign = Congress_Table_Manager::create_table(
+			'archived_campaign',
+			array(
+				'id mediumint(9) NOT NULL',
+				'email_count int NOT NULL',
+				'archived_date DATE NOT NULL DEFAULT (CURRENT_DATE)',
+				'PRIMARY KEY (id)',
+				"FOREIGN KEY id REFERENCES $campaign(id) ON DELETE CASCADE",
+			)
+		);
+
 		Congress_Table_Manager::create_table(
 			'email_template',
 			array(
@@ -59,11 +114,13 @@ class Congress_Activator {
 				'body text NOT NULL',
 				'campaign mediumint(9) NOT NULL',
 				'PRIMARY KEY (id, campaign)',
-				"FOREIGN KEY (campaign) REFERENCES $campaign_table(id) ON DELETE CASCADE",
+				"FOREIGN KEY (campaign) REFERENCES $campaign(id) ON DELETE CASCADE",
+				'CHECK (body <> "")',
+				'CHECK (subject <> "")',
 			)
 		);
 
-		Congress_Table_Manager::create_table(
+		$representative = Congress_Table_Manager::create_table(
 			'representative',
 			array(
 				'id mediumint(9) NOT NULL AUTO_INCREMENT',
@@ -72,12 +129,15 @@ class Congress_Activator {
 				'district tinytext NOT NULL',
 				'first_name tinytext NOT NULL',
 				'last_name tinytext NOT NULL',
-				"level ENUM('federal', 'state')",
+				"level ENUM('federal', 'state') NOT NULL",
 				'PRIMARY KEY (id)',
+				'CHECK (level <> "")',
+				'CHECK (title <> "")',
+				'CHECK (first_name <> "")',
+				'CHECK (last_name <> "")',
 			)
 		);
 
-		$representative_table = Congress_Table_Manager::get_table_name( 'representative' );
 		Congress_Table_Manager::create_table(
 			'staffer',
 			array(
@@ -88,7 +148,11 @@ class Congress_Activator {
 				'title tinytext NOT NULL',
 				'representative mediumint(9) NOT NULL',
 				'PRIMARY KEY (id, representative)',
-				"FOREIGN KEY (representative) REFERENCES $representative_table(id) ON DELETE CASCADE",
+				"FOREIGN KEY (representative) REFERENCES $representative(id) ON DELETE CASCADE",
+				'CHECK (first_name <> "")',
+				'CHECK (last_name <> "")',
+				'CHECK (email <> "")',
+				'CHECK (title <> "")',
 			)
 		);
 
@@ -98,8 +162,8 @@ class Congress_Activator {
 				'campaign mediumint(9) NOT NULL',
 				'representative mediumint(9) NOT NULL',
 				'PRIMARY KEY (campaign, representative)',
-				"FOREIGN KEY (representative) REFERENCES $representative_table(id) ON DELETE CASCADE",
-				"FOREIGN KEY (campaign) REFERENCES $campaign_table(id) ON DELETE CASCADE",
+				"FOREIGN KEY (representative) REFERENCES $representative(id) ON DELETE CASCADE",
+				"FOREIGN KEY (campaign) REFERENCES $campaign(id) ON DELETE CASCADE",
 			)
 		);
 	}

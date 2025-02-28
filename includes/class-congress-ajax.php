@@ -38,10 +38,10 @@ class Congress_AJAX {
 	 * @return Congress_AJAX
 	 */
 	public static function get_instance(): Congress_AJAX {
-		if ( null === $instance ) {
-			$instance = new Congress_AJAX();
+		if ( null === self::$instance ) {
+			self::$instance = new Congress_AJAX();
 		}
-		return $instance;
+		return self::$instance;
 	}
 
 	/**
@@ -697,17 +697,20 @@ class Congress_AJAX {
 
 		global $wpdb;
 
-		$tablename = Congress_Table_Manager::get_table_name( 'campaign' );
+		$wpdb->query( 'START TRANSACTION' ); // phpcs:ignore
+
+		$campaign_table = Congress_Table_Manager::get_table_name( 'campaign' );
 		// phpcs:ignore
-		$result    = $wpdb->insert(
-			$tablename,
+		$main_result = $wpdb->insert(
+			$campaign_table,
 			array(
 				'name'  => $name,
 				'level' => $level,
 			)
 		);
 
-		if ( false === $result ) {
+		if ( false === $main_result ) {
+			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
 			wp_send_json(
 				array(
 					'error' => $wpdb->last_error,
@@ -716,7 +719,8 @@ class Congress_AJAX {
 			);
 		}
 
-		if ( 0 === $result ) {
+		if ( 0 === $main_result ) {
+			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
 			wp_send_json(
 				array(
 					'error' => 'Malformed request.',
@@ -726,6 +730,37 @@ class Congress_AJAX {
 		}
 
 		$campaign_id = $wpdb->insert_id;
+
+		$active_campaign_table = Congress_Table_Manager::get_table_name( 'active_campaign' );
+
+		$active_result = $wpdb->insert( // phpcs:ignore
+			$active_campaign_table,
+			array(
+				'id' => $campaign_id,
+			)
+		);
+
+		if ( false === $active_result ) {
+			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+			wp_send_json(
+				array(
+					'error' => $wpdb->last_error,
+				),
+				500
+			);
+		}
+
+		if ( 0 === $active_result ) {
+			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+			wp_send_json(
+				array(
+					'error' => 'Malformed request.',
+				),
+				400
+			);
+		}
+
+		$wpdb->query( 'COMMIT' ); // phpcs:ignore
 
 		wp_send_json(
 			array(

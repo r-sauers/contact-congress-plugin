@@ -42,8 +42,10 @@ class Congress_Table_Manager {
 	 * @since    1.0.0
 	 * @param string $name is the name of the table.
 	 * @param array  $statements is an array of MySQL strings describing table columns.
+	 *
+	 * @return {string} the table name.
 	 */
-	public static function create_table( string $name, array $statements ): void {
+	public static function create_table( string $name, array $statements ): string {
 		global $wpdb;
 
 		$table_name      = self::get_table_name( $name );
@@ -65,6 +67,8 @@ class Congress_Table_Manager {
 			$sql = "ALTER TABLE $table_name ADD $statement;";
 			dbDelta( $sql );
 		}
+
+		return $table_name;
 	}
 
 	/**
