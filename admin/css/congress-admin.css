@@ -203,6 +203,8 @@
 }
 
 .congress-form-group {
+	--label-width: 35%;
+	--field-width: calc(100% - var(--label-width));
 	display: flex;
 	width: 45%;
 	margin-block: 0.75em;
@@ -210,13 +212,14 @@
 	align-items: center;
 
 	label {
-		width: 35%;
+		width: var(--label-width);
 		font-size: 1.2em;
 	}
 
 	input,
 	select {
-		width: 65%;
+		width: var(--field-width);
+		min-width: var(--field-width); /* Select elements need this */
 		flex-grow: 2;
 	}
 
