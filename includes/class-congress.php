@@ -187,9 +187,9 @@ class Congress {
 		$congress_ajax = Congress_AJAX::get_instance();
 		foreach ( $congress_ajax->get_admin_handlers() as $handler ) {
 			$this->loader->add_action(
-				'wp_ajax_' . $handler['ajax_name'],
-				$congress_ajax,
-				$handler['func'],
+				$handler->get_name( true ),
+				$handler->get_callee(),
+				$handler->get_func(),
 			);
 		}
 	}
@@ -221,9 +221,9 @@ class Congress {
 		$congress_ajax = Congress_AJAX::get_instance();
 		foreach ( $congress_ajax->get_public_handlers() as $handler ) {
 			$this->loader->add_action(
-				'wp_ajax_nopriv_' . $handler->ajax_name,
-				$congress_ajax,
-				$handler->func,
+				$handler->get_name(),
+				$handler->get_callee(),
+				$handler->get_func(),
 			);
 		}
 	}
