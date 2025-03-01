@@ -16,6 +16,12 @@ require_once plugin_dir_path( __FILE__ ) .
 	'class-congress-table-manager.php';
 
 /**
+ * Imports Table Manager for getting table names;
+ */
+require_once plugin_dir_path( __FILE__ ) .
+	'class-congress-ajax-handler.php';
+
+/**
  * A collection of AJAX handlers.
  *
  * @since      1.0.0
@@ -30,7 +36,7 @@ class Congress_AJAX {
 	 *
 	 * @var Congress_AJAX $instance
 	 */
-	private static Congress_AJAX $instance;
+	private static ?Congress_AJAX $instance = null;
 
 	/**
 	 * Retrieves the singleton instance.
@@ -47,52 +53,64 @@ class Congress_AJAX {
 	/**
 	 * Returns a list of ajax handlers for admin page.
 	 *
-	 * - ajax_name is the slug to refer to the ajax request.
-	 * - func is the name of the handler in this file.
-	 *
-	 * @return array<'ajax_name'|'func',string>
+	 * @return array<Congress_AJAX_Handler>
 	 */
 	public function get_admin_handlers(): array {
 		return array(
-			array(
-				'ajax_name' => 'get_representatives',
-				'func'      => 'get_reps',
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'get_reps',
+				ajax_name: 'get_representatives'
 			),
-			array(
-				'ajax_name' => 'add_representative',
-				'func'      => 'insert_rep',
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'get_reps',
+				ajax_name: 'get_representatives'
 			),
-			array(
-				'ajax_name' => 'delete_representative',
-				'func'      => 'delete_rep',
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'insert_rep',
+				ajax_name: 'add_representative'
 			),
-			array(
-				'ajax_name' => 'update_representative',
-				'func'      => 'update_rep',
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'delete_rep',
+				ajax_name: 'delete_representative'
 			),
-			array(
-				'ajax_name' => 'get_staffers',
-				'func'      => 'get_staffers',
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'update_rep',
+				ajax_name: 'update_representative'
 			),
-			array(
-				'ajax_name' => 'add_staffer',
-				'func'      => 'insert_staffer',
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'get_staffers',
+				ajax_name: 'get_staffers'
 			),
-			array(
-				'ajax_name' => 'delete_staffer',
-				'func'      => 'delete_staffer',
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'insert_staffer',
+				ajax_name: 'add_staffer'
 			),
-			array(
-				'ajax_name' => 'update_staffer',
-				'func'      => 'update_staffer',
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'delete_staffer',
+				ajax_name: 'delete_staffer'
 			),
-			array(
-				'ajax_name' => 'add_campaign',
-				'func'      => 'insert_campaign',
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'update_staffer',
+				ajax_name: 'update_staffer'
 			),
-			array(
-				'ajax_name' => 'update_campaign',
-				'func'      => 'update_campaign',
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'insert_campaign',
+				ajax_name: 'add_campaign'
+			),
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'update_campaign',
+				ajax_name: 'update_campaign'
 			),
 		);
 	}
@@ -107,9 +125,10 @@ class Congress_AJAX {
 	 */
 	public function get_public_handlers(): array {
 		return array(
-			array(
-				'ajax_name' => 'get_representatives',
-				'func'      => 'get_reps',
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'get_reps',
+				ajax_name: 'get_representatives'
 			),
 		);
 	}
