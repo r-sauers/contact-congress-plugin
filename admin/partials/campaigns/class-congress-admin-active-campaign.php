@@ -98,7 +98,16 @@ class Congress_Admin_Active_Campaign {
 <div class="congress-card">
 	<div class="congress-card-header">
 		<span><?php echo esc_html( "$this->name (" . ucwords( $this->level ) . ')' ); ?></span>
-		<button class="congress-campaign-archive button">Archive</button>
+		<form method="post" action="archive_campaign" class="congress-campaign-archive-form">
+			<div class="congress-form-group">
+				<button class="congress-campaign-archive button">Archive</button>
+				<span class="congress-form-error"></span>
+			</div>
+			<input type="hidden" name="id" value="<?php echo esc_attr( $this->id ); ?>">
+			<?php
+			wp_nonce_field( "archive-campaign_$this->string_id" );
+			?>
+		</form>
 		<button class="congress-campaign-toggle button button-primary"><?php echo esc_html( $editing ? 'Less ^' : 'More >' ); ?></button>
 	</div>
 	<div class="congress-card-body<?php echo esc_attr( $editing ? '' : ' congress-hidden' ); ?>">
@@ -169,7 +178,7 @@ class Congress_Admin_Active_Campaign {
 					</div>
 					<input type="hidden" name="id" value="<?php echo esc_attr( $this->id ); ?>"/>
 					<?php
-						wp_nonce_field( "update-campaign-$this->id" );
+						wp_nonce_field( "update-campaign_$this->id" );
 					?>
 				</form>
 			</div>
@@ -227,7 +236,7 @@ class Congress_Admin_Active_Campaign {
 	}
 
 	/**
-	 * Returns an HTML template to be used by JQuery when new representatives are added.
+	 * Returns an HTML template to be used by JQuery when new campaigns are added.
 	 */
 	public static function get_html_template(): void {
 		$template = new Congress_Admin_Active_Campaign( -1, '', '', 0 );
@@ -241,8 +250,13 @@ class Congress_Admin_Active_Campaign {
 	 */
 	public static function get_from_db(): array {
 		global $wpdb;
-		$tablename = Congress_Table_Manager::get_table_name( 'campaign' );
-		$result    = $wpdb->get_results( "SELECT * FROM $tablename" ); // phpcs:ignore
+		$campaign_t = Congress_Table_Manager::get_table_name( 'campaign' );
+		$active_t   = Congress_Table_Manager::get_table_name( 'active_campaign' );
+		// phpcs:disable
+		$result     = $wpdb->get_results(
+			"SELECT $active_t.id, name, level " .
+			"FROM $active_t LEFT JOIN $campaign_t ON $active_t.id = $campaign_t.id" );
+		// phpcs:enable
 
 		$campaigns = array();
 		foreach ( $result as $campaign_result ) {

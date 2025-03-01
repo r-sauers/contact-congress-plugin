@@ -90,13 +90,23 @@ class Congress_Admin_Archived_Campaign {
 	 * Displays the html for the campaign.
 	 */
 	public function display(): void {
-		$created_string  = gmdate( 'm/d/Y', $this->created_date - ( 3600 * 24 * 120 ) );
+		$created_string  = gmdate( 'm/d/Y', $this->created_date );
 		$archived_string = gmdate( 'm/d/Y', $this->created_date );
 		?>
-		<div class="congress-campaign-readonly">
-			<span><?php echo esc_html( "$this->name ($this->level)" ); ?></span>
-			<span><?php echo esc_html( "$this->num_emails emails sent!" ); ?></span>
-			<span><?php echo esc_html( "$created_string - $archived_string" ); ?></span>
+		<div class="congress-card">
+			<div class="congress-card-header">
+				<span><?php echo esc_html( "$this->name ($this->level)" ); ?></span>
+				<span><?php echo esc_html( "$this->num_emails emails sent!" ); ?></span>
+				<span><?php echo esc_html( "$created_string - $archived_string" ); ?></span>
+				<form method="post" action="delete_archived_campaign" class="congress-campaign-delete-form">
+					<input type="hidden" name="id" value="<?php echo esc_attr( $this->id ); ?>">
+					<?php wp_nonce_field( "delete-archived-campaign_$this->id" ); ?>
+					<div class="congress-form-group">
+						<button type="submit" class="button congress-button-danger">Delete</button>
+						<span class="congress-form-error"></span>
+					</div>
+				</form>
+			</div>
 		</div>
 		<?php
 	}
@@ -111,11 +121,43 @@ class Congress_Admin_Archived_Campaign {
 	}
 
 	/**
+	 * Returns an HTML template to be used by JQuery when new campaigns are added.
+	 */
+	public static function get_html_template(): void {
+		$template = new Congress_Admin_Archived_Campaign( -1, '', '', 0, 0, 0 );
+		$template->display( false );
+	}
+
+	/**
 	 * Retrieves the archived campaigns from the DB.
 	 *
 	 * @return array<Congress_Admin_Archived_Campaign>
 	 */
 	public static function get_from_db(): array {
-		return array();
+
+		global $wpdb;
+		$campaign_t = Congress_Table_Manager::get_table_name( 'campaign' );
+		$archived_t = Congress_Table_Manager::get_table_name( 'archived_campaign' );
+		// phpcs:disable;
+		$result     = $wpdb->get_results(  // phpcs:ignore
+			"SELECT $archived_t.id, email_count, name, level, UNIX_TIMESTAMP(created_date) AS created_date, UNIX_TIMESTAMP(archived_date) AS archived_date " .
+			"FROM $archived_t LEFT JOIN $campaign_t ON $archived_t.id = $campaign_t.id" );
+		// phpcs:enable
+
+		$campaigns = array();
+		foreach ( $result as $campaign_result ) {
+			array_push(
+				$campaigns,
+				new Congress_Admin_Archived_Campaign(
+					$campaign_result->id,
+					$campaign_result->name,
+					$campaign_result->level,
+					$campaign_result->email_count,
+					$campaign_result->created_date,
+					$campaign_result->archived_date,
+				),
+			);
+		}
+		return $campaigns;
 	}
 }

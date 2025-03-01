@@ -100,28 +100,30 @@ $display_campaign_type = 'active';
 		id="congress-archived-campaigns-container"
 		class="<?php echo esc_attr( 'archived' === $display_campaign_type ? '' : 'congress-hidden' ); ?>"
 	>
-		<ul class="congress-campaign-list">
+		<ul class="congress-campaign-list" style="max-width: 60em;">
 		<?php
-		$date     = new DateTimeImmutable();
-		$campaign = new Congress_Admin_Archived_Campaign(
-			0,
-			'EATS Act',
-			'Federal',
-			12,
-			$date->getTimestamp() - 360 * 24 * 120,
-			$date->getTimestamp(),
-		);
-		?>
+		$campaigns = Congress_Admin_Archived_Campaign::get_from_db();
+		foreach ( $campaigns as $campaign ) {
+			?>
 			<li id="<?php echo esc_attr( 'congress-campaign-' . $campaign->get_id() ); ?>">
 			<?php
-			$campaign->display();
+				$campaign->display( false );
 			?>
 			</li>
+			<?php
+
+		}
+		?>
 		</ul>
 	</div>
-	<template id="congress-campaign-template">
+	<template id="congress-active-campaign-template">
 		<?php
 			Congress_Admin_Active_Campaign::get_html_template();
+		?>
+	</template>
+	<template id="congress-archived-campaign-template">
+		<?php
+			Congress_Admin_Archived_Campaign::get_html_template();
 		?>
 	</template>
 </div>

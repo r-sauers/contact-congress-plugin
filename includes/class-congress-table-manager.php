@@ -65,7 +65,7 @@ class Congress_Table_Manager {
 
 		foreach ( $foreign_statements as $statement ) {
 			$sql = "ALTER TABLE $table_name ADD $statement;";
-			dbDelta( $sql );
+			$wpdb->query( $sql ); // phpcs:ignore
 		}
 
 		return $table_name;

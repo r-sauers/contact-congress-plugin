@@ -71,31 +71,215 @@
     ).fail( ( err ) => object[error.name]( err.responseJSON.error ) );
   }
 
-
   /**
-   * The Campaign class helps initialize html and event handlers, and it
-   * also helps carry state across different events.
+   * Helps initialize html and handle delete events.
    */
-  class Campaign {
+  class ArchivedCampaign {
 
     /**
-     * Generates a Campaign from html drawn by the server.
+     * $root is the root of the campaign DOM.
+     *
+     * @type {HTMLLIElement}
+     */
+    _$root;
+
+    /**
+     * The database id of the campaign.
+     *
+     * @type {number}
+     */
+    _id;
+
+    /**
+     * The name of the campaign.
+     *
+     * @type {string}
+     */
+    _name;
+
+    /**
+     * The level of the campaign.
+     *
+     * @type {'federal' | 'state'}
+     */
+    _level;
+
+    /**
+     * The archived date of the campaign.
+     *
+     * @type Date
+     */
+    _archivedDate;
+
+    /**
+     * The created date of the campaign.
+     *
+     * @type Date
+     */
+    _createdDate;
+
+    /**
+     * Generates itself from html drawn by the server.
      *
      * @param {jQueryElement} $li is the root of the campaign's DOM.
-     * @return {Campaign} campaign
+     * @return {ArchivedCampaign} campaign
+     */
+    static fromHTML( $li ) {
+
+      const $spans = $li.find( "span" );
+      const $titleSpan = $spans.eq( 0 );
+      const $emailsSpan = $spans.eq( 1 );
+      const $dateSpan = $spans.eq( 2 );
+
+      const titleText = $titleSpan.text();
+      let level = titleText.match( /\((.*)\)$/ )[1];
+      const name = titleText.replace( ` (${level})`, "" );
+      level = level.toLowerCase();
+      const numEmails = parseInt( $emailsSpan.text().match( /(\d*) emails sent!/ )[1]);
+      const dateSplit = $dateSpan.text().split( " - " );
+      const createdDate = new Date( dateSplit[0]);
+      const archivedDate = new Date( dateSplit[1]);
+
+      const form = $li.find( ".congress-campaign-delete-form" )[0];
+      const id = form.id.value;
+
+      const campaign = new ArchivedCampaign( $li, id, name, level, numEmails, createdDate, archivedDate );
+      campaign._initDeleteForm();
+      return campaign;
+    }
+
+    /**
+     * Gets the container that campaign elements are stored in.
+     *
+     * @returns {HTMLUListElement}
+     */
+    static getContainer() {
+      return $( "#congress-archived-campaigns-container .congress-campaign-list" )[0];
+    }
+
+    /**
+     * Constructs campaign and adds event listeners.
+     *
+     * @param {jQueryElement} $root is the root of the Campaign's DOM.
+     * @param {number} id is the database id of the campaign.
+     * @param {string} name is the name of the campaign.
+     * @param {'federal'|'state'} level is the level of the campaign.
+     * @param {number} numEmails is the number of emails sent in this campaign.
+     * @param {Date} createdDate is the date the campaign was created.
+     * @param {Date} archivedDate is the date the campaign was archived.
+     */
+    constructor( $root, id, name, level, numEmails, createdDate, archivedDate ) {
+      this._$root = $root;
+      this._id = id;
+      this._name = name;
+      this._level = level;
+      this._numEmails = numEmails;
+      this._createdDate = createdDate;
+      this._archivedDate = archivedDate;
+    }
+
+    /**
+     * Helper function to display dates properly.
+     *
+     * @param date {Date}
+     *
+     * @returns {string}
+     * }
+     */
+    _displayDate( date ) {
+      const dateStr = date.getDate().toString().padStart( 2, "0" );
+      const month = String( date.getMonth() + 1 ).padStart( 2, "0" );
+      const year = date.getFullYear().toString();
+      return `${month}/${dateStr}/${year}`;
+    }
+
+    /**
+     * Creates a Campaign DOM from the template.
+     *
+     * @param {string} deleteNonce
+     *
+     * @returns {HTMLDivElement}
+     */
+    drawTemplate( deleteNonce ) {
+      const template = $( "#congress-archived-campaign-template" )[0];
+      const div = template.content.cloneNode( true );
+
+      this._$root.append( div );
+
+      const $spans = this._$root.find( "span" );
+      const $titleSpan = $spans.eq( 0 );
+      const $emailsSpan = $spans.eq( 1 );
+      const $dateSpan = $spans.eq( 2 );
+
+      $titleSpan.text( `${this._name} (${this._level.toProperCase()})` );
+      $emailsSpan.text( `${this._numEmails} emails sent!` );
+      $dateSpan.text( `${this._displayDate( this._createdDate )} - ${this._displayDate( this._archivedDate )}` );
+
+      const form = this._$root.find( ".congress-campaign-delete-form" )[0];
+      form.id.value = this._id;
+      form._wpnonce.value = deleteNonce;
+
+      this._initDeleteForm();
+    }
+
+    /**
+     * Initializes the delete button form.
+     */
+    _initDeleteForm() {
+      const data = {
+        object: this,
+        success: this.handleDelete,
+        error: this.handleDeleteError
+      };
+      this._$root
+        .find( ".congress-campaign-delete-form" )
+        .first()
+        .on( "submit", null, data, ajaxHandler );
+    }
+
+    /**
+     * Handles the successful result of a delete request.
+     */
+    handleDelete() {
+      this._$root.remove();
+    }
+
+    /**
+     * Handles the unsuccessful result of a delete request.
+     */
+    handleDeleteError( err ) {
+      const $form = this._$root.find( ".congress-campaign-delete-form" ).first();
+      $form.find( ".congress-form-error" ).text( err );
+    }
+
+
+  }
+
+
+  /**
+   * The ActiveCampaign class helps initialize html and event handlers, and it
+   * also helps carry state across different events.
+   */
+  class ActiveCampaign {
+
+    /**
+     * Generates an ActiveCampaign from html drawn by the server.
+     *
+     * @param {jQueryElement} $li is the root of the campaign's DOM.
+     * @return {ActiveCampaign} campaign
      */
     static fromHTML( $li ) {
       const id = $li[0].id.match( /congress-campaign-(\d*)/ )[1];
       const form = $li.find( ".congress-campaign-edit-form" )[0];
       const name = form.name.value;
       const level = form.level.value;
-      const campaign = new Campaign( id, name, level, $li );
+      const campaign = new ActiveCampaign( id, name, level, $li );
       campaign.changePage( "edit" );
       return campaign;
     }
 
     /**
-     * Generates a Campaign from the response of an Ajax create campaign request.
+     * Generates a campaign from the response of an Ajax create campaign request.
      *
      * @param {number} id  is the id of the campaign.
      * @param {number} name  is the name of the campaign.
@@ -103,21 +287,22 @@
      * @param {number} editNonce  is the nonce used for the edit form.
      * @param {number} archiveNonce  is the nonce used for the archive button.
      *
-     * @returns {Campaign}
+     * @returns {ActiveCampaign}
      */
     static fromCreateRequest({id, name, level, editNonce, archiveNonce }) {
-      const template = Campaign.createTemplate();
-      const container = Campaign.getContainer();
+      const template = ActiveCampaign.createTemplate();
+      const container = ActiveCampaign.getContainer();
       const li = document.createElement( "li" );
       li.append( template );
       container.prepend( li );
 
-      const campaign = new Campaign( -1, "", "", $( li ) );
+      const campaign = new ActiveCampaign( -1, "", "", $( li ) );
       campaign.changePage( "templates" );
       campaign.toggleExpansion( false );
       campaign.setID( id );
       campaign.setCampaignData( name, level );
       campaign.updateEditNonce( editNonce );
+      campaign.updateArchiveNonce( archiveNonce );
 
       return campaign;
     }
@@ -137,7 +322,7 @@
      * @returns {HTMLDivElement}
      */
     static createTemplate() {
-      const template = $( "#congress-campaign-template" )[0];
+      const template = $( "#congress-active-campaign-template" )[0];
       return template.content.cloneNode( true );
     }
 
@@ -243,6 +428,7 @@
       this._initPageLinks();
       this._initExpansionToggle();
       this._initEditForm();
+      this._initArchiveForm();
 
     }
 
@@ -263,17 +449,21 @@
       const idPlaceholder = "campaign_id";
 
       // edit form
-      const form = this._$root.find( ".congress-campaign-edit-form" )[0];
-      $( form ).find( "label" ).each( function() {
+      const editForm = this._$root.find( ".congress-campaign-edit-form" )[0];
+      $( editForm ).find( "label" ).each( function() {
         const oldID = $( this ).attr( "for" );
         const field = $( "#" + oldID )[0];
         const newID = oldID.replace( idPlaceholder, id );
         field.id = newID;
         $( this ).attr( "for", newID );
       });
-      form.name.id = form.name.id.replace( idPlaceholder, id );
-      form.level.id = form.level.id.replace( idPlaceholder, id );
-      form.id.value = id;
+      editForm.name.id = editForm.name.id.replace( idPlaceholder, id );
+      editForm.level.id = editForm.level.id.replace( idPlaceholder, id );
+      editForm.id.value = id;
+
+      // archive form
+      const arciveForm = this._$root.find( ".congress-campaign-archive-form" )[0];
+      arciveForm.id.value = id;
 
       // pages
       for ( const $link of Object.values( this._$pageLinks ) ) {
@@ -319,7 +509,7 @@
           func: I.changePage,
           args: [ name ]
         };
-        $pageLink.on( "click", null, data, Campaign._handleEvent );
+        $pageLink.on( "click", null, data, ActiveCampaign._handleEvent );
       });
     }
 
@@ -342,7 +532,7 @@
         func: this.toggleExpansion,
         args: []
       };
-      this._$expandToggle.on( "click", null, data, Campaign._handleEvent );
+      this._$expandToggle.on( "click", null, data, ActiveCampaign._handleEvent );
 
     }
 
@@ -421,6 +611,65 @@
       $form.find( ".congress-form-error" ).text( err );
     }
 
+
+    /**
+     * Updates the archive form nonce.
+     */
+    updateArchiveNonce( archiveNonce ) {
+      const form = this._$root.find( ".congress-campaign-archive-form" )[0];
+      if ( archiveNonce ) {
+        form._wpnonce.value = archiveNonce;
+      }
+    };
+
+    /**
+     * Initializes the event listener for the campaign archive form.
+     */
+    _initArchiveForm() {
+      const data = {
+        object: this,
+        success: this.handleArchive,
+        error: this.handleArchiveError
+      };
+      this._$root
+        .find( ".congress-campaign-archive-form" )
+        .first()
+        .on( "submit", null, data, ajaxHandler );
+    };
+
+    /**
+     * Handles an the Ajax archive campaign response.
+     *
+     * @param {} createdDate
+     * @param {} archivedDate
+     * @param {string} deleteNonce
+     */
+    handleArchive({ createdDate, emailCount, archivedDate, deleteNonce }) {
+      this._$root.remove();
+      const $container = $( ArchivedCampaign.getContainer() );
+      const $root = $( "<li>" );
+      $container.prepend( $root );
+      const campaign = new ArchivedCampaign(
+        $root,
+        this._id,
+        this._name,
+        this._level,
+        emailCount,
+        new Date( createdDate.replaceAll( "-", "/" ) ),
+        new Date( archivedDate.replaceAll( "-", "/" ) )
+      );
+      campaign.drawTemplate( deleteNonce );
+    }
+
+    /**
+     * Handles errors from the archive campaign Ajax request.
+     *
+     * @param {string} err
+     */
+    handleArchiveError( err ) {
+      const $form = this._$root.find( ".congress-campaign-archive-form" ).first();
+      $form.find( ".congress-form-error" ).text( err );
+    }
 
     /**
      * Toggles whether the campaign is expanded or collapsed.
@@ -521,18 +770,21 @@
    */
   function addCampaign( evt ) {
     evt.preventDefault();
-    Campaign.fromCreateRequest( new FormData( evt.target ) );
+    ActiveCampaign.fromCreateRequest( new FormData( evt.target ) );
   }
 
   $( () => {
     $( "#congress-active-campaigns-container > .congress-campaign-list > li" ).each( function() {
-      Campaign.fromHTML( $( this ) );
+      ActiveCampaign.fromHTML( $( this ) );
+    });
+    $( "#congress-archived-campaigns-container > .congress-campaign-list > li" ).each( function() {
+      ArchivedCampaign.fromHTML( $( this ) );
     });
     initArchiveToggle();
 
     const object = {
       addCampaign: ( data ) => {
-        Campaign.fromCreateRequest( data );
+        ActiveCampaign.fromCreateRequest( data );
         $( "#congress-campaign-add-error" ).first().text( "" );
       },
       addCompaignFailed: ( err ) => {
