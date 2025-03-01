@@ -64,7 +64,7 @@ class Congress_Activator {
 				'campaign_id mediumint(9) NOT NULL',
 				'referer_id mediumint(9)',
 				'sent_date DATE NOT NULL DEFAULT (CURRENT_DATE)',
-				"FOREIGN KEY referer_id REFERENCES $referer(id)",
+				"FOREIGN KEY (referer_id) REFERENCES $referer(id)",
 				'PRIMARY KEY (id, campaign_id)',
 			)
 		);
@@ -88,12 +88,12 @@ class Congress_Activator {
 			array(
 				'id mediumint(9) NOT NULL',
 				'PRIMARY KEY (id)',
-				"FOREIGN KEY id REFERENCES $campaign(id) ON DELETE CASCADE",
+				"FOREIGN KEY (id) REFERENCES $campaign(id) ON DELETE CASCADE",
 			)
 		);
 
-		dbDelta( "ALTER TABLE $referer ADD FOREIGN KEY campaign_id REFERENCES $active_campaign(id) ON DELETE CASCADE;" );
-		dbDelta( "ALTER TABLE $email ADD FOREIGN KEY campaign_id REFERENCES $active_campaign(id) ON DELETE CASCADE;" );
+		$wpdb->query( "ALTER TABLE $referer ADD FOREIGN KEY (campaign_id) REFERENCES $active_campaign(id) ON DELETE CASCADE;" ); // phpcs:ignore
+		$wpdb->query( "ALTER TABLE $email ADD FOREIGN KEY (campaign_id) REFERENCES $active_campaign(id) ON DELETE CASCADE;" ); // phpcs:ignore
 
 		$archived_campaign = Congress_Table_Manager::create_table(
 			'archived_campaign',
@@ -102,7 +102,7 @@ class Congress_Activator {
 				'email_count int NOT NULL',
 				'archived_date DATE NOT NULL DEFAULT (CURRENT_DATE)',
 				'PRIMARY KEY (id)',
-				"FOREIGN KEY id REFERENCES $campaign(id) ON DELETE CASCADE",
+				"FOREIGN KEY (id) REFERENCES $campaign(id) ON DELETE CASCADE",
 			)
 		);
 

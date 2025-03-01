@@ -112,6 +112,16 @@ class Congress_AJAX {
 				func_name: 'update_campaign',
 				ajax_name: 'update_campaign'
 			),
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'archive_campaign',
+				ajax_name: 'archive_campaign'
+			),
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'delete_archived_campaign',
+				ajax_name: 'delete_archived_campaign'
+			),
 		);
 	}
 
@@ -786,7 +796,7 @@ class Congress_AJAX {
 				'id'           => $campaign_id,
 				'name'         => $name,
 				'level'        => $level,
-				'editNonce'    => wp_create_nonce( "edit-campaign_$campaign_id" ),
+				'editNonce'    => wp_create_nonce( "update-campaign_$campaign_id" ),
 				'archiveNonce' => wp_create_nonce( "archive-campaign_$campaign_id" ),
 			)
 		);
@@ -794,7 +804,7 @@ class Congress_AJAX {
 
 	/**
 	 * Handles AJAX requests to update a campaign in the table.
-	 * Sends a JSON response with the number of rows changed.
+	 * Sends a JSON response with the updated campaign.
 	 */
 	public function update_campaign(): void {
 
@@ -821,7 +831,7 @@ class Congress_AJAX {
 			wp_unslash( $_POST['level'] )
 		);
 
-		if ( ! check_ajax_referer( "update-campaign-$campaign_id", false, false ) ) {
+		if ( ! check_ajax_referer( "update-campaign_$campaign_id", false, false ) ) {
 			wp_send_json(
 				array(
 					'error' => 'Incorrect Nonce',
@@ -870,6 +880,230 @@ class Congress_AJAX {
 				'id'    => $campaign_id,
 				'name'  => $name,
 				'level' => $level,
+			),
+		);
+	}
+
+	/**
+	 * Handles AJAX requests to archive a campaign in the table.
+	 * Sends a JSON response with the archived date.
+	 */
+	public function archive_campaign(): void {
+
+		if (
+			! isset( $_POST['id'] )
+		) {
+			wp_send_json(
+				array(
+					'error' => 'Missing parameters',
+				),
+				400
+			);
+			return;
+		}
+
+		$campaign_id = sanitize_text_field(
+			wp_unslash( $_POST['id'] )
+		);
+
+		if ( ! check_ajax_referer( "archive-campaign_$campaign_id", false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+			return;
+		}
+
+		global $wpdb;
+
+		$campaign          = Congress_Table_Manager::get_table_name( 'campaign' );
+		$email             = Congress_Table_Manager::get_table_name( 'email' );
+		$active_campaign   = Congress_Table_Manager::get_table_name( 'active_campaign' );
+		$archived_campaign = Congress_Table_Manager::get_table_name( 'archived_campaign' );
+
+		$wpdb->query( 'START TRANSACTION' ); // phpcs:ignore
+
+		// phpcs:ignore
+		$result = $wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO $archived_campaign (id, email_count) " . // phpcs:ignore
+				"SELECT $campaign.id, COUNT($email.campaign_id) FROM $campaign " . // phpcs:ignore
+				"LEFT JOIN $email ON $email.campaign_id = $campaign.id " . // phpcs:ignore
+				"WHERE $campaign.id = %d", // phpcs:ignore
+				array(
+					$campaign_id,
+				),
+			)
+		);
+
+		if ( false === $result ) {
+			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+			wp_send_json(
+				array(
+					'error' => $wpdb->last_error,
+				),
+				500
+			);
+			return;
+		}
+
+		if ( 0 === $result ) {
+			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+			wp_send_json(
+				array(
+					'error' => 'No Change',
+				),
+				400
+			);
+			return;
+		}
+
+		$result = $wpdb->delete( // phpcs:ignore
+			$active_campaign,
+			array(
+				'id' => $campaign_id,
+			),
+			'%d',
+		);
+
+		if ( false === $result ) {
+			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+			wp_send_json(
+				array(
+					'error' => $wpdb->last_error,
+				),
+				500
+			);
+			return;
+		}
+
+		if ( 0 === $result ) {
+			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+			wp_send_json(
+				array(
+					'error' => 'No Change',
+				),
+				400
+			);
+			return;
+		}
+
+		$wpdb->query( 'COMMIT' ); // phpcs:ignore
+
+		//phpcs:disable
+		$results = $wpdb->get_results( // phpcs:ignore
+			$wpdb->prepare(
+				"SELECT * FROM $archived_campaign " .
+				"INNER JOIN $campaign ON $archived_campaign.id = $campaign.id " .
+				"WHERE $campaign.id = %d",
+				array( $campaign_id )
+			),
+		);
+		// phpcs:enable
+
+		if ( false === $results ) {
+			wp_send_json(
+				array(
+					'error' => $wpdb->last_error,
+				),
+				500
+			);
+			return;
+		}
+
+		if ( 0 === count( $results ) ) {
+			wp_send_json(
+				array(
+					'error' => "Campaign doesn't exist",
+				),
+				500
+			);
+			return;
+		}
+
+		$result = $results[0];
+
+		wp_send_json(
+			array(
+				'id'           => $result->id,
+				'name'         => $result->name,
+				'level'        => $result->level,
+				'emailCount'   => $result->email_count,
+				'archivedDate' => $result->archived_date,
+				'createdDate'  => $result->created_date,
+				'deleteNonce'  => wp_create_nonce( "delete-archived-campaign_$campaign_id" ),
+			),
+		);
+	}
+
+	/**
+	 * Handles AJAX requests to delete a campaign in the table.
+	 * Sends a JSON response with a success message.
+	 */
+	public function delete_archived_campaign(): void {
+
+		if (
+			! isset( $_POST['id'] )
+		) {
+			wp_send_json(
+				array(
+					'error' => 'Missing parameters',
+				),
+				400
+			);
+			return;
+		}
+
+		$campaign_id = sanitize_text_field(
+			wp_unslash( $_POST['id'] )
+		);
+
+		if ( ! check_ajax_referer( "delete-archived-campaign_$campaign_id", false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+			return;
+		}
+
+		global $wpdb;
+
+		$campaign = Congress_Table_Manager::get_table_name( 'campaign' );
+
+		$result = $wpdb->delete( // phpcs:ignore
+			$campaign,
+			array(
+				'id' => $campaign_id,
+			),
+		);
+
+		if ( false === $result ) {
+			wp_send_json(
+				array(
+					'error' => $wpdb->last_error,
+				),
+				500
+			);
+			return;
+		}
+
+		if ( 0 === $result ) {
+			wp_send_json(
+				array(
+					'error' => 'No Change',
+				),
+				400
+			);
+			return;
+		}
+
+		wp_send_json(
+			array(
+				'success' => 'successfully deleted',
 			),
 		);
 	}
