@@ -350,6 +350,7 @@
      * Sets campaign data.
      *
      * This should be used instead of setting @see _name and @see _level manually.
+     * If campaign data and id need set at the same time, use @see setID first.
      *
      * Used when creating/editing.
      */
@@ -363,8 +364,8 @@
 
       // edit form
       const form = this._$root.find( ".congress-campaign-edit-form" )[0];
-      form.name.value = this._name;
-      form.level.value = this._level;
+      form.name.value = name;
+      form.level.value = level;
       form.id.value = this._id;
 
       this._name = name;
