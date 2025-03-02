@@ -64,7 +64,7 @@ class Congress_Activator {
 				'campaign_id mediumint(9) NOT NULL',
 				'referer_id mediumint(9)',
 				'sent_date DATE NOT NULL DEFAULT (CURRENT_DATE)',
-				"FOREIGN KEY (referer_id) REFERENCES $referer(id)",
+				"FOREIGN KEY (referer_id, campaign_id) REFERENCES $referer(id, campaign_id)",
 				'PRIMARY KEY (id, campaign_id)',
 			)
 		);
@@ -111,11 +111,12 @@ class Congress_Activator {
 			array(
 				'id mediumint(9) NOT NULL AUTO_INCREMENT',
 				'subject tinytext NOT NULL',
-				'body text NOT NULL',
-				'campaign mediumint(9) NOT NULL',
-				'PRIMARY KEY (id, campaign)',
-				"FOREIGN KEY (campaign) REFERENCES $campaign(id) ON DELETE CASCADE",
-				'CHECK (body <> "")',
+				'favorable bool NOT NULL DEFAULT false',
+				'template text NOT NULL',
+				'campaign_id mediumint(9) NOT NULL',
+				'PRIMARY KEY (id, campaign_id)',
+				"FOREIGN KEY (campaign_id) REFERENCES $campaign(id) ON DELETE CASCADE",
+				'CHECK (template <> "")',
 				'CHECK (subject <> "")',
 			)
 		);

@@ -35,15 +35,20 @@ class Congress_Deactivator {
 	 * @since    1.0.0
 	 */
 	public static function deactivate(): void {
+		global $wpdb;
 
-		Congress_Table_Manager::delete_table( 'campaign' );
+		$wpdb->query( 'START TRANSACTION' ); // phpcs:ignore
+
+		Congress_Table_Manager::delete_table( 'email' );
+		Congress_Table_Manager::delete_table( 'referer' );
 		Congress_Table_Manager::delete_table( 'active_campaign' );
 		Congress_Table_Manager::delete_table( 'archived_campaign' );
-		Congress_Table_Manager::delete_table( 'referer' );
-		Congress_Table_Manager::delete_table( 'email' );
 		Congress_Table_Manager::delete_table( 'email_template' );
-		Congress_Table_Manager::delete_table( 'representative' );
-		Congress_Table_Manager::delete_table( 'staffer' );
 		Congress_Table_Manager::delete_table( 'campaign_excludes_rep' );
+		Congress_Table_Manager::delete_table( 'campaign' );
+		Congress_Table_Manager::delete_table( 'staffer' );
+		Congress_Table_Manager::delete_table( 'representative' );
+
+		$wpdb->query( 'COMMIT' ); // phpcs:ignore
 	}
 }
