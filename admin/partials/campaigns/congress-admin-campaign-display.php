@@ -19,7 +19,7 @@ require plugin_dir_path( __FILE__ ) . 'class-congress-admin-archived-campaign.ph
 /**
  * The class used to display active campaigns.
  */
-require plugin_dir_path( __FILE__ ) . 'class-congress-admin-active-campaign.php';
+require_once plugin_dir_path( __FILE__ ) . 'class-congress-admin-active-campaign.php';
 
 /**
  * A component for stacked inputs in forms.
@@ -124,6 +124,11 @@ $display_campaign_type = 'active';
 	<template id="congress-archived-campaign-template">
 		<?php
 			Congress_Admin_Archived_Campaign::get_html_template();
+		?>
+	</template>
+	<template id="congress-campaign-email-template">
+		<?php
+			Congress_Admin_Email::get_html_template();
 		?>
 	</template>
 </div>

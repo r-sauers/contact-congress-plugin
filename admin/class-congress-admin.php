@@ -10,6 +10,12 @@
  */
 
 /**
+ * The active campaign class to get campaign ids to generate nonces.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'admin/partials/campaigns/class-congress-admin-active-campaign.php';
+
+/**
  * The admin-specific functionality of the plugin.
  *
  * Defines the plugin name, version, and two examples hooks for how to
@@ -111,6 +117,18 @@ class Congress_Admin {
 				array( 'jquery' ),
 				$this->version,
 				false
+			);
+			$load_template_nonces = array();
+			$campaigns            = Congress_Admin_Active_Campaign::get_from_db();
+			foreach ( $campaigns as $campaign ) {
+				$load_template_nonces[ $campaign->get_id() ] = wp_create_nonce( 'load-templates_' . $campaign->get_id() );
+			}
+			wp_localize_script(
+				$this->congress,
+				'congressAjaxObj',
+				array(
+					'loadTemplateNonce' => $load_template_nonces,
+				),
 			);
 		}
 	}
