@@ -127,7 +127,7 @@ class Congress {
 		 * The class responsible for AJAX handlers
 		 */
 		require_once plugin_dir_path( __DIR__ ) .
-			'includes/class-congress-ajax.php';
+			'includes/ajax/class-congress-ajax.php';
 
 		$this->loader = new Congress_Loader();
 	}

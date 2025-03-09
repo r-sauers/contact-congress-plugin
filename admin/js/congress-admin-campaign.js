@@ -52,23 +52,361 @@
     evt.preventDefault();
     const form = evt.target;
     const formData = new FormData( form );
-    const formMethod = form.attributes?.method?.nodeValue || "get";
+    let formMethod = form.attributes?.method?.nodeValue || "get";
+    let formAction = form.attributes.action.nodeValue;
+
+    if ( evt.originalEvent?.submitter?.attributes?.formaction ) {
+      formAction = evt.originalEvent.submitter.attributes.formaction.value;
+    }
+    formData.set( "action", formAction );
 
     const object = evt.data.object;
     const success = evt.data.success;
     const error = evt.data.error;
 
-    const body = {
-      action: form.attributes.action.nodeValue
-    };
-    for ( const pair of formData.entries() ) {
-      body[pair[0]] = pair[1];
+    $.ajax({
+      url: ajaxurl,
+      type: formMethod,
+      data: formData,
+      processData: false,
+      contentType: false
+    })
+      .done( ( data ) => object[success.name]( data, formAction ) )
+      .fail( ( err ) => object[error.name]( err.responseJSON.error, { response: err, formAction: formAction }) );
+  }
+
+  /**
+   * A helper function to make an Ajax call that prompts the user to
+   * select files to fill hidden file fields, then submits the form.
+   *
+   * @param {jQuerySubmitEvent} evt should have data fields:
+   *  - object {Obect}
+   *  - success {object.Function}
+   *  - error {object.Function}
+   *  @param {number} filesSelected should be ignored.
+   */
+  function ajaxUploadHandler( evt, filesSelected = 0 ) {
+
+    evt.preventDefault();
+    const form = evt.target;
+    const $fileFields = $( form ).find( "input[type='file']" );
+
+    // Trigger file selection if needed.
+    if ( filesSelected != $fileFields.length ) {
+      const $nextField = $fileFields.eq( filesSelected );
+      $nextField.on( "input", function() {
+        $( form ).trigger( "submit", filesSelected + 1 );
+      });
+      $( $nextField ).trigger( "click", true );
+      return;
     }
-    $[formMethod](
-      ajaxurl,
-      body,
-      ( data ) => object[success.name]( data )
-    ).fail( ( err ) => object[error.name]( err.responseJSON.error ) );
+
+    // Ensure files exist
+    let missingFile = false;
+    $fileFields.each( function() {
+      if ( this.required && "" === this.value ) {
+        missingFile = true;
+      }
+    });
+    if ( missingFile ) {
+      evt.data.object[evt.data.error.name]( "No file selected!" );
+      return;
+    }
+
+    ajaxHandler( evt );
+  }
+
+  /**
+   * Helps initialize html and handle edit events.
+   */
+  class EmailTemplate {
+
+    /**
+     * The id of the template's campaign.
+     *
+     * @type {number}
+     */
+    _campaignID;
+
+    /**
+     * The id of the email template.
+     *
+     * @type {number}
+     */
+    _id;
+
+    /**
+     * The subject of the email.
+     *
+     * @type {string}
+     */
+    _subject;
+
+    /**
+     * If this is true, it should be sent to congress members supporting the campaign.
+     *
+     * @type {boolean}
+     */
+    _favorable;
+
+    /**
+     * The body of the email template.
+     *
+     * @type {string}
+     */
+    _template;
+
+    /**
+     * The form to handle edits to the email template.
+     *
+     * @type {jQueryFormElement}
+     */
+    _$form;
+
+    /**
+     * The root of the DOM displaying the email template.
+     *
+     * @type {jQueryLIElement}
+     */
+    _$root;
+
+    /**
+     * What textarea is currently being scrolled.
+     *
+     * @type {'template'|'preview'|''}
+     */
+    _scrolling;
+
+    /**
+     * Creates a DOW template for an email template.
+     */
+    static getTemplate() {
+      const template = $( "#congress-campaign-email-template" )[0];
+      return template.content.cloneNode( true );
+    }
+
+    /**
+     * Constructs the campaign.
+     *
+     * @param {number} campaignID The id of the template's campaign.
+     * @param {number} id The id of the email template.
+     * @param {string} subject The subject of the email.
+     * @param {boolean} favorable If this is true, it should be sent to congress members supporting the campaign.
+     * @param {string} template The body of the email template.
+     */
+    constructor( campaignID, id, subject, favorable, template ) {
+      this._campaignID = campaignID;
+      this._id = id;
+      this._subject = subject;
+      this._favorable = favorable;
+      this._template  = template ;
+      this._scrolling = "";
+    }
+
+    /**
+     * Creates a DOM element for the email template and appends it to $root.
+     *
+     * @param {jQueryLIElement} $root is the DOM root.
+     * @param {string} editNonce is the nonce for edit/delete requests.
+     */
+    createDOM( $root, editNonce ) {
+
+      const dom = EmailTemplate.getTemplate();
+      $root.append( dom );
+
+      this._$root = $root;
+      this._$form = $root.find( ".congress-campaign-email-edit-form" ).first();
+      this.setID( this._id, this._campaignID );
+      this.setSubject( this._subject );
+      this.setTemplate( this._template );
+      this.setFavorable( this._favorable );
+      this._initForm( editNonce );
+    }
+
+    /**
+     * Sets the database id for the email template.
+     *
+     * @param {number} id
+     * @param {number} campaignID
+     */
+    setID( id, campaignID ) {
+
+      // handle form labels
+      const I = this;
+      this._$form.find( "label" ).each( function() {
+        const oldID = $( this ).attr( "for" );
+        let newID = oldID
+          .replace( "campaign-id", campaignID )
+          .replace( "email-id", id );
+        $( this ).attr( "for", newID );
+        I._$form.find( "#" + oldID ).attr( "id", newID );
+      });
+
+      // handle form id
+      this._$form[0].id.value = id;
+      this._$form[0]["campaign_id"].value = this._campaignID;
+
+      // handle title
+      this._$root.find( "h3" ).text( `Template ${id}` );
+
+      this._id = id;
+      this._campaignID = campaignID;
+    }
+
+    /**
+     * Sets the subject of the email.
+     *
+     * @param {string} value
+     */
+    setSubject( value ) {
+      this._$form[0].subject.value = value;
+      this._subject = value;
+    }
+
+    /**
+     * Sets the template body of the email.
+     *
+     * The template can have the following placeholders:
+     * [[REP_FIRST]], [[REP_LAST]], [[REP_TITLE]], [[SENDER_FIRST]], [[SENDER_LAST]]
+     *
+     * @param {string} value
+     */
+    setTemplate( value ) {
+      this._$form[0].template.value = value;
+
+      const rep = {
+        title: "Senator",
+        firstName: "Amy",
+        lastName: "Klobuchar"
+      };
+
+      const sender = {
+        firstName: "John",
+        lastName: "Doe"
+      };
+
+      const $template = $( this._$form[0].template );
+      const $preview = $( this._$form[0].preview );
+
+      let template = $template.val();
+      template = template.replaceAll( /\[\[REP_FIRST\]\]/ig, rep.firstName );
+      template = template.replaceAll( /\[\[REP_LAST\]\]/ig, rep.lastName );
+      template = template.replaceAll( /\[\[REP_TITLE\]\]/ig, rep.title );
+      template = template.replaceAll( /\[\[SENDER_FIRST\]\]/ig, sender.firstName );
+      template = template.replaceAll( /\[\[SENDER_LAST\]\]/ig, sender.lastName );
+
+      $preview.val( template );
+
+      this._template = value;
+    }
+
+    /**
+     * Sets whether or not the email is for representatives that are in favor of the campaign.
+     *
+     * @param {boolean} value
+     */
+    setFavorable( value ) {
+      this._$form[0].for.value = value ? "favored" : "opposed";
+      this._favorable = value;
+    }
+
+    /**
+     * Initializes form event handlers.
+     *
+     * @param {string} editNonce is the nonce for edit/delete requests.
+     */
+    _initForm( editNonce ) {
+
+      this._$form[0]._wpnonce.value = editNonce;
+
+      const I = this;
+
+      $( this._$form[0].preview ).on( "scroll", function( evt ) {
+        if ( "" === I._scrolling ) {
+          I._scrolling = "preview";
+        }
+        if ( "preview" === I._scrolling ) {
+          I._$form[0].template.scrollTo({
+            top: evt.target.scrollTop
+          });
+        }
+      });
+      $( this._$form[0].template ).on( "scroll", function( evt ) {
+        if ( "" === I._scrolling ) {
+          I._scrolling = "template";
+        }
+        if ( "template" === I._scrolling ) {
+          I._$form[0].preview.scrollTo({
+            top: evt.target.scrollTop
+          });
+        }
+      });
+      $( this._$form[0].template ).on( "scrollend", () => I._scrolling = "" );
+      $( this._$form[0].preview ).on( "scrollend", () => I._scrolling = "" );
+
+      $( this._$form[0].template ).on( "input", function( evt ) {
+        I.setTemplate( evt.target.value );
+        I._$form.find( "input[formaction=\"update_email_template\"]" ).first().val( "Update Email (unsaved)" );
+        I._$form.find( ".congress-form-error" ).first().text( "" );
+      });
+
+      $( this._$form[0].subject ).on( "input", function() {
+        I._$form.find( "input[formaction=\"update_email_template\"]" ).first().val( "Update Email (unsaved)" );
+        I._$form.find( ".congress-form-error" ).first().text( "" );
+      });
+      $( this._$form[0].favorable ).on( "input", function() {
+        I._$form.find( "input[formaction=\"update_email_template\"]" ).first().val( "Update Email (unsaved)" );
+        I._$form.find( ".congress-form-error" ).first().text( "" );
+      });
+
+      // handle form submit
+      const formData = {
+        object: this,
+        success: this.handleForm,
+        error: this.handleFormError
+      };
+      this._$form.on( "submit", null, formData, ajaxHandler );
+
+    }
+
+    /**
+     * Handles a form submission.
+     *
+     * @param {object} data is the response data.
+     * @param {string} formMethod is the request method.
+     */
+    handleForm( data, formAction ) {
+      if ( "update_email_template" === formAction ) {
+        const { campaignID, id, subject, favorable, template } = data;
+        this.setID( id, campaignID );
+        this.setSubject( subject );
+        this.setFavorable( favorable );
+        this.setTemplate( template );
+
+        this._$form.find( ".congress-form-error" ).first().text( "" );
+        this._$form.find( "input[formaction=\"update_email_template\"]" ).first().val( "Update Email (saved!)" );
+      } else if ( "delete_email_template" === formAction ) {
+        this._$root.remove();
+      }
+    }
+
+    /**
+     * Handles errors during form submission.
+     *
+     * @param {string} err is the error.
+     * @param {object} response is the request response.
+     * @param {string} formMethod is the request methos.
+     */
+    handleFormError( err, { response, formAction }) {
+      if ( "update_email_template" === formAction ) {
+        this._$form.find( ".congress-form-error" ).first().text( err );
+        this._$form.find( "input[formaction=\"update_email_template\"]" ).first().val( "Update Email (error!)" );
+      } else if ( "delete_email_template" === formAction ) {
+        if ( response.template ) {
+          this._$form.find( ".congress-form-error" ).eq( 1 ).text( err );
+        }
+      }
+    }
   }
 
   /**
@@ -252,7 +590,285 @@
       $form.find( ".congress-form-error" ).text( err );
     }
 
+  }
 
+  /**
+   * Used to manage a campaign's email template page.
+   */
+  class EmailTemplatePage {
+
+    /**
+     * The DOM root.
+     *
+     * @type {JQueryDivElement}
+     */
+    _$root;
+
+    /**
+     * The id of the page's campaign.
+     *
+     * @type {number}
+     */
+    _campaignID;
+
+    /**
+     * The nonce to load email templates.
+     *
+     * @type {string}
+     */
+    _nonce;
+
+    /**
+     * Track load status.
+     *
+     * @type {boolean}
+     */
+    _isLoaded;
+
+    /**
+     * The delete form.
+     *
+     * @type {HTMLFormElement}
+     */
+    _deleteForm;
+
+    /**
+     * The create form.
+     *
+     * @type {HTMLFormElement}
+     */
+    _createForm;
+
+    /**
+     * The csv form.
+     *
+     * @type {HTMLFormElement}
+     */
+    _csvForm;
+
+    /**
+     * The container for email templates.
+     *
+     * @type {QueryULElement}
+     */
+    _$container;
+
+    /**
+     * Initializes the page.
+     *
+     * Note: @see load must be called to view email templates.
+     *
+     * @param campaignID {number} is the page's campaign id.
+     * @param $root {JQueryDivElement} is the root of the page.
+     */
+    constructor( campaignID, $root ) {
+      const createForm = $root.find( ".congress-campaign-email-create-form" )[0];
+      createForm.campaign_id.value = campaignID;
+      this._createForm = createForm;
+
+      const csvForm = $root.find( ".congress-campaign-email-upload-csv-form" )[0];
+      csvForm.campaign_id.value = campaignID;
+      this._csvForm = csvForm;
+
+      const deleteForm = $root.find( ".congress-campaign-email-delete-all-form" )[0];
+      deleteForm.campaign_id.value = campaignID;
+      this._deleteForm = deleteForm;
+
+      this._$container = $root.find( ".congress-campaign-email-list" ).first();
+
+      this._$root = $root;
+      this._campaignID = campaignID;
+      this._isLoaded = false;
+    }
+
+    /**
+     * Campaign ID setter.
+     *
+     * @param {number} campaignID
+     */
+    setCampaignID( campaignID ) {
+      this._createForm.campaign_id.value = campaignID;
+      this._csvForm.campaign_id.value = campaignID;
+      this._deleteForm.campaign_id.value = campaignID;
+      this._campaignID = campaignID;
+    }
+
+    /**
+     * Set the nonce to load the page.
+     *
+     * @param {string} nonce
+     */
+    setNonce( nonce ) {
+      this._nonce = nonce;
+    }
+
+    /**
+     * Has the page been loaded?
+     *
+     * @return {boolean}
+     */
+    isLoaded() {
+      return this._isLoaded;
+    }
+
+    /**
+     * Load email templates into the page, and add nonces.
+     *
+     * You should use @see isLoaded to determine if you need to call this.
+     * You should use @see setNonce before using this method if the page is
+     * from a campaign created during the browser session.
+     */
+    load( callback ) {
+
+      if ( undefined === this._nonce ) {
+
+        // attempt to find nonce in ajax object passed by wordpress
+        const nonce = congressAjaxObj?.loadTemplateNonce[this._campaignID];
+
+        if ( ! nonce ) {
+          throw "Nonce not set";
+        }
+
+        this._nonce = nonce;
+      }
+
+      const I = this;
+      $.post(
+        ajaxurl,
+        {
+          "action": "load_email_templates",
+          "campaign_id": this._campaignID,
+          "_wpnonce": this._nonce
+        },
+        function({createNonce, csvNonce, deleteAllNonce, templates}) {
+          I._createForm._wpnonce.value = createNonce;
+          $( I._createForm ).on(
+            "submit",
+            null,
+            {
+              object: I,
+              success: I.handleCreate,
+              error: I.handleCreateError
+            },
+            ajaxHandler
+          );
+
+          I._csvForm._wpnonce.value = csvNonce;
+          $( I._csvForm ).on(
+            "submit",
+            null,
+            {
+              object: I,
+              success: I.handleCSV,
+              error: I.handleCSVError
+            },
+            ajaxUploadHandler
+          );
+
+          I._deleteForm._wpnonce.value = deleteAllNonce;
+          $( I._deleteForm ).on(
+            "submit",
+            null,
+            {
+              object: I,
+              success: I.handleDelete,
+              error: I.handleDeleteError
+            },
+            ajaxHandler
+          );
+
+          I._addTemplates( templates );
+          I._isLoaded = true;
+
+          callback();
+        }
+      );
+
+    }
+
+    /**
+     * Adds templates to the DOM.
+     *
+     * @param {Array<{campaignID: number, id: number, subject: string, favorable: boolean, template: string, editNonce: string}>} templates
+     */
+    _addTemplates( templates ) {
+      for ( let data of templates ) {
+        this._addTemplate( data );
+      }
+    }
+
+    /**
+     * Adds a template to the DOM.
+     *
+     * @param {number} campaignID
+     * @param {number} id
+     * @param {string} subject
+     * @param {boolean} favorable
+     * @param {string} template
+     * @param {string} editNonce
+     */
+    _addTemplate({ campaignID, id, subject, favorable, template, editNonce }) {
+      if ( "string" === typeof favorable ) {
+        favorable = ( 0 !== parseInt( favorable ) );
+      }
+      const templateObj = new EmailTemplate( campaignID, id, subject, favorable, template );
+      const $li = $( "<li>" )
+        .prependTo( this._$container );
+      templateObj.createDOM( $li, editNonce );
+    }
+
+    /**
+     * Handles a successful request to create an email template.
+     *
+     * @param {{campaignID: number, id: number, subject: string, favorable: boolean, template: string, editNonce: string}} template
+     */
+    handleCreate( template ) {
+      this._addTemplate( template );
+      $( this._createForm ).find( ".congress-form-error" ).text( "" );
+    }
+
+    /**
+     * Handles a failed request to create an email template.
+     *
+     * @param {string} err
+     */
+    handleCreateError( err ) {
+      $( this._createForm ).find( ".congress-form-error" ).text( err );
+    }
+
+    /**
+     * Handles a successful request to create templates from a CSV.
+     *
+     * @param {Array} @see handleCreate for the type.
+     */
+    handleCSV( templates ) {
+      this._addTemplates( templates );
+      $( this._csvForm ).find( ".congress-form-error" ).text( "" );
+    }
+
+    /**
+     * Handles a failed request to create email templates from a CSV.
+     *
+     * @param {string} err
+     */
+    handleCSVError( err ) {
+      $( this._csvForm ).find( ".congress-form-error" ).text( err );
+    }
+
+    /**
+     * Handles a successful request to delete an email template.
+     */
+    handleDelete() {
+      this._$container.empty();
+      $( this._deleteForm ).find( ".congress-form-error" ).text( "" );
+    }
+
+    /**
+     * Handles a failed request to delete an email template.
+     */
+    handleDeleteError( err ) {
+      $( this._deleteForm ).find( ".congress-form-error" ).text( err );
+    }
   }
 
 
@@ -286,10 +902,11 @@
      * @param {number} level  is the level of the campaign.
      * @param {number} editNonce  is the nonce used for the edit form.
      * @param {number} archiveNonce  is the nonce used for the archive button.
+     * @param {number} templateLoadNonce  is the nonce used for loading the email templates page.
      *
      * @returns {ActiveCampaign}
      */
-    static fromCreateRequest({id, name, level, editNonce, archiveNonce }) {
+    static fromCreateRequest({id, name, level, editNonce, archiveNonce, templateLoadNonce }) {
       const template = ActiveCampaign.createTemplate();
       const container = ActiveCampaign.getContainer();
       const li = document.createElement( "li" );
@@ -297,12 +914,13 @@
       container.prepend( li );
 
       const campaign = new ActiveCampaign( -1, "", "", $( li ) );
-      campaign.changePage( "templates" );
       campaign.toggleExpansion( false );
       campaign.setID( id );
       campaign.setCampaignData( name, level );
       campaign.updateEditNonce( editNonce );
       campaign.updateArchiveNonce( archiveNonce );
+      campaign.emailTemplatePage.setNonce( templateLoadNonce );
+      campaign.changePage( "templates" );
 
       return campaign;
     }
@@ -412,6 +1030,13 @@
     _level;
 
     /**
+     * The email template page.
+     *
+     * @type {EmailTemplatePage}
+     */
+    emailTemplatePage;
+
+    /**
      * Constructs a Campaign and adds event listeners.
      *
      * @param {number} id is the database id of the campaign.
@@ -429,6 +1054,7 @@
       this._initExpansionToggle();
       this._initEditForm();
       this._initArchiveForm();
+      this.emailTemplatePage = new EmailTemplatePage( id, $( this._$pageLinks.templates.attr( "href" ) ) );
 
     }
 
@@ -472,6 +1098,8 @@
         $link.attr( "href", "#" + newPageID );
         $( "#" + pageID )[0].id = newPageID;
       }
+
+      this.emailTemplatePage.setCampaignID( id );
 
       this._id = id;
     }
@@ -594,9 +1222,7 @@
      * @param {'federal'|'state'} level
      */
     handleEdit({ name, level }) {
-      this._name = name;
-      this._level = level;
-      this.setHeader();
+      this.setCampaignData( name, level );
       const $form = this._$root.find( ".congress-campaign-edit-form" ).first();
       $form.find( ".congress-form-error" ).text( "" );
     }
@@ -691,6 +1317,8 @@
       } else {
         this._$expandToggle.text( "Less ^" );
       }
+
+      this.scrollTo();
     }
 
     /**
@@ -710,12 +1338,38 @@
         $oldPageBody.toggleClass( "congress-hidden", true );
       }
 
+      const I = this;
+      const scrollFunc = function() {
+        I.scrollTo();
+      };
+
       this._currentPage = pageName;
 
       const $pageLink = this._$pageLinks[pageName];
       const $pageBody = $( $pageLink.attr( "href" ) );
       $pageLink.toggleClass( "congress-active", true );
       $pageBody.toggleClass( "congress-hidden", false );
+
+      if ( "templates" === pageName ) {
+        if ( ! this.emailTemplatePage.isLoaded() ) {
+          this.emailTemplatePage.load( scrollFunc );
+        }
+      } else {
+        this.scrollTo();
+      }
+
+
+    }
+
+    /**
+     * Scrolls so the the campaign is in center view.
+     */
+    scrollTo() {
+      scrollTo({
+        top: this._$root[0].offsetTop - ( ( document.body.clientHeight - this._$root[0].offsetHeight ) / 2 ),
+        behavior: "instant"
+      });
+
     }
   }
 

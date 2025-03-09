@@ -254,12 +254,17 @@
 
 	& ul {
 		border-top: 1px solid var(--congress-border-color);
-		max-height: 50vh;
+		max-height: 65vh;
 		overflow: scroll;
 		background-color: var(--congress-bg-color-lighter);
 		margin-inline: -1em;
 		margin-top: 1em;
 		margin-bottom: -1em;
+		scrollbar-width: auto;
+
+		&::-webkit-scrollbar {
+			display: block;
+		}
 	}
 }
 
@@ -291,7 +296,18 @@
 	padding: 1em;
 
 	& > h3 {
-		margin-top: 0;
+		margin-top: -0.2em;
+		margin-bottom: 0.2em;
+	}
+
+	textarea {
+		resize: none;
+		overflow: scroll;
+		scrollbar-width: auto;
+
+		&::-webkit-scrollbar {
+			display: block;
+		}
 	}
 }
 
@@ -351,4 +367,16 @@ li:not(:last-child) > .congress-campaign-email-container {
 	justify-content: center;
 	flex-direction: column;
 	align-items: center;
+}
+
+.congress-campaign-email-list:empty {
+	min-height: 6em;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	&::after {
+		font-size: 2em;
+		content: "No email templates, try adding one!";
+	}
 }

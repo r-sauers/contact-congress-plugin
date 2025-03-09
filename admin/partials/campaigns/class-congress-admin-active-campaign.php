@@ -190,35 +190,50 @@ class Congress_Admin_Active_Campaign {
 					<p>Graph Goes Here</p>
 				</div>
 			</div>
-			<div
+			<div 
 				id="<?php echo esc_attr( "congress-campaign-$this->string_id-templates-page" ); ?>" 
 				class="congress-campaign-page-container"
 			>
 				<div style="display: flex; justify-content: space-between;">
-					<div>
-						<input type="text" placeholder="Subject" aria-label="Subject" name="subject"/>
-						<button class="button button-primary">Add Email Template</button>
-					</div>
-					<div>
+					<form 
+						action="create_email_template"
+						method="post"
+						class="congress-campaign-email-create-form"
+						style="display: flex; align-items: flex-start; flex-direction: column;"
+					>
+						<?php wp_nonce_field( 'create-email_campaign-id' ); ?>
+						<input type="hidden" name="campaign_id" />
+						<div>
+							<input type="text" placeholder="Subject" aria-label="Subject" name="subject"/>
+							<button class="button button-primary">Add Email Template</button>
+						</div>
+						<span class="congress-form-error"></span>
+					</form>
+					<form 
+						action="upload_csv_email_templates"
+						method="post"
+						class="congress-campaign-email-upload-csv-form"
+						style="display: flex; align-items: center; flex-direction: column;"
+					>
+						<?php wp_nonce_field( 'upload-csv-emails_campaign-id' ); ?>
+						<input type="hidden" name="campaign_id" />
+						<input type="file" name="csv" accept="text/csv" hidden/>
 						<button class="button button-primary">Add Templates From CSV</button>
-						<span></span>
-					</div>
-					<button class="button congress-button-danger">Delete All Templates</button>
+						<span class="congress-form-error"></span>
+					</form>
+					<form 
+						action="delete_all_email_templates"
+						method="post"
+						class="congress-campaign-email-delete-all-form"
+						style="display: flex; align-items: center; flex-direction: column;"
+					>
+						<?php wp_nonce_field( 'delete-all-emails_campaign-id' ); ?>
+						<input type="hidden" name="campaign_id" />
+						<button class="button congress-button-danger">Delete All Templates</button>
+						<span class="congress-form-error"></span>
+					</form>
 				</div>
-				<ul>
-					<li>
-					<?php
-					$email = new Congress_Admin_Email( 0, 0, 'EATS act', false, "Dear [[TITLE]] [[LAST]],\n" );
-					$email->display();
-					?>
-					</li>
-					<li>
-					<?php
-					$email = new Congress_Admin_Email( 0, 0, 'EATS act', false, "Dear [[TITLE]] [[LAST]],\n" );
-					$email->display();
-					?>
-					</li>
-				</ul>
+				<ul class="congress-campaign-email-list congress-empty"></ul>
 			</div>
 		</div>
 	</div>
