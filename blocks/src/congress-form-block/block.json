@@ -8,14 +8,11 @@
   "description": "A form that can be filled out to contact congress.",
   "example": {},
   "attributes": {
-    "isStatePolicy": {
-      "type": "boolean"
+    "campaignID": {
+      "type": "number"
     },
-    "campaign": {
+    "campaignName": {
       "type": "string"
-    },
-    "hasEmailTemplates": {
-        "type": "boolean"
     }
   },
   "supports": {

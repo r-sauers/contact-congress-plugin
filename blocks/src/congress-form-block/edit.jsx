@@ -5,7 +5,7 @@
  */
 import { __ } from "@wordpress/i18n";
 
-import React from "react";
+import React, {useEffect, useState} from "react";
 import PropTypes from "prop-types";
 
 /**
@@ -15,7 +15,7 @@ import PropTypes from "prop-types";
  * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
  */
 import { useBlockProps, InspectorControls } from "@wordpress/block-editor";
-import { PanelBody, TextControl, ToggleControl, FormFileUpload } from "@wordpress/components";
+import { PanelBody, TextControl, ToggleControl, FormFileUpload, CustomSelectControl } from "@wordpress/components";
 
 /**
  * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
@@ -34,8 +34,28 @@ import "./editor.scss";
  * @return {Element} Element to render.
  */
 export default function Edit({ attributes, setAttributes }) {
-  const { isStatePolicy, isFederalPolicy, hasEmailTemplates, campaign } = attributes;
+  const { campaignID, campaignName } = attributes;
   const blockProps = useBlockProps();
+  let [ options, setOptions ] = useState([]);
+
+  useEffect( () => {
+    jQuery.post(
+      ajaxurl,
+      {
+        action: "get_campaign_names"
+      },
+      function( campaigns ) {
+        let _options = [];
+        for ( const campaign of campaigns ) {
+          _options.push({
+            "key": campaign.id,
+            "name": campaign.name
+          });
+        }
+        setOptions( _options );
+      }
+    );
+  }, []);
 
   function className( ...classNames ) {
     let className = "";
@@ -63,40 +83,22 @@ export default function Edit({ attributes, setAttributes }) {
     <>
       <InspectorControls>
         <PanelBody title={__( "Settings", "copyright-date-block" )}>
-          <TextControl
+          <CustomSelectControl
             __nextHasNoMarginBottom
             __next40pxDefaultSize
-            label={__( "Campain Name", "copyright-date-block" )}
-            value={campaign || ""}
-            onChange={( value ) => setAttributes({ campaign: value })}
-          />
-          <ToggleControl
-            checked={!! isStatePolicy}
-            label={__( "State Policy", "copyright-date-block" )}
-            onChange={() =>
-              setAttributes({
-                isStatePolicy: ! isStatePolicy
-              })
-            }
-          />
-          <ToggleControl
-            checked={!! isFederalPolicy}
-            label={__( "Federal Policy", "copyright-date-block" )}
-            onChange={() =>
-              setAttributes({
-                isFederalPolicy: ! isFederalPolicy
-              })
-            }
-          />
-          <FormFileUpload
-            __next40pxDefaultSize
-            accept="text/csv"
-            onChange={() => {
-              setAttributes({ hasEmailTemplates: true});
+            label={__( "Campaign", "congress-form-block" )}
+            value={{
+              name: campaignName,
+              key: campaignID
             }}
-          >
-            Select File
-          </FormFileUpload>
+            options={options}
+            onChange={( select ) => {
+              setAttributes({
+                campaignName: select.selectedItem.name,
+                campaignID: parseInt( select.selectedItem.key )
+              });
+            }}
+          />
         </PanelBody>
       </InspectorControls>
       <div {...useBlockProps()}>
