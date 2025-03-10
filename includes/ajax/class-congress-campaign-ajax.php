@@ -64,6 +64,11 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 				func_name: 'delete_archived_campaign',
 				ajax_name: 'delete_archived_campaign'
 			),
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'get_campaign_names',
+				ajax_name: 'get_campaign_names'
+			),
 		);
 	}
 
@@ -74,6 +79,32 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 	 */
 	public function get_public_handlers(): array {
 		return array();
+	}
+
+	/**
+	 * Handles ajax request to get campaign names.
+	 *
+	 * Returns an array of objects with the campaign id and name.
+	 */
+	public function get_campaign_names(): void {
+
+		$campaign_t = Congress_Table_Manager::get_table_name( 'campaign' );
+		$active_t   = Congress_Table_Manager::get_table_name( 'active_campaign' );
+
+		global $wpdb;
+		$results = $wpdb->get_results( "SELECT $campaign_t.id, name FROM $active_t LEFT JOIN $campaign_t ON $active_t.id = $campaign_t.id" ); // phpcs:ignore
+
+		if ( false === $results ) {
+			wp_send_json(
+				array(
+					'error' => $wpdb->last_error,
+				),
+				500
+			);
+			return;
+		}
+
+		wp_send_json( $results );
 	}
 
 	/**
