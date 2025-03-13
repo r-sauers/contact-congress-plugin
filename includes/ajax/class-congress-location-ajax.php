@@ -403,10 +403,10 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 				);
 			}
 
-			$rep = $reps[ $rep_staffer['rep_id'] ];
+			$rep = &$reps[ $rep_staffer['rep_id'] ];
 
 			array_push(
-				$reps[ $rep_staffer['rep_id'] ]['staffers'],
+				$rep['staffers'],
 				array(
 					'first_name' => $rep_staffer['staffer_first_name'],
 					'last_name'  => $rep_staffer['staffer_last_name'],
