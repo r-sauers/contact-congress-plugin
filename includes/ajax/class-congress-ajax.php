@@ -46,6 +46,12 @@ require_once plugin_dir_path( __FILE__ ) .
 	'class-congress-template-ajax.php';
 
 /**
+ * Imports the locations ajax collection.
+ */
+require_once plugin_dir_path( __FILE__ ) .
+	'class-congress-location-ajax.php';
+
+/**
  * A collection of AJAX handlers.
  *
  * @since      1.0.0
@@ -90,6 +96,7 @@ class Congress_AJAX {
 			new Congress_Staffer_AJAX(),
 			new Congress_Campaign_AJAX(),
 			new Congress_Template_AJAX(),
+			new Congress_Location_AJAX(),
 		);
 	}
 
