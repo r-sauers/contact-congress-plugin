@@ -162,14 +162,6 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 
 		global $wpdb;
 
-		$district = sanitize_text_field(
-			wp_unslash( $_POST['district'] )
-		);
-
-		if ( '' === $district ) {
-			$district = null;
-		}
-
 		$tablename = Congress_Table_Manager::get_table_name( 'representative' );
 		// phpcs:ignore
 		$result    = $wpdb->insert(
@@ -181,7 +173,9 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 				'state'      => sanitize_text_field(
 					wp_unslash( $_POST['state'] )
 				),
-				'district'   => $district,
+				'district'   => sanitize_text_field(
+					wp_unslash( $_POST['district'] )
+				),
 				'first_name' => sanitize_text_field(
 					wp_unslash( $_POST['first_name'] )
 				),
@@ -307,14 +301,6 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
-		$district = sanitize_text_field(
-			wp_unslash( $_POST['district'] )
-		);
-
-		if ( '' === $district ) {
-			$district = null;
-		}
-
 		global $wpdb;
 
 		$tablename = Congress_Table_Manager::get_table_name( 'representative' );
@@ -328,7 +314,9 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 				'state'      => sanitize_text_field(
 					wp_unslash( $_POST['state'] )
 				),
-				'district'   => $district,
+				'district'   => sanitize_text_field(
+					wp_unslash( $_POST['district'] )
+				),
 				'first_name' => sanitize_text_field(
 					wp_unslash( $_POST['first_name'] )
 				),
