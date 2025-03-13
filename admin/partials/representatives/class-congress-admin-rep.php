@@ -61,9 +61,9 @@ class Congress_Admin_Rep {
 	/**
 	 * The district of the representative (e.g. 5).
 	 *
-	 * @var ?string district
+	 * @var int district
 	 */
-	private ?string $district;
+	private int $district;
 
 	/**
 	 * The stae of the representative (e.g. 'MN').
@@ -91,21 +91,21 @@ class Congress_Admin_Rep {
 	/**
 	 * Constructor
 	 *
-	 * @param string  $rep_id is the database id.
-	 * @param string  $first_name is the rep's first name.
-	 * @param string  $last_name is the rep's last name.
-	 * @param string  $title is the rep's title (e.g. Senator).
-	 * @param ?string $district is the rep's district (e.g. 5).
-	 * @param string  $state is the rep's state (e.g. 'MN').
-	 * @param string  $level is the rep's level ('federal' or 'state').
-	 * @param bool    $editable is whether or not the representative can be modified.
+	 * @param string $rep_id is the database id.
+	 * @param string $first_name is the rep's first name.
+	 * @param string $last_name is the rep's last name.
+	 * @param string $title is the rep's title (e.g. Senator).
+	 * @param int    $district is the rep's district (e.g. 5).
+	 * @param string $state is the rep's state (e.g. 'MN').
+	 * @param string $level is the rep's level ('federal' or 'state').
+	 * @param bool   $editable is whether or not the representative can be modified.
 	 */
 	public function __construct(
 		string $rep_id,
 		string $first_name,
 		string $last_name,
 		string $title,
-		?string $district,
+		int $district,
 		string $state,
 		string $level,
 		bool $editable = true
@@ -161,16 +161,12 @@ class Congress_Admin_Rep {
 					name: 'state',
 					value: $this->state,
 				);
-				$district_input = $this->district;
-				if ( null === $this->district ) {
-					$district_input = '';
-				}
-				Congress_Admin_Stacked_Input::display_text(
+				Congress_Admin_Stacked_Input::display_number(
 					id: 'congress-rep-' . $this->rep_id . '-district',
 					label: 'District',
 					name: 'district',
-					value: $district_input,
-					size: '6',
+					value: $this->district,
+					size: '4em',
 				);
 				Congress_Admin_Stacked_Input::display_dropdown(
 					id: 'congress-rep-' . $this->rep_id . '-level',
@@ -189,11 +185,6 @@ class Congress_Admin_Rep {
 					wp_nonce_field( 'edit-rep_' . $this->rep_id );
 				}
 
-				$district_text = '';
-				if ( null !== $this->district ) {
-					$district_text = " District $this->district";
-				}
-
 				?>
 				<input type="hidden" name="rep_id" value="<?php echo esc_attr( $this->rep_id ); ?>"/>
 				<div style="flex-shrink: 0;">
@@ -202,7 +193,7 @@ class Congress_Admin_Rep {
 				</div>
 			</form>
 			<div class="congress-official-readonly">
-				<span><?php echo esc_html( "$this->level $this->title $this->first_name $this->last_name ($this->state$district_text)" ); ?></span>
+				<span><?php echo esc_html( "$this->level $this->title $this->first_name $this->last_name ($this->state District $this->district)" ); ?></span>
 				<button class="congress-staffer-toggle button">Staffers &gt;</button>
 				<div>
 					<button class="congress-edit-button congress-icon-button"></button>

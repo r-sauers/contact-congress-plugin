@@ -103,13 +103,5 @@ class Congress_Public {
 			$this->version,
 			false
 		);
-
-		wp_localize_script(
-			$this->congress,
-			'congressAjaxObj',
-			array(
-				'ajaxurl' => admin_url( 'admin-ajax.php' ),
-			),
-		);
 	}
 }
