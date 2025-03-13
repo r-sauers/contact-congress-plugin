@@ -16,6 +16,18 @@ require_once plugin_dir_path( __DIR__ ) .
 	'admin/partials/campaigns/class-congress-admin-active-campaign.php';
 
 /**
+ * The Congress.gov API to get options field.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'includes/api/class-congress-congress-api.php';
+
+/**
+ * The Google Places API to get options field.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'includes/api/class-congress-google-places-api.php';
+
+/**
  * The admin-specific functionality of the plugin.
  *
  * Defines the plugin name, version, and two examples hooks for how to
@@ -149,23 +161,23 @@ class Congress_Admin {
 		);
 
 		add_settings_field(
-			'congress_field_google',
+			Congress_Google_Places_API::$field_name,
 			__( 'Google API Key', 'congress' ),
 			array( $this, 'congress_field_google_cb' ),
 			'congress',
 			'congress_section_api_keys',
 			array(
-				'label_for' => 'congress_field_google',
+				'label_for' => Congress_Google_Places_API::$field_name,
 			)
 		);
 		add_settings_field(
-			'congress_field_democracy',
-			__( 'Democracy.io API Key', 'congress' ),
-			array( $this, 'congress_field_democracy_cb' ),
+			Congress_Congress_API::$field_name,
+			__( 'Congress.gov API Key', 'congress' ),
+			array( $this, 'congress_field_congress_cb' ),
 			'congress',
 			'congress_section_api_keys',
 			array(
-				'label_for' => 'congress_field_democracy',
+				'label_for' => Congress_Congress_API::$field_name,
 			)
 		);
 	}
@@ -179,7 +191,7 @@ class Congress_Admin {
 	}
 
 	/**
-	 * Democracy.io API Key callback function.
+	 * Congress.gov API Key callback function.
 	 *
 	 * WordPress has magic interaction with the following keys: label_for, class.
 	 * - the "label_for" key value is used for the "for" attribute of the <label>.
@@ -188,19 +200,20 @@ class Congress_Admin {
 	 *
 	 * @param array $args include "label_for", "class", and custom arguments defined in add_settings_field.
 	 */
-	public function congress_field_democracy_cb( $args ): void {
-		$options = get_option( 'congress_options' );
+	public function congress_field_congress_cb( $args ): void {
+		$options_name = Congress_Congress_API::$options_name;
+		$options      = get_option( $options_name );
+		$field_name   = Congress_Congress_API::$field_name;
 		?>
 		<input 
 			id="<?php echo esc_attr( $args['label_for'] ); ?>"
 			type="text"
-			name="congress_options[<?php echo esc_attr( $args['label_for'] ); ?>]"
-			value="<?php echo esc_attr( isset( $options['congress_field_democracy'] ) ? $options['congress_field_democracy'] : '' ); ?>"
+			name=<?php echo esc_attr( $options_name . '[' . $args['label_for'] . ']' ); ?>
+			value="<?php echo esc_attr( isset( $options[ $field_name ] ) ? $options[ $field_name ] : '' ); ?>"
 		/>
 		<p class="description">
-			Democracy.io is a service that sends emails to congress members.
-			This plugin cannot send emails to federal representatives without it.
-			Contact <a href="">Democracy.io</a> for an API key.
+			Congress.gov API allows the plugin to look up federal representative information.
+			Sign up for an API key <a href="https://gpo.congress.gov/sign-up/">here</a>.
 		</p>
 		<?php
 	}
@@ -216,18 +229,20 @@ class Congress_Admin {
 	 * @param array $args include "label_for", "class", and custom arguments defined in add_settings_field.
 	 */
 	public function congress_field_google_cb( $args ): void {
-		$options = get_option( 'congress_options' );
+		$options_name = Congress_Google_Places_API::$options_name;
+		$options      = get_option( $options_name );
+		$field_name   = Congress_Google_Places_API::$field_name;
 		?>
 		<input 
 			id="<?php echo esc_attr( $args['label_for'] ); ?>"
 			type="text"
-			name="congress_options[<?php echo esc_attr( $args['label_for'] ); ?>]"
-			value="<?php echo esc_attr( isset( $options['congress_field_google'] ) ? $options['congress_field_google'] : '' ); ?>"
+			name=<?php echo esc_attr( $options_name . '[' . $args['label_for'] . ']' ); ?>
+			value="<?php echo esc_attr( isset( $options[ $field_name ] ) ? $options[ $field_name ] : '' ); ?>"
 		/>
 		<p class="description">
-			Google Civic API is a service that identifies representatives using an address
-			This plugin cannot identify someone's representative without it.
-			See <a href="">Google</a> to get an API key.
+			Google Maps is a service that can autocomplete an address and determine the latitude and longitude.
+			This enables the plugin to find a reader's representative.
+			See <a href="https://mapsplatform.google.com/">Google</a> to get an API key.
 		</p>
 		<?php
 	}
@@ -274,7 +289,7 @@ class Congress_Admin {
 
 		// check if the user have submitted the settings.
 		// WordPress will add the "settings-updated" $_GET parameter to the url.
-		if ( isset( $_GET['settings-updated'] ) && check_admin_referer( 'update-api-keys' ) ) {
+		if ( isset( $_GET['settings-updated'] ) ) {
 			// add settings saved message with the class of "updated".
 			add_settings_error( 'congress_messages', 'congress_message', __( 'Settings Saved', 'congress' ), 'updated' );
 		}
@@ -294,9 +309,6 @@ class Congress_Admin {
 
 				// output save settings button.
 				submit_button( 'Save Settings' );
-
-				// nonce for security.
-				wp_nonce_field( 'update-api-keys' );
 				?>
 			</form>
 		</div>

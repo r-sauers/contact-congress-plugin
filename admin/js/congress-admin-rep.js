@@ -497,10 +497,11 @@
             editForm._wpnonce.value = editNonce;
 
             I.$el[0].id = I.$el[0].id + id;
+            const districtText = ( "" === editForm.district.value ? "" : ` District${editForm.district.value}` );
             I.$el.find( ".congress-official-readonly > span" )
               .text(
 `${editForm.level.value} ${editForm.title.value} ${editForm.first_name.value} ${editForm.last_name.value} \
-(${editForm.state.value} District ${editForm.district.value})`
+(${editForm.state.value}${districtText})`
               );
 
             const $btn = I.$el.find( "#congress-rep--add-staffer" );
@@ -564,10 +565,11 @@
           function() {
 
             const form = I.getForm();
+            const districtText = ( "" === form.district.value ? "" : ` District${form.district.value}` );
             I.$el.find( ".congress-official-readonly > span" )
               .text(
 `${form.level.value} ${form.title.value} ${form.first_name.value} ${form.last_name.value} \
-(${form.state.value} District ${form.district.value})`
+(${form.state.value}${districtText})`
               );
 
             resolve();
