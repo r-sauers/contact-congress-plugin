@@ -37,12 +37,12 @@ Yes! Please go to github and lookat Contributing.md!
 
 ### 1. Encourage your readers find their representatives, and send emails promoting your campaign!
 
-[missing image]
+[](./assets/screenshot-1.gif)
 
 
 ### 2. Add a form for your readers to contact congress with one drop on any page.
 
-[missing image]
+[](./assets/screenshot-2.gif)
 
 
 ## Changelog
