@@ -148,7 +148,7 @@
 
         repsGlobal[rep.id] = rep;
         repsGlobal[rep.id].sent = false;
-        repsGlobal[rep.id].el = repEl;
+        repsGlobal[rep.id].el = $li[0].children[0];
         repsOrder.push( rep.id );
       }
 
@@ -297,7 +297,7 @@
     }
     const rep = repsGlobal[repID];
     const repEl = rep.el;
-    const repBtn = repEl.find( "button" )[0];
+    const repBtn = $( repEl ).find( "button" )[0];
 
     let url = "mailto:";
     let firstIter = true;
