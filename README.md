@@ -2,10 +2,9 @@
 
 **Contributors:** rsauers \
 **Donate link:** http://example.com/ \
-**Tags:** comments, spam \
-**Requires at least:** 3.0.1 \
-**Tested up to:** 3.4 \
-**Stable tag:** 4.3 \
+**Tags:** congress \
+**Tested up to:** 6.7.1 \
+**Stable tag:** 1.0.0 \
 **License:** GPLv2 or later \
 **License URI:** http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,13 +35,15 @@ Yes! Please go to github and lookat Contributing.md!
 
 ## Screenshots
 
-### 1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the screenshot is taken from
+### 1. Encourage your readers find their representatives, and send emails promoting your campaign!
 
 [missing image]
 
-the /assets directory or the directory that contains the stable readme.txt (tags or trunk). Screenshots in the /assets
-directory take precedence. For example, `/assets/screenshot-1.png` would win over `/tags/4.3/screenshot-1.png`
-(or jpg, jpeg, gif).
+
+### 2. Add a form for your readers to contact congress with one drop on any page.
+
+[missing image]
+
 
 ## Changelog
 
