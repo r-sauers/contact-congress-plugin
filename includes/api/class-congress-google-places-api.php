@@ -101,10 +101,8 @@ class Congress_Google_Places_API {
 			'X-Goog-Api-Key' => $api_key,
 		);
 
-		$body = wp_json_encode(
-			array(
-				'input' => $address,
-			)
+		$body = array(
+			'input' => $address,
 		);
 		if ( $session_token ) {
 			$body['sessionToken'] = $session_token;
@@ -113,7 +111,7 @@ class Congress_Google_Places_API {
 		$results = wp_remote_post(
 			'https://places.googleapis.com/v1/places:autocomplete',
 			array(
-				'body'    => $body,
+				'body'    => wp_json_encode( $body ),
 				'headers' => $headers,
 			)
 		);

@@ -60,11 +60,6 @@ register_activation_hook( __FILE__, 'activate_congress' );
 register_deactivation_hook( __FILE__, 'deactivate_congress' );
 
 /**
- * Load plugin blocks.
- */
-require_once plugin_dir_path( __FILE__ ) . 'blocks/blocks.php';
-
-/**
  * The core plugin class that is used to define internationalization,
  * admin-specific hooks, and public-facing site hooks.
  */
