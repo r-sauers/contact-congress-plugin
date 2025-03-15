@@ -77,6 +77,7 @@ class Congress {
 		$this->set_locale();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
+		$this->define_block_hooks();
 	}
 
 	/**
@@ -128,6 +129,12 @@ class Congress {
 		 */
 		require_once plugin_dir_path( __DIR__ ) .
 			'includes/ajax/class-congress-ajax.php';
+
+		/**
+		 * Load plugin blocks.
+		 */
+		require_once plugin_dir_path( __DIR__ ) .
+			'blocks/class-congress-block.php';
 
 		$this->loader = new Congress_Loader();
 	}
@@ -226,6 +233,36 @@ class Congress {
 				$handler->get_func(),
 			);
 		}
+	}
+
+	/**
+	 * Register all of the hooks related to the block functionality
+	 * of the plugin.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 */
+	private function define_block_hooks(): void {
+		$plugin_block = new Congress_Block(
+			$this->get_congress(),
+			$this->get_version()
+		);
+
+		$this->loader->add_action(
+			'wp_enqueue_scripts',
+			$plugin_block,
+			'enqueue_styles'
+		);
+		$this->loader->add_action(
+			'wp_enqueue_scripts',
+			$plugin_block,
+			'enqueue_scripts'
+		);
+		$this->loader->add_action(
+			'init',
+			$plugin_block,
+			'create_blocks'
+		);
 	}
 
 	/**

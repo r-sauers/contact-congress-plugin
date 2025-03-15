@@ -13,12 +13,26 @@
     },
     "campaignName": {
       "type": "string"
+    },
+    "style": {
+        "type": "object",
+        "default": {
+            "elements": {
+                "button": {
+                    "color": {
+                        "text": "#fff",
+                        "background": "#2271b1"
+                    }
+                }
+            }
+        }
     }
   },
   "supports": {
     "color": {
       "background": false,
-      "text": false
+      "text": false,
+      "button": true
     },
     "html": false,
     "typography": {
@@ -28,7 +42,7 @@
   "textdomain": "congress-form-block",
   "editorScript": "file:./index.js",
   "editorStyle": "file:./index.css",
-  "style": "file:./style-index.css",
+  "style": [ "file:./style-index.css", "congress-form-block" ],
   "render": "file:./render.php",
-  "viewScript": "file:./view.js"
+  "viewScript": [ "file:./view.js", "congress-form-block" ]
 }

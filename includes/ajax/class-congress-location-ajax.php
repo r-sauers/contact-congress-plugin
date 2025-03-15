@@ -175,7 +175,7 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 	 */
 	public function autocomplete(): void {
 		if (
-			! isset( $_POST['address'] )
+			! isset( $_GET['address'] )
 		) {
 			wp_send_json(
 				array(
@@ -215,7 +215,7 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 		}
 
 		$results = $this->places_api->autocomplete_address(
-			sanitize_text_field( wp_unslash( $_POST['address'] ) ),
+			sanitize_text_field( wp_unslash( $_GET['address'] ) ),
 			$session_token
 		);
 
@@ -393,6 +393,7 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 		foreach ( $results as $rep_staffer ) {
 			if ( ! isset( $reps[ $rep_staffer['rep_id'] ] ) ) {
 				$reps[ $rep_staffer['rep_id'] ] = array(
+					'id'         => $rep_staffer['rep_id'],
 					'first_name' => $rep_staffer['rep_first_name'],
 					'last_name'  => $rep_staffer['rep_last_name'],
 					'state'      => $rep_staffer['state'],
@@ -512,6 +513,8 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 
 		wp_send_json(
 			array(
+				'level'           => 'state',
+				'stateCode'       => $state_code,
 				'success'         => $success,
 				'representatives' => $reps,
 			)
@@ -652,6 +655,13 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 						continue;
 					}
 
+					if (
+						isset( $member['terms']['item'][0]['endYear'] ) &&
+						intval( $member['terms']['item'][0]['endYear'] ) < intval( gmdate( 'Y' ) )
+					) {
+						continue;
+					}
+
 					array_push(
 						$api_senators,
 						array(
@@ -670,8 +680,8 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 			foreach ( $api_senators as $api_rep ) {
 
 				$where_clause = 'WHERE ' .
-					'r.state=%s AND' .
-					"r.level='federal' AND" .
+					'r.state=%s AND ' .
+					"r.level='federal' AND " .
 					'INSTR(%s, r.first_name) AND ' .
 					'INSTR(%s, r.last_name) AND ' .
 					'r.district IS NULL';
@@ -760,6 +770,9 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 			return;
 		}
 
-		wp_send_json( array_merge( $senate_results, $house_results ) );
+		$results              = array_merge( $senate_results, $house_results );
+		$results['level']     = 'federal';
+		$results['stateCode'] = $state_code;
+		wp_send_json( $results );
 	}
 }
