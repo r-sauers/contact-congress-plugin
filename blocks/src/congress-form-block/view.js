@@ -144,6 +144,8 @@
         $li.find( `.${prefix}rep-state` ).text( rep.state );
         if ( rep.district ) {
           $li.find( `.${prefix}rep-district` ).text( "District " + rep.district );
+        } else {
+          $li.find( `.${prefix}rep-district` ).empty();
         }
         $li.find( "button" ).attr( "repID", rep.id );
 
