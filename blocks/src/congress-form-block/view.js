@@ -19,10 +19,12 @@
 ( function( $ ) {
   "use strict";
 
-  const prefix = "wp-block-create-block-congress-form-block__"; // id/class prefix.
+  const prefix = "wp-block-congress-form-block__"; // id/class prefix.
   const ajaxurl = congressAjaxObj.ajaxurl;
+  const captchaKey = congressCaptchaObj.clientSecret;
   let repsGlobal = {}; // Stores data about representatives.
   let repsOrder = []; // Order of repsGlobal.
+  let registerEmailNonce = undefined;
 
   /**
    * A helper function to make an Ajax call using a form submit evt.
@@ -155,6 +157,8 @@
         repsOrder.push( rep.id );
       }
 
+      registerEmailNonce = data.registerEmailNonce;
+
 
       //// Provide feedback on the results of the request. ////
 
@@ -284,8 +288,29 @@
    * @param {jQuerySubmitEvent} evt
    */
   function handleEmailSend( evt ) {
-
     evt.preventDefault();
+
+    const $form = $( `#${prefix}get-reps-form` );
+    const campaignID = parseInt( $form[0].campaignID.value );
+
+    grecaptcha.ready( function() {
+      grecaptcha.execute( captchaKey, { action: "submit" }).then( function( token ) {
+
+        $.post(
+          ajaxurl,
+          {
+            _wpnonce: registerEmailNonce,
+            action: "register_email",
+            "g-recaptcha-response": token,
+            campaignID: campaignID,
+            referer: "test"
+          },
+          function( data ) {
+            console.log(data);
+          }
+        );
+      });
+    });
 
     // Get the representative.
     let submittedFromRep = true;
@@ -462,4 +487,5 @@
     let width = $emailForm.find( "input" ).first().outerWidth();
     $( ".select2-container" ).css( "width", width );
   });
+
 }( jQuery ) );

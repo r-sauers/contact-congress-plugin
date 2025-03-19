@@ -4,7 +4,7 @@
  *
  * Replace them with your own styles or remove the file completely.
  */
-$block: "wp-block-create-block-congress-form-block";
+$block: "wp-block-congress-form-block";
 $pre: $block + "__";
 
 @mixin expand-when-small {

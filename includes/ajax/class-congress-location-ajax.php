@@ -334,10 +334,14 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 			return;
 		}
 
+		$response = array(
+			'registerEmailNonce' => wp_create_nonce( "register-email_$campaign_id" ),
+		);
+
 		if ( 'state' === $campaign_level ) {
-			$this->send_state_level_reps( $state, $latitude, $longitude );
+			$this->send_state_level_reps( $state, $latitude, $longitude, $response );
 		} elseif ( 'federal' === $campaign_level ) {
-			$this->send_federal_level_reps( $state, $latitude, $longitude );
+			$this->send_federal_level_reps( $state, $latitude, $longitude, $response );
 		} else {
 			wp_send_json(
 				array(
@@ -426,8 +430,9 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 	 * @param string $state_code is the state abbreviation e.g. 'MN'.
 	 * @param float  $latitude is the location's latitude.
 	 * @param float  $longitude is the location's longitude.
+	 * @param array  $response contains body parameters that must be returned on success.
 	 */
-	private function send_state_level_reps( string $state_code, float $latitude, float $longitude ): void {
+	private function send_state_level_reps( string $state_code, float $latitude, float $longitude, array $response ): void {
 
 		$api_reps = array();
 		$success  = false;
@@ -511,7 +516,8 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 			}
 		}
 
-		wp_send_json(
+		$final_response = array_merge(
+			$response,
 			array(
 				'level'           => 'state',
 				'stateCode'       => $state_code,
@@ -519,6 +525,8 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 				'representatives' => $reps,
 			)
 		);
+
+		wp_send_json( $final_response );
 	}
 
 	/**
@@ -743,8 +751,9 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 	 * @param string $state_code is the state abbreviation e.g. 'MN'.
 	 * @param float  $latitude is the location's latitude.
 	 * @param float  $longitude is the location's longitude.
+	 * @param array  $response contains body parameters that must be returned on success.
 	 */
-	private function send_federal_level_reps( string $state_code, float $latitude, float $longitude ): void {
+	private function send_federal_level_reps( string $state_code, float $latitude, float $longitude, array $response ): void {
 
 		$senate_results = $this->get_federal_senate_reps( $state_code );
 
@@ -770,7 +779,7 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 			return;
 		}
 
-		$results              = array_merge( $senate_results, $house_results );
+		$results              = array_merge( $senate_results, $house_results, $response );
 		$results['level']     = 'federal';
 		$results['stateCode'] = $state_code;
 		wp_send_json( $results );
