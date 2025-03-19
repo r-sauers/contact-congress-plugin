@@ -189,7 +189,7 @@ class Congress_Admin {
 
 		add_settings_field(
 			Congress_Captcha::$server_key_field_name,
-			__( "Sever's Google Captcha Key", 'congress' ),
+			__( "Server's Google Captcha Key", 'congress' ),
 			array( $this, 'congress_field_captcha_server_cb' ),
 			'congress',
 			'congress_section_api_keys',
