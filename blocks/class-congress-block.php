@@ -10,6 +10,11 @@
  */
 
 /**
+ * Get Captcha information.
+ */
+require_once plugin_dir_path( __DIR__ ) . 'includes/class-congress-captcha.php';
+
+/**
  * The block functionality of the plugin.
  *
  * Defines the plugin name, version, and two examples hooks for how to
@@ -57,7 +62,7 @@ class Congress_Block {
 	 */
 	public function enqueue_styles(): void {
 		wp_register_style(
-			'congress-form-block',
+			'congress-select2',
 			'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css',
 			array(),
 			$this->version,
@@ -73,10 +78,35 @@ class Congress_Block {
 	public function enqueue_scripts(): void {
 		wp_register_script(
 			'congress-form-block',
+			false,
+			array( 'jquery' ),
+			$this->version,
+			true
+		);
+		wp_register_script(
+			'congress-select2',
 			'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
 			array( 'jquery' ),
 			$this->version,
 			true
+		);
+		$option_name    = Congress_Captcha::$client_key_options_name;
+		$options        = get_option( $option_name );
+		$field_name     = Congress_Captcha::$client_key_field_name;
+		$captcha_client = $options[ $field_name ];
+		wp_register_script(
+			'congress-captcha',
+			"https://www.google.com/recaptcha/api.js?render=$captcha_client",
+			array(),
+			$this->version,
+			true
+		);
+		wp_localize_script(
+			'congress-form-block',
+			'congressCaptchaObj',
+			array(
+				'clientSecret' => $captcha_client,
+			),
 		);
 
 		wp_localize_script(

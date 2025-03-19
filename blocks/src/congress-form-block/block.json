@@ -1,7 +1,7 @@
 {
   "$schema": "https://schemas.wp.org/trunk/block.json",
   "apiVersion": 3,
-  "name": "create-block/congress-form-block",
+  "name": "congress/form-block",
   "version": "0.1.0",
   "title": "Congress Contact Block",
   "category": "widgets",
@@ -42,7 +42,7 @@
   "textdomain": "congress-form-block",
   "editorScript": "file:./index.js",
   "editorStyle": "file:./index.css",
-  "style": [ "file:./style-index.css", "congress-form-block" ],
+  "style": [ "file:./style-index.css", "congress-select2" ],
   "render": "file:./render.php",
-  "viewScript": [ "file:./view.js", "congress-form-block" ]
+  "viewScript": [ "congress-select2", "congress-captcha", "congress-form-block", "file:./view.js" ]
 }

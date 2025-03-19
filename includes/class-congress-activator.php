@@ -49,7 +49,7 @@ class Congress_Activator {
 			array(
 				'id mediumint(9) NOT NULL AUTO_INCREMENT',
 				'campaign_id mediumint(9) NOT NULL',
-				'url_name tinytext NOT NULL',
+				'url_name tinytext UNIQUE NOT NULL',
 				'real_name tinytext NOT NULL',
 				'PRIMARY KEY (id, campaign_id)',
 				'CHECK (url_name <> "")',

@@ -28,6 +28,12 @@ require_once plugin_dir_path( __DIR__ ) .
 	'includes/api/class-congress-google-places-api.php';
 
 /**
+ * The Captcha class to get options field.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'includes/class-congress-captcha.php';
+
+/**
  * The admin-specific functionality of the plugin.
  *
  * Defines the plugin name, version, and two examples hooks for how to
@@ -180,6 +186,27 @@ class Congress_Admin {
 				'label_for' => Congress_Congress_API::$field_name,
 			)
 		);
+
+		add_settings_field(
+			Congress_Captcha::$server_key_field_name,
+			__( "Sever's Google Captcha Key", 'congress' ),
+			array( $this, 'congress_field_captcha_server_cb' ),
+			'congress',
+			'congress_section_api_keys',
+			array(
+				'label_for' => Congress_Captcha::$server_key_field_name,
+			)
+		);
+		add_settings_field(
+			Congress_Captcha::$client_key_field_name,
+			__( "Client's Google Captcha Key", 'congress' ),
+			array( $this, 'congress_field_captcha_client_cb' ),
+			'congress',
+			'congress_section_api_keys',
+			array(
+				'label_for' => Congress_Captcha::$client_key_field_name,
+			)
+		);
 	}
 
 	/**
@@ -187,6 +214,64 @@ class Congress_Admin {
 	 */
 	public function section_api_keys_callback(): void {
 		?>
+		<?php
+	}
+
+	/**
+	 * Captcha server key field callback function.
+	 *
+	 * WordPress has magic interaction with the following keys: label_for, class.
+	 * - the "label_for" key value is used for the "for" attribute of the <label>.
+	 * - the "class" key value is used for the "class" attribute of the <tr> containing the field.
+	 * Note: you can add custom key value pairs to be used inside your callbacks.
+	 *
+	 * @param array $args include "label_for", "class", and custom arguments defined in add_settings_field.
+	 */
+	public function congress_field_captcha_server_cb( $args ): void {
+		$options_name = Congress_Captcha::$server_key_options_name;
+		$options      = get_option( $options_name );
+		$field_name   = Congress_Captcha::$server_key_field_name;
+		?>
+		<input 
+			id="<?php echo esc_attr( $args['label_for'] ); ?>"
+			type="text"
+			name=<?php echo esc_attr( $options_name . '[' . $args['label_for'] . ']' ); ?>
+			value="<?php echo esc_attr( isset( $options[ $field_name ] ) ? $options[ $field_name ] : '' ); ?>"
+		/>
+		<p class="description">
+			This plugin requires a Captcha to keep your website secure if you track metrics.
+			Campaign Metrics will be disabled if this is not set. Set up your captcha
+			<a href="https://www.google.com/recaptcha/admin/create">here</a>.
+		</p>
+		<?php
+	}
+
+	/**
+	 * Captcha client key field callback function.
+	 *
+	 * WordPress has magic interaction with the following keys: label_for, class.
+	 * - the "label_for" key value is used for the "for" attribute of the <label>.
+	 * - the "class" key value is used for the "class" attribute of the <tr> containing the field.
+	 * Note: you can add custom key value pairs to be used inside your callbacks.
+	 *
+	 * @param array $args include "label_for", "class", and custom arguments defined in add_settings_field.
+	 */
+	public function congress_field_captcha_client_cb( $args ): void {
+		$options_name = Congress_Captcha::$client_key_options_name;
+		$options      = get_option( $options_name );
+		$field_name   = Congress_Captcha::$client_key_field_name;
+		?>
+		<input 
+			id="<?php echo esc_attr( $args['label_for'] ); ?>"
+			type="text"
+			name=<?php echo esc_attr( $options_name . '[' . $args['label_for'] . ']' ); ?>
+			value="<?php echo esc_attr( isset( $options[ $field_name ] ) ? $options[ $field_name ] : '' ); ?>"
+		/>
+		<p class="description">
+			This plugin requires a Captcha to keep your website secure if you track metrics.
+			Campaign Metrics will be disabled if this is not set. Set up your captcha
+			<a href="https://www.google.com/recaptcha/admin/create">here</a>.
+		</p>
 		<?php
 	}
 
