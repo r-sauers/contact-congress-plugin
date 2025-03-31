@@ -1,7 +1,15 @@
 congress-volume
 thoughts.txt
-vendor
 node_modules
+
+vendor/*
+!vendor/autoload.php
+!vendor/phpoffice
+!vendor/composer
+!vendor/composer
+!vendor/maennchen
+!vendor/markbaker
+!vendor/psr
 
 
 ## Blocks ##

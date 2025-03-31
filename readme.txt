@@ -4,6 +4,9 @@ Donate link: http://example.com/
 Tags: congress
 Tested up to: 6.7.1
 Stable tag: 1.0.0
+Requires at least: PHP 7.4
+Recommended: PHP 8.1+
+Required Extensions: zip, xml, gid, mbstring
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 

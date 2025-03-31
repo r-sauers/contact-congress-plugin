@@ -50,6 +50,12 @@
         "blocks/class-congress-block.php",
         "blocks/build",
         "composer.json",
-        "package.json"
+        "package.json",
+        "vendor/autoload.php",
+        "vendor/phpoffice",
+        "vendor/composer",
+        "vendor/maennchen",
+        "vendor/markbaker",
+        "vendor/psr"
     ]
 }

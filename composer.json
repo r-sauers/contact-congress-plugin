@@ -25,5 +25,8 @@
         "build": "npx wp-scripts build --webpack-copy-php --source-path=./blocks/src --output-path=./blocks/build; npx wp-scripts plugin-zip",
         "packages-update": "npx wp-scripts packages-update",
         "update-readme.md": "wp2md -i readme.txt -o README.md"
+    },
+    "require": {
+        "phpoffice/phpspreadsheet": "^4.1"
     }
 }
