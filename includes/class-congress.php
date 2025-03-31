@@ -191,6 +191,12 @@ class Congress {
 			$plugin_admin,
 			'init_options_page'
 		);
+		$this->loader->add_action(
+			'admin_notices',
+			$plugin_admin,
+			'admin_notices'
+		);
+
 		$congress_ajax = Congress_AJAX::get_instance();
 		foreach ( $congress_ajax->get_admin_handlers() as $handler ) {
 			$this->loader->add_action(

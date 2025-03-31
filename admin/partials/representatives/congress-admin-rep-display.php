@@ -35,6 +35,7 @@ require_once plugin_dir_path( __FILE__ ) . 'class-congress-admin-staffer.php';
 		?>
 	</div>
 	<button id="congress-add-rep-button" class="buttton button-primary">Add Representative</button>
+	<button id="congress-sync-reps-button" class="buttton button-primary">Sync Representatives</button>
 	<template id="congress-staffer-template">
 		<?php
 			Congress_Admin_Staffer::get_html_template();

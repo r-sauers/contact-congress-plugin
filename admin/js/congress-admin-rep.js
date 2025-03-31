@@ -657,6 +657,35 @@
     const repFactory = new OfficialFactory( "rep" );
     $( "#congress-add-rep-button" ).on( "click", null, repFactory, addOfficial );
 
+    $( "#congress-sync-reps-button" ).on( "click", function() {
+      $.post(
+        ajaxurl,
+        {
+          action: "sync_reps",
+          state: "MN",
+          level: "state",
+          _wpnonce: congressSyncRepsNonce
+        },
+        function( data ) {
+          console.log( data );
+        }
+      );
+
+      $.post(
+        ajaxurl,
+        {
+          action: "sync_reps",
+          state: "MN",
+          level: "federal",
+          _wpnonce: congressSyncRepsNonce
+        },
+        function( data ) {
+          console.log( data );
+        }
+      );
+
+    });
+
     $( ".congress-rep-container" ).each( function() {
 
       const $stafferContainer = $( this ).children( ".congress-staffer-container" ).first();

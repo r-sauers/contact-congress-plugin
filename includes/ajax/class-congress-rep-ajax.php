@@ -28,6 +28,24 @@ require_once plugin_dir_path( __FILE__ ) .
 	'class-congress-ajax-handler.php';
 
 /**
+ * Imports Congress_Rep_Sync.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'class-congress-rep-sync.php';
+
+/**
+ * Imports Congress_State enum.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'enum-congress-state.php';
+
+/**
+ * Imports Congress_Level enum.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'enum-congress-level.php';
+
+/**
  * A collection of AJAX handlers for representatives.
  *
  * @since      1.0.0
@@ -68,6 +86,16 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 				callee: $this,
 				func_name: 'update_rep',
 				ajax_name: 'update_representative'
+			),
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'sync_reps',
+				ajax_name: 'sync_reps'
+			),
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'sync_all_reps',
+				ajax_name: 'sync_all_reps'
 			),
 		);
 	}
@@ -365,5 +393,140 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 		}
 
 		wp_send_json( $result );
+	}
+
+	/**
+	 * An AJAX handler for syncing all representatives.
+	 *
+	 * Sends a JSON response with the updated representatives.
+	 */
+	public function sync_all_reps(): void {
+
+		if ( ! check_ajax_referer( 'sync-reps', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+		}
+
+		$res = Congress_Rep_Sync::sync_all_reps();
+
+		if ( is_wp_error( $res ) ) {
+			match ( $res->get_error_code() ) {
+				'API_FAILURE' => wp_send_json(
+					array(
+						'error' => $res->get_error_message(),
+					),
+					500
+				),
+				'DB_FAILURE' => wp_send_json(
+					array(
+						'error' => $res->get_error_message(),
+					),
+					500
+				),
+				default => wp_send_json(
+					array(
+						'error' => $res->get_error_message(),
+					),
+					500
+				)
+			};
+		}
+
+		wp_send_json( $results );
+	}
+
+	/**
+	 * An AJAX handler for syncing representatives based on the state and level.
+	 *
+	 * Requires 'state' and 'level' fields.
+	 *
+	 * Sends a JSON response with the updated representatives.
+	 */
+	public function sync_reps(): void {
+
+		if ( ! check_ajax_referer( 'sync-reps', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+		}
+
+		if (
+			! isset( $_POST['state'] ) ||
+			! isset( $_POST['level'] )
+		) {
+			wp_send_json(
+				array(
+					'error' => 'Invalid parameters!',
+				),
+				400
+			);
+		}
+
+		try {
+			$state = Congress_State::from_string(
+				sanitize_text_field(
+					wp_unslash( $_POST['state'] )
+				)
+			);
+			$level = Congress_Level::from_string(
+				sanitize_text_field(
+					wp_unslash( $_POST['level'] )
+				)
+			);
+		} catch ( Error $e ) {
+			wp_send_json(
+				array(
+					'error' => 'Invalid parameters!',
+				),
+				400
+			);
+		}
+
+		$res = Congress_Rep_Sync::sync_reps( $state, $level );
+
+		if ( is_wp_error( $res ) ) {
+			match ( $res->get_error_code() ) {
+				'API_NOT_IMPLEMENTED' => wp_send_json(
+					array(
+						'error' => $res->get_error_message(),
+					),
+					501
+				),
+				'MISSING_API_KEY' => wp_send_json(
+					array(
+						'error'   => $res->get_error_message(),
+						'message' => $res->get_error_data(),
+					),
+					501
+				),
+				'API_FAILURE' => wp_send_json(
+					array(
+						'error' => $res->get_error_message(),
+					),
+					500
+				),
+				'DB_FAILURE' => wp_send_json(
+					array(
+						'error' => $res->get_error_message(),
+					),
+					500
+				),
+				default => wp_send_json(
+					array(
+						'error' => $res->get_error_message(),
+					),
+					500
+				)
+			};
+		}
+
+		wp_send_json( $res );
 	}
 }

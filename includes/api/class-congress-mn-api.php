@@ -10,6 +10,22 @@
  */
 
 /**
+ * Include PhpSpreadsheet IOFactory to parse xls files.
+ */
+require_once plugin_dir_path( __DIR__ ) . '../vendor/autoload.php';
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+/**
+ * Include Congress_State_API_Interface.
+ */
+require_once plugin_dir_path( __FILE__ ) . 'congress-state-api-interface.php';
+
+/**
+ * Include Congress_Rep_Interface.
+ */
+require_once plugin_dir_path( __DIR__ ) . 'class-congress-rep-interface.php';
+
+/**
  * Handles Minnesota representative requests.
  *
  * @since      1.0.0
@@ -17,8 +33,108 @@
  * @subpackage Congress/includes
  * @author     Ryan Sauers <ryan.sauers@exploreveg.org>
  */
-class Congress_MN_API {
+class Congress_MN_API implements Congress_State_API_Interface {
 
+	/**
+	 * Downloads an file from $url and generates an array of the
+	 * rows with key value pairs based on the header row.
+	 *
+	 * @param string $url is a .xls or csv file.
+	 *
+	 * @return string filename
+	 */
+	private function get_remote_sheet( string $url ): array|false {
+
+		$filename = download_url( $url );
+		if ( is_a( $filename, 'WP_Error' ) ) {
+			return false;
+		}
+
+		$spreadsheet = IOFactory::load( $filename );
+		$worksheet   = $spreadsheet->getActiveSheet();
+
+		$headers = array();
+		$data    = array();
+		foreach ( $worksheet->getRowIterator() as $row ) {
+
+			$cell_iterator = $row->getCellIterator();
+			$cell_iterator->setIterateOnlyExistingCells( false ); // Iterate all cells.
+
+			if ( empty( $headers ) ) {
+				foreach ( $cell_iterator as $cell ) {
+					array_push( $headers, $cell->getValue() );
+				}
+			} else {
+				$row = array();
+				$i   = 0;
+				foreach ( $cell_iterator as $cell ) {
+					$row[ $headers[ $i ] ] = $cell->getValue();
+					++$i;
+				}
+				array_push( $data, $row );
+			}
+		}
+
+		wp_delete_file( $filename );
+
+		return $data;
+	}
+
+	/**
+	 * Gets all of the MN representatives.
+	 *
+	 * @return array|false
+	 */
+	public function get_all_reps(): array|false {
+
+		$reps = array();
+
+		$house_reps = $this->get_remote_sheet( 'https://www.house.mn.gov/members/Files/MemberInfo/meminfo.xls' );
+
+		if ( ! $house_reps ) {
+			return false;
+		}
+
+		foreach ( $house_reps as $house_rep ) {
+			array_push(
+				$reps,
+				new Congress_Rep_Interface(
+					level: Congress_Level::State,
+					title: Congress_Title::Representative,
+					district: $house_rep['district_id'],
+					first_name: $house_rep['fname'],
+					last_name: $house_rep['lname'],
+					state: Congress_State::MN,
+					email: $house_rep['email address']
+				)
+			);
+		}
+
+		$results = wp_remote_get( 'https://www.senate.mn/api/members' );
+
+		if ( is_wp_error( $results ) || 200 !== $results['response']['code'] ) {
+			return false;
+		}
+
+		$body = json_decode( $results['body'], true );
+
+		foreach ( $body['members'] as $senate_rep ) {
+			array_push(
+				$reps,
+				new Congress_Rep_Interface(
+					level: Congress_Level::State,
+					title: Congress_Title::Senator,
+					district: $senate_rep['dist'],
+					first_name: explode( ' ', $senate_rep['preferred_full_name'], 2 )[0],
+					last_name: $senate_rep['preferred_last_name'],
+					state: Congress_State::MN,
+					email: $senate_rep['email']
+				)
+			);
+		}
+
+		return $reps;
+	}
 
 	/**
 	 * Finds the Minnesota representatives for a given location.
@@ -26,7 +142,7 @@ class Congress_MN_API {
 	 * @param float $latitude is the latitude of the location.
 	 * @param float $longitude is the longitude of the location.
 	 *
-	 * @return array|false the api results or false on failure.
+	 * @return array<Congress_Rep_Interface>|false the api results or false on failure.
 	 */
 	public function get_reps( float $latitude, float $longitude ): array|false {
 
@@ -47,26 +163,45 @@ class Congress_MN_API {
 		$reps = array();
 		$body = json_decode( $results['body'], true );
 
+		$i = 0;
 		foreach ( $body['features'] as $feature ) {
-			array_push( $reps, $feature['properties'] );
+
+			if ( 0 === $i || 1 === $i ) {
+				$level = Congress_Level::State;
+			} else {
+				$level = Congress_Level::Federal;
+			}
+
+			if ( 0 === $i || 2 === $i ) {
+				$title = Congress_Title::Representative;
+			} else {
+				$title = Congress_Title::Senator;
+			}
+
+			$district = $feature['properties']['district'];
+			if ( 0 === $i ) {
+				$img = "https://www.gis.lcc.mn.gov/iMaps/districts/images/House/$district.jpg";
+			} elseif ( 1 === $i ) {
+				$img = "https://www.gis.lcc.mn.gov/iMaps/districts/images/Senate/$district.jpg";
+			} elseif ( 2 === $i ) {
+				$img = "https://www.gis.lcc.mn.gov/iMaps/districts/images/USHouse/US$district.jpg";
+			}
+
+			$name_split = explode( ' ', $feature['properties']['name'] );
+			array_push(
+				$reps,
+				new Congress_Rep_Interface(
+					level: $level,
+					title: $title,
+					district: $district,
+					state: Congress_State::MN,
+					first_name: $name_split[0],
+					last_name: $name_split[ count( $name_split ) - 1 ],
+					img: $img,
+				)
+			);
+			++$i;
 		}
-
-		$reps[0]['level'] = 'state';
-		$reps[1]['level'] = 'state';
-		$reps[2]['level'] = 'federal';
-
-		$reps[0]['title'] = 'Representative';
-		$reps[1]['title'] = 'Senator';
-		$reps[2]['title'] = 'Representative';
-
-		$district       = $reps[0]['district'];
-		$reps[0]['img'] = "https://www.gis.lcc.mn.gov/iMaps/districts/images/House/$district.jpg";
-
-		$district       = $reps[1]['district'];
-		$reps[1]['img'] = "https://www.gis.lcc.mn.gov/iMaps/districts/images/Senate/$district.jpg";
-
-		$district       = $reps[2]['district'];
-		$reps[2]['img'] = "https://www.gis.lcc.mn.gov/iMaps/districts/images/USHouse/US$district.jpg";
 
 		return $reps;
 	}
@@ -77,7 +212,7 @@ class Congress_MN_API {
 	 * @param float $latitude is the latitude of the location.
 	 * @param float $longitude is the longitude of the location.
 	 *
-	 * @return array|false the api results or false on failure.
+	 * @return array<Congress_Rep_Interface>|false the api results or false on failure.
 	 */
 	public function get_state_reps( float $latitude, float $longitude ): array|false {
 		$results = $this->get_reps( $latitude, $longitude );
@@ -97,7 +232,7 @@ class Congress_MN_API {
 	 * @param float $latitude is the latitude of the location.
 	 * @param float $longitude is the longitude of the location.
 	 *
-	 * @return array|false the api results or false on failure.
+	 * @return array<Congress_Rep_Interface>|false the api results or false on failure.
 	 */
 	public function get_federal_reps( float $latitude, float $longitude ): array|false {
 		$results = $this->get_reps( $latitude, $longitude );
@@ -108,5 +243,12 @@ class Congress_MN_API {
 		return array(
 			$results[2],
 		);
+	}
+
+	/**
+	 * For description @see Congress_State_API_Interface::get_state.
+	 */
+	public static function get_state(): Congress_State {
+		return Congress_State::MN;
 	}
 }

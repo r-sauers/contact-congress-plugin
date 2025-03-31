@@ -128,6 +128,11 @@ class Congress_Admin {
 				$this->version,
 				false
 			);
+			wp_localize_script(
+				$this->congress,
+				'congressSyncRepsNonce',
+				wp_create_nonce( 'sync-reps' ),
+			);
 		} elseif ( isset( $_GET['page'] ) && 'congress_campaign' === $_GET['page'] ) { // phpcs:ignore
 			wp_enqueue_script(
 				$this->congress,
@@ -434,5 +439,26 @@ class Congress_Admin {
 			?>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Alerts admins to any problems with the plugin.
+	 */
+	public function admin_notices(): void {
+		$missing_extensions = array();
+
+		$required_extensions = array( 'zip', 'xml', 'gd' );
+		foreach ( $required_extensions as $ext ) {
+			if ( ! extension_loaded( $ext ) ) {
+				$missing_extensions[] = $ext;
+			}
+		}
+
+		if ( ! empty( $missing_extensions ) ) {
+			echo '<div class="notice notice-error"><p>';
+			echo 'Warning: Your server is missing required PHP extensions: ' . esc_html( implode( ', ', $missing_extensions ) );
+			echo '. Please install them to use this plugin.';
+			echo '</p></div>';
+		}
 	}
 }
