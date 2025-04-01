@@ -2,15 +2,7 @@ congress-volume
 thoughts.txt
 node_modules
 
-vendor/*
-!vendor/autoload.php
-!vendor/phpoffice
-!vendor/composer
-!vendor/composer
-!vendor/maennchen
-!vendor/markbaker
-!vendor/psr
-
+vendor
 
 ## Blocks ##
 # Logs
