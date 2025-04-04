@@ -26,6 +26,11 @@ require_once plugin_dir_path( __FILE__ ) . 'congress-state-api-interface.php';
 require_once plugin_dir_path( __DIR__ ) . 'class-congress-rep-interface.php';
 
 /**
+ * Include Congress_Staffer_Interface.
+ */
+require_once plugin_dir_path( __DIR__ ) . 'class-congress-staffer-interface.php';
+
+/**
  * Handles Minnesota representative requests.
  *
  * @since      1.0.0
@@ -96,17 +101,24 @@ class Congress_MN_API implements Congress_State_API_Interface {
 		}
 
 		foreach ( $house_reps as $house_rep ) {
+			$new_rep     = new Congress_Rep_Interface(
+				level: Congress_Level::State,
+				title: Congress_Title::Representative,
+				district: $house_rep['district_id'],
+				first_name: $house_rep['fname'],
+				last_name: $house_rep['lname'],
+				state: Congress_State::MN,
+			);
+			$new_staffer = new Congress_Staffer_Interface(
+				first_name: $new_rep->first_name,
+				last_name: $new_rep->last_name,
+				email: $house_rep['email address'],
+				title: Congress_Title::Representative->to_display_string()
+			);
+			$new_rep->add_staffer( $new_staffer );
 			array_push(
 				$reps,
-				new Congress_Rep_Interface(
-					level: Congress_Level::State,
-					title: Congress_Title::Representative,
-					district: $house_rep['district_id'],
-					first_name: $house_rep['fname'],
-					last_name: $house_rep['lname'],
-					state: Congress_State::MN,
-					email: $house_rep['email address']
-				)
+				$new_rep
 			);
 		}
 
@@ -119,17 +131,24 @@ class Congress_MN_API implements Congress_State_API_Interface {
 		$body = json_decode( $results['body'], true );
 
 		foreach ( $body['members'] as $senate_rep ) {
+			$new_rep     = new Congress_Rep_Interface(
+				level: Congress_Level::State,
+				title: Congress_Title::Representative,
+				district: $senate_rep['dist'],
+				first_name: explode( ' ', $senate_rep['preferred_full_name'], 2 )[0],
+				last_name: $senate_rep['preferred_last_name'],
+				state: Congress_State::MN,
+			);
+			$new_staffer = new Congress_Staffer_Interface(
+				first_name: $new_rep->first_name,
+				last_name: $new_rep->last_name,
+				email: $senate_rep['email'],
+				title: Congress_Title::Senator->to_display_string()
+			);
+			$new_rep->add_staffer( $new_staffer );
 			array_push(
 				$reps,
-				new Congress_Rep_Interface(
-					level: Congress_Level::State,
-					title: Congress_Title::Senator,
-					district: $senate_rep['dist'],
-					first_name: explode( ' ', $senate_rep['preferred_full_name'], 2 )[0],
-					last_name: $senate_rep['preferred_last_name'],
-					state: Congress_State::MN,
-					email: $senate_rep['email']
-				)
+				$new_rep
 			);
 		}
 

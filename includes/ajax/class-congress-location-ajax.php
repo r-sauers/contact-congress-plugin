@@ -660,13 +660,17 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 
 				foreach ( $members as &$member ) {
 
-					$last_term = count( $member['terms']['item'] ) - 1;
+					$last_term = null;
 
-					// Assert that the last term is actually the last term.
-					if (
-						isset( $member['terms']['item'][ $last_term ]['endYear'] ) &&
-						intval( $member['terms']['item'][ $last_term ]['endYear'] ) < intval( gmdate( 'Y' ) )
-					) {
+					foreach ( $member['terms']['item'] as &$term ) {
+						if (
+							! isset( $term['endYear'] )
+						) {
+							$last_term = &$term;
+						}
+					}
+
+					if ( null === $last_term ) {
 						error_log( // phpcs:ignore
 							new Error( 'Assertion failed for Congress.gov API.' )
 						);
@@ -674,7 +678,7 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 					}
 
 					$title = null;
-					if ( 'Senate' !== $member['terms']['item'][ $last_term ]['chamber'] ) {
+					if ( 'Senate' !== $last_term['chamber'] ) {
 						continue;
 					}
 

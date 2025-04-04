@@ -47,13 +47,11 @@ class Congress_Rep_Sync {
 	 * Matches $db_reps and $api_reps by position, and adds new database representatives from $api_reps,
 	 * and removes database representatives not found in $api_reps.
 	 *
-	 * @param array                         $db_reps are the reps from a DB request.
-	 * Requires the following fields:
-	 * first_name, last_name, state, level, title, and district.
+	 * @param array<Congress_Rep_Interface> $db_reps are the reps from a DB request.
 	 * @param array<Congress_Rep_Interface> $api_reps are the reps from an API call.
 	 *
 	 * @return array<string,array> an array with the following fields:
-	 * - 'ids_removed' : array<int>
+	 * - 'reps_removed' : array<Congress_Rep_Interface>
 	 * - 'reps_added' : array<Congress_Rep_Interface>
 	 */
 	private static function sync( array $db_reps, array $api_reps ): array {
@@ -76,7 +74,7 @@ class Congress_Rep_Sync {
 				$cmp     = 1;
 			}
 			if ( $db_count > $db_i ) {
-				$db_rep = Congress_Rep_Interface::from_db_result( $db_reps[ $db_i ] );
+				$db_rep = $db_reps[ $db_i ];
 				$cmp    = -1;
 			}
 			if ( null !== $api_rep && null !== $db_rep ) {
@@ -84,13 +82,13 @@ class Congress_Rep_Sync {
 			}
 
 			if ( -1 >= $cmp ) {
-				array_push( $reps_to_remove, $db_reps[ $db_i ]->id );
+				array_push( $reps_to_remove, $db_reps[ $db_i ] );
 				++$db_i;
 			} elseif ( 1 <= $cmp ) {
 				++$api_i;
 				array_push( $reps_to_insert, $api_rep );
-			} elseif ( ! $db_rep->equals( $api_rep, true, true ) ) {
-				array_push( $reps_to_remove, $db_reps[ $db_i ]->id );
+			} elseif ( ! $db_rep->equals( $api_rep, true, true, true ) ) {
+				array_push( $reps_to_remove, $db_reps[ $db_i ] );
 				array_push( $reps_to_insert, $api_rep );
 				++$db_i;
 				++$api_i;
@@ -104,23 +102,29 @@ class Congress_Rep_Sync {
 		$rep_t        = Congress_Table_Manager::get_table_name( 'representative' );
 		$staffer_t    = Congress_Table_Manager::get_table_name( 'staffer' );
 		$reps_removed = array();
-		foreach ( $reps_to_remove as $id ) {
+		foreach ( $reps_to_remove as &$rep ) {
+
+			if ( ! $rep->has_id() ) {
+				continue;
+			}
+
 			$res = $wpdb->delete( // phpcs:ignore
 				$rep_t,
 				array(
-					'id' => $id,
+					'id' => $rep->get_id(),
 				),
 				array(
 					'%d',
 				)
 			);
+
 			if ( false !== $res ) {
-				array_push( $reps_removed, $id );
+				array_push( $reps_removed, $rep );
 			}
 		}
 
 		$reps_inserted = array();
-		foreach ( $reps_to_insert as $rep ) {
+		foreach ( $reps_to_insert as &$rep ) {
 			$values = array(
 				'first_name' => $rep->first_name,
 				'last_name'  => $rep->last_name,
@@ -149,23 +153,28 @@ class Congress_Rep_Sync {
 				continue;
 			}
 
-			if ( $rep->has_email() ) {
+			$rep->set_id( $wpdb->insert_id );
+
+			$staffers = &$rep->get_staffers();
+			foreach ( $staffers as &$staffer ) {
 				$wpdb->insert( // phpcs:ignore
 					$staffer_t,
 					array(
-						'first_name'     => $rep->first_name,
-						'last_name'      => $rep->last_name,
-						'title'          => $rep->title->to_db_string(),
-						'representative' => $wpdb->insert_id,
-						'email'          => $rep->get_email(),
+						'first_name'     => $staffer->first_name,
+						'last_name'      => $staffer->last_name,
+						'title'          => $staffer->title,
+						'representative' => $rep->get_id(),
+						'email'          => $staffer->email,
 					),
 					array(
 						'%s',
 						'%s',
 						'%s',
 						'%d',
+						'%s',
 					)
 				);
+				$staffer->set_id( $wpdb->insert_id );
 			}
 
 			if ( false !== $res ) {
@@ -174,8 +183,8 @@ class Congress_Rep_Sync {
 		}
 
 		return array(
-			'ids_removed' => $reps_removed,
-			'reps_added'  => $reps_inserted,
+			'reps_removed' => $reps_removed,
+			'reps_added'   => $reps_inserted,
 		);
 	}
 
@@ -183,7 +192,7 @@ class Congress_Rep_Sync {
 	 * Syncs the database entries with the all external apis that are enabled.
 	 *
 	 * @return array<string,array> an array with the following fields:
-	 * - 'ids_removed' : array<int>
+	 * - 'reps_removed' : array<Congress_Rep_Interface>
 	 * - 'reps_added' : array<Congress_Rep_Interface>
 	 */
 	public static function sync_all_reps(): array {
@@ -200,13 +209,17 @@ class Congress_Rep_Sync {
 
 				foreach ( $members as &$member ) {
 
-					$last_term = count( $member['terms']['item'] ) - 1;
+					$last_term = null;
 
-					// Assert that the last term is actually the last term.
-					if (
-						isset( $member['terms']['item'][ $last_term ]['endYear'] ) &&
-						intval( $member['terms']['item'][ $last_term ]['endYear'] ) < intval( gmdate( 'Y' ) )
-					) {
+					foreach ( $member['terms']['item'] as &$term ) {
+						if (
+							! isset( $term['endYear'] )
+						) {
+							$last_term = &$term;
+						}
+					}
+
+					if ( null === $last_term ) {
 						error_log( // phpcs:ignore
 							new Error( 'Assertion failed for Congress.gov API.' )
 						);
@@ -214,7 +227,7 @@ class Congress_Rep_Sync {
 					}
 
 					$title = null;
-					if ( 'Senate' === $member['terms']['item'][ $last_term ]['chamber'] ) {
+					if ( 'Senate' === $last_term['chamber'] ) {
 						$title = Congress_Title::Senator;
 					} else {
 						$title = Congress_Title::Representative;
@@ -235,9 +248,50 @@ class Congress_Rep_Sync {
 			}
 		}
 
-		$db_reps = array();
+		$state_api_factory = Congress_State_API_Factory::get_instance();
+		$state_apis        = $state_api_factory->get_enabled_apis();
+		$states            = array();
+		$placeholders      = array();
+		foreach ( $state_apis as &$state_api ) {
+			$res = $state_api->get_state_reps();
+			if ( false !== $res ) {
+				array_merge( $api_reps, $res );
+				array_push( $placeholders, '%s' );
+				array_push( $states, $state_api->get_state()->to_db_string() );
+			}
+		}
 
-		return sync( $db_reps, $api_reps );
+		global $wpdb;
+		$rep_t        = Congress_Table_Manager::get_table_name( 'representative' );
+		$placeholders = join(
+			', ',
+			$placeholders
+		);
+
+		// phpcs:disable
+		$db_reps = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT id, first_name, last_name, district, title, level, state ' .
+				"FROM $rep_t " .
+				"WHERE r.state IN ($placeholders)" .
+				'ORDER BY state, district, last_name, first_name',
+				$states
+			)
+		);
+		// phpcs:enable
+
+		if ( null === $db_reps ) {
+			return new WP_Error( 'DB_FAILURE', 'Failed to get representatives from database.' );
+		}
+
+		$db_reps = array_map(
+			function ( $db_rep ) {
+				return Congress_Rep_Interface::from_db_result( $db_rep );
+			},
+			$db_reps
+		);
+
+		return self::sync( $db_reps, $api_reps );
 	}
 
 	/**
@@ -249,7 +303,7 @@ class Congress_Rep_Sync {
 	 * @param Congress_Level $level is the level of government to filter by.
 	 *
 	 * @return array<string,array>|WP_Error an array with the following fields:
-	 * - 'ids_removed' : array<int>
+	 * - 'reps_removed' : array<Congress_Rep_Interface>
 	 * - 'reps_added' : array<Congress_Rep_Interface>
 	 */
 	public static function sync_reps( Congress_State $state, Congress_Level $level ): array|WP_Error {
@@ -273,13 +327,17 @@ class Congress_Rep_Sync {
 
 				foreach ( $members as &$member ) {
 
-					$last_term = count( $member['terms']['item'] ) - 1;
+					$last_term = null;
 
-					// Assert that the last term is actually the last term.
-					if (
-						isset( $member['terms']['item'][ $last_term ]['endYear'] ) &&
-						intval( $member['terms']['item'][ $last_term ]['endYear'] ) < intval( gmdate( 'Y' ) )
-					) {
+					foreach ( $member['terms']['item'] as &$term ) {
+						if (
+							! isset( $term['endYear'] )
+						) {
+							$last_term = &$term;
+						}
+					}
+
+					if ( null === $last_term ) {
 						error_log( // phpcs:ignore
 							new Error( 'Assertion failed for Congress.gov API.' )
 						);
@@ -287,7 +345,7 @@ class Congress_Rep_Sync {
 					}
 
 					$title = null;
-					if ( 'Senate' === $member['terms']['item'][ $last_term ]['chamber'] ) {
+					if ( 'Senate' === $last_term['chamber'] ) {
 						$title = Congress_Title::Senator;
 					} else {
 						$title = Congress_Title::Representative;
@@ -343,6 +401,13 @@ class Congress_Rep_Sync {
 		if ( null === $db_reps ) {
 			return new WP_Error( 'DB_FAILURE', 'Failed to get representatives from database.' );
 		}
+
+		$db_reps = array_map(
+			function ( $db_rep ) {
+				return Congress_Rep_Interface::from_db_result( $db_rep );
+			},
+			$db_reps
+		);
 
 		return self::sync( $db_reps, $api_reps );
 	}

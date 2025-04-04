@@ -93,4 +93,18 @@ class Congress_State_API_Factory {
 	public function get_enabled_apis(): array {
 		return array_values( $this->state_apis );
 	}
+
+	/**
+	 * Retrieves a list of the states of all of the enabled state APIs.
+	 *
+	 * @return array<Congress_State>
+	 */
+	public function get_enabled_states(): array {
+		return array_map(
+			function ( $state_name ) {
+				return Congress_State::from_string( $state_name );
+			},
+			array_keys( $this->state_apis )
+		);
+	}
 }

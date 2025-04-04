@@ -30,6 +30,18 @@
    */
 
   /**
+   * Extension of string to transform text to Proper Case e.g. 'hello world' => 'Hello World'.
+   *
+   * Credit To: https://stackoverflow.com/questions/196972/convert-string-to-title-case-with-javascript
+   */
+  String.prototype.toProperCase = function() {
+      return this.replace( /\w\S*/g, function( txt ) {
+        return txt.charAt( 0 ).toUpperCase() + txt.slice( 1 ).toLowerCase();
+      });
+  };
+
+
+  /**
    * An abstraction of representatives and staffers that helps manage CRUD operations.
    */
   class AbstractOfficial {
@@ -83,8 +95,8 @@
      */
     drawTemplate() {
       const newOfficial = this.$template[0].content.cloneNode( true );
-      this.$container.append( newOfficial );
-      const $official = this.$container.children().last();
+      this.$container.prepend( newOfficial );
+      const $official = this.$container.children().first();
       this.$el = $official;
       this.addEditingEvents();
     }
@@ -264,6 +276,13 @@
      * @returns {Promise}
      */
     editRequest() {}
+
+    /**
+     * Abstract method to init form fields with values specified by fieldData.
+     *
+     * @param {Object} fieldData
+     */
+    initField() {}
   }
 
   /**
@@ -317,10 +336,74 @@
     }
 
     /**
+     * Constructs a Staffer from the server's JSON response.
+     *
+     * @param {id} repID
+     * @param {JQueryElement} $repContainer
+     * @param {string} createNonce
+     * @param {Object} json
+     */
+    static fromJSON( repID, $repContainer, createNonce, json ) {
+      const staffer = new Staffer({ repID, $repContainer, createNonce });
+      staffer.drawTemplate();
+      staffer.stafferID = parseInt( json.id );
+      staffer.initHTML({
+        repID: repID,
+        id: json.id,
+        title: json.title,
+        firstName: json.firstName,
+        lastName: json.lastName,
+        email: json.email,
+        deleteNonce: json.deleteNonce,
+        editNonce: json.editNonce
+      });
+      staffer.toggleEdit();
+      staffer.created = true;
+      return staffer;
+    }
+
+    /**
      * @see AbstractOfficial.getForm()
      */
     getForm() {
       return this.$el.find( ".congress-staffer-edit-form" )[0];
+    }
+
+    /**
+     * Initializes the HTML with values and event handlers.
+     */
+    initHTML({ repID, id, title, firstName, lastName, email, editNonce, deleteNonce }) {
+      const editForm = this.getForm();
+      this.$el[0].id = this.$el[0].id.replace( "--", `-${repID}-${id}` );
+
+      editForm.rep_id.value = repID;
+      editForm.staffer_id.value = id;
+
+      editForm.title.value = title;
+      editForm.title.id = editForm.title.id.replace( "---", `-${repID}-${id}-` );
+      editForm.title.previousElementSibling.setAttribute( "for", editForm.title.id );
+
+      editForm.first_name.value = firstName;
+      editForm.first_name.id = editForm.first_name.id.replace( "---", `-${repID}-${id}-` );
+      editForm.first_name.previousElementSibling.setAttribute( "for", editForm.first_name.id );
+
+      editForm.last_name.value = lastName;
+      editForm.last_name.id = editForm.last_name.id.replace( "---", `-${repID}-${id}-` );
+      editForm.last_name.previousElementSibling.setAttribute( "for", editForm.last_name.id );
+
+      editForm.email.value = email;
+      editForm.email.id = editForm.email.id.replace( "---", `-${repID}-${id}-` );
+      editForm.email.previousElementSibling.setAttribute( "for", editForm.email.id );
+
+      editForm._wpnonce.value = editNonce;
+      this.$el.find( ".congress-official-readonly > span" )
+        .text(
+`${title} ${firstName} ${lastName} \
+(${email})`
+        );
+
+      const deleteForm = this.$el.find( ".congress-staffer-delete-form" )[0];
+      deleteForm._wpnonce.value = deleteNonce;
     }
 
     /**
@@ -343,20 +426,19 @@
           function({ rawID, editNonce, deleteNonce }) {
 
             let id = parseInt( rawID );
-
-            const editForm = I.getForm();
-            I.$el[0].id = I.$el[0].id.replace( "--", `-${I.repID}-${id}` );
-            editForm.staffer_id.value = id;
-            editForm._wpnonce.value = editNonce;
-            I.$el.find( ".congress-official-readonly > span" )
-              .text(
-`${editForm.title.value} ${editForm.first_name.value} ${editForm.last_name.value} \
-(${editForm.email.value})`
-              );
             I.stafferID = id;
+            const editForm = I.getForm();
 
-            const deleteForm = I.$el.find( ".congress-staffer-delete-form" )[0];
-            deleteForm._wpnonce.value = deleteNonce;
+            I.initHTML({
+              repID: I.repID,
+              id: id,
+              title: editForm.title.value,
+              firstName: editForm.first_name.value,
+              lastName: editForm.last_name.value,
+              email: editForm.email.value,
+              editNonce: editNonce,
+              deleteNonce: deleteNonce
+            });
 
             resolve( id );
           }
@@ -427,6 +509,18 @@
       super.drawTemplate();
       this.getForm()._wpnonce.value = this.createNonce;
     }
+
+    /**
+     * @see AbstractOfficial.initField()
+     */
+    initField({title, firstName, lastName, email}) {
+      const editForm = this.getForm();
+
+      editForm.title.value = title;
+      editForm.first_name.value = firstName;
+      editForm.last_name.value = lastName;
+      editForm.email.value = email;
+    }
   }
 
   /**
@@ -463,10 +557,119 @@
     }
 
     /**
+     * Constructs a representative from the server's JSON response.
+     *
+     * @param {Object} json
+     */
+    static fromJSON( json ) {
+      const rep = new Rep();
+      rep.drawTemplate();
+      rep.repID = parseInt( json.id );
+      rep.initHTML({
+        id: json.id,
+        level: json.level,
+        state: json.state,
+        district: json.district,
+        title: json.title,
+        firstName: json.firstName,
+        lastName: json.lastName,
+        editNonce: json.editNonce,
+        deleteNonce: json.deleteNonce,
+        createNonce: json.createNonce,
+        staffers: json.staffers || null
+      });
+      rep.toggleEdit();
+      rep.created = true;
+      return rep;
+    }
+
+    /**
      * @see AbstractOfficial.getForm()
      */
     getForm() {
       return this.$el.find( ".congress-rep-edit-form" )[0];
+    }
+
+    /**
+     * Initializes the HTML with values and event handlers.
+     *
+     * @param {number} id
+     * @param {'federal'|'state'} level
+     * @param {string} state
+     * @param {string} district
+     * @param {'Representative'|'Senator'} title
+     * @param {string} firstName
+     * @param {string} lastName
+     * @param {string} editNonce
+     * @param {string} deleteNonce
+     * @param {string} createNonce
+     * @param {array<Object>|null} staffers
+     */
+    initHTML({ id, level, state, district, title, firstName, lastName, editNonce, deleteNonce, createNonce, staffers = null }) {
+
+      const editForm = this.getForm();
+
+      editForm.title.value = title;
+      editForm.title.id = editForm.title.id.replace( "--", `-${id}-` );
+      editForm.title.previousElementSibling.setAttribute( "for", editForm.title.id );
+
+      editForm.level.value = level;
+      editForm.level.id = editForm.level.id.replace( "--", `-${id}-` );
+      editForm.level.previousElementSibling.setAttribute( "for", editForm.level.id );
+
+      editForm.state.value = state;
+      editForm.state.id = editForm.state.id.replace( "--", `-${id}-` );
+      editForm.state.previousElementSibling.setAttribute( "for", editForm.state.id );
+
+      editForm.district.value = district;
+      editForm.district.id = editForm.district.id.replace( "--", `-${id}-` );
+      editForm.district.previousElementSibling.setAttribute( "for", editForm.district.id );
+
+      editForm.first_name.value = firstName;
+      editForm.first_name.id = editForm.first_name.id.replace( "--", `-${id}-` );
+      editForm.first_name.previousElementSibling.setAttribute( "for", editForm.first_name.id );
+
+      editForm.last_name.value = lastName;
+      editForm.last_name.id = editForm.last_name.id.replace( "--", `-${id}-` );
+      editForm.last_name.previousElementSibling.setAttribute( "for", editForm.last_name.id );
+
+      editForm.rep_id.value = id;
+      editForm._wpnonce.value = editNonce;
+
+      level = level.toProperCase();
+
+      this.$el[0].id = `congress-rep-${id}`;
+      const districtText = ( "" === district ? "" : ` District ${district}` );
+      this.$el.find( ".congress-official-readonly > span" )
+        .text( `${level} ${title} ${firstName} ${lastName} (${state}${districtText})` );
+
+      const $btn = this.$el.find( "#congress-rep--add-staffer" );
+      $btn[0].id = `#congress-rep-${id}-add-staffer`;
+      const stafferFactory = new OfficialFactory(
+        "staffer",
+        {
+          repID: id,
+          $repContainer: this.$el,
+          createNonce: createNonce
+        },
+        {
+          title: title,
+          firstName: firstName,
+          lastName: lastName,
+          email: ""
+        }
+      );
+      $btn.on( "click", null, stafferFactory, addOfficial );
+
+      if ( null !== staffers ) {
+        for ( let staffer of staffers ) {
+          Staffer.fromJSON( id, this.$el, createNonce, staffer );
+        }
+      }
+
+      const deleteForm = this.$el.find( ".congress-rep-delete-form" )[0];
+      deleteForm._wpnonce.value = deleteNonce;
+
     }
 
     /**
@@ -493,28 +696,19 @@
             I.repID = id;
 
             const editForm = I.getForm();
-            editForm.rep_id.value = id;
-            editForm._wpnonce.value = editNonce;
 
-            I.$el[0].id = I.$el[0].id + id;
-            const districtText = ( "" === editForm.district.value ? "" : ` District${editForm.district.value}` );
-            I.$el.find( ".congress-official-readonly > span" )
-              .text(
-`${editForm.level.value} ${editForm.title.value} ${editForm.first_name.value} ${editForm.last_name.value} \
-(${editForm.state.value}${districtText})`
-              );
-
-            const $btn = I.$el.find( "#congress-rep--add-staffer" );
-            $btn[0].id = `#congress-rep-${id}-add-staffer`;
-            const stafferFactory = new OfficialFactory( "staffer", {
-              repID: id,
-              $repContainer: I.$el,
+            I.initHTML({
+              id: id,
+              level: editForm.level.value,
+              state: editForm.state.value,
+              district: editForm.district.value,
+              title: editForm.title.value,
+              firstName: editForm.first_name.value,
+              lastName: editForm.last_name.value,
+              editNonce: editNonce,
+              deleteNonce: deleteNonce,
               createNonce: createNonce
             });
-            $btn.on( "click", null, stafferFactory, addOfficial );
-
-            const deleteForm = I.$el.find( ".congress-rep-delete-form" )[0];
-            deleteForm._wpnonce.value = deleteNonce;
 
             resolve( id );
 
@@ -605,6 +799,20 @@
     getID() {
       return this.repID;
     }
+
+    /**
+     * @see AbstractOfficial.initField()
+     */
+    initField({title, level, state, district, firstName, lastName}) {
+      const editForm = this.getForm();
+
+      editForm.title.value = title;
+      editForm.level.value = level;
+      editForm.state.value = state;
+      editForm.district.value = district;
+      editForm.first_name.value = firstName;
+      editForm.last_name.value = lastName;
+    }
   }
 
   /**
@@ -617,10 +825,15 @@
      *
      * @param {"rep"|"staffer"} type
      * @param {Object} arguments for the AbstractOfficial's constructor.
+     * @param {Object} defaultFields are attributes to @see AbstractOfficial.initField() .
+     * @param {boolean} firstTimeOnly when set to true, inits fields
+     * with defaultFields only when the container is emtpy.
      */
-    constructor( type, args ) {
+    constructor( type, args, defaultFields = null, firstTimeOnly = true ) {
       this.type = type;
       this.args = args;
+      this.defaultFields = defaultFields;
+      this.firstTimeOnly = firstTimeOnly;
     }
 
     /**
@@ -629,11 +842,24 @@
      * @returns {AbstractOfficial}
      */
     createOfficial() {
+      let official = null;
       if ( "rep" === this.type ) {
-        return new Rep( this.args );
+        official = new Rep( this.args );
       } else {
-        return new Staffer( this.args );
+        official = new Staffer( this.args );
       }
+
+      official.drawTemplate();
+
+      if ( null !== this.defaultFields ) {
+        if ( ! this.firstTimeOnly ) {
+          official.initField( this.defaultFields );
+        } else if ( 1 === official.$container.children().length ) {
+          official.initField( this.defaultFields );
+        }
+      }
+
+      return official;
     }
   }
 
@@ -644,9 +870,7 @@
    */
   function addOfficial( evt ) {
     evt.preventDefault();
-
-    const official = evt.data.createOfficial();
-    official.drawTemplate();
+    evt.data.createOfficial();
   }
 
 
@@ -657,7 +881,14 @@
     const repFactory = new OfficialFactory( "rep" );
     $( "#congress-add-rep-button" ).on( "click", null, repFactory, addOfficial );
 
+    let syncProgress = 0;
+    let syncError = false;
     $( "#congress-sync-reps-button" ).on( "click", function() {
+
+      $( "#congress-sync-reps-hint" ).text( "Loading..." );
+      $( "#congress-sync-reps-hint" ).toggleClass( "congress-form-error", false );
+      $( "#congress-sync-reps-hint" ).toggleClass( "congress-form-success", false );
+
       $.post(
         ajaxurl,
         {
@@ -667,9 +898,34 @@
           _wpnonce: congressSyncRepsNonce
         },
         function( data ) {
-          console.log( data );
+          if ( syncError ) {
+            syncError = false;
+            return;
+          }
+
+          for ( let rep of data.reps_added ) {
+            Rep.fromJSON( rep );
+          }
+
+          for ( let rep of data.reps_removed ) {
+            $( `#congress-rep-${rep.id}` ).remove();
+          }
+
+          syncProgress++;
+
+          if ( 2 === syncProgress ) {
+            $( "#congress-sync-reps-hint" ).text( "Successfully Synced!" );
+            $( "#congress-sync-reps-hint" ).toggleClass( "congress-form-error", false );
+            $( "#congress-sync-reps-hint" ).toggleClass( "congress-form-success", true );
+            syncProgress = 0;
+          }
         }
-      );
+      ).fail( function( data ) {
+          $( "#congress-sync-reps-hint" ).text( "Failed to sync!" );
+          $( "#congress-sync-reps-hint" ).toggleClass( "congress-form-error", true );
+          $( "#congress-sync-reps-hint" ).toggleClass( "congress-form-success", false );
+          syncProgress = 0;
+      });
 
       $.post(
         ajaxurl,
@@ -680,9 +936,34 @@
           _wpnonce: congressSyncRepsNonce
         },
         function( data ) {
-          console.log( data );
+          if ( syncError ) {
+            syncError = false;
+            return;
+          }
+
+          syncProgress++;
+
+          for ( let rep of data.reps_added ) {
+            Rep.fromJSON( rep );
+          }
+
+          for ( let rep of data.reps_removed ) {
+            $( `#congress-rep-${rep.id}` ).remove();
+          }
+
+          if ( 2 === syncProgress ) {
+            $( "#congress-sync-reps-hint" ).text( "Successfully Synced!" );
+            $( "#congress-sync-reps-hint" ).toggleClass( "congress-form-error", false );
+            $( "#congress-sync-reps-hint" ).toggleClass( "congress-form-success", true );
+            syncProgress = 0;
+          }
         }
-      );
+      ).fail( function( data ) {
+          $( "#congress-sync-reps-hint" ).text( "Failed to sync!" );
+          $( "#congress-sync-reps-hint" ).toggleClass( "congress-form-error", true );
+          $( "#congress-sync-reps-hint" ).toggleClass( "congress-form-success", false );
+          syncProgress = 0;
+      });
 
     });
 
@@ -693,13 +974,23 @@
 
       const rep = Rep.fromHTML( $( this ) );
       rep.addEditingEvents();
+      const repEditForm = rep.getForm();
 
       const $repContainer = $( this );
-      const stafferFactory = new OfficialFactory( "staffer", {
-        repID: rep.getID(),
-        $repContainer: $repContainer,
-        createNonce: $stafferContainer.find( ".congress-add-staffer-button" ).first().attr( "createNonce" )
-      });
+      const stafferFactory = new OfficialFactory(
+        "staffer",
+        {
+          repID: rep.getID(),
+          $repContainer: $repContainer,
+          createNonce: $stafferContainer.find( ".congress-add-staffer-button" ).first().attr( "createNonce" )
+        },
+        {
+          title: repEditForm.title.value,
+          firstName: repEditForm.first_name.value,
+          lastName: repEditForm.last_name.value,
+          email: ""
+        }
+      );
       $stafferContainer.find( ".congress-add-staffer-button" ).first().on( "click", null, stafferFactory, addOfficial );
 
 

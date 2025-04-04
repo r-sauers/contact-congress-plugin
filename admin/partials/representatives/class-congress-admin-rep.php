@@ -178,8 +178,14 @@ class Congress_Admin_Rep {
 					name: 'level',
 					value: $this->level,
 					options: array(
-						'Federal',
-						'State',
+						array(
+							'value' => 'federal',
+							'label' => 'Federal',
+						),
+						array(
+							'value' => 'state',
+							'label' => 'State',
+						),
 					),
 				);
 

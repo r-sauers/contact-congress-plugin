@@ -116,12 +116,6 @@
 	background-image: url(../icons/confirm-icon.svg);
 }
 
-#congress-add-rep-button {
-	width: 30em;
-	margin-left: 20em;
-	margin-top: 1em;
-}
-
 .congress-add-staffer-button {
 	width: 30%;
 	margin-left: 35% !important;
@@ -237,6 +231,11 @@
 
 .congress-form-error {
 	color: #f00;
+	margin-inline: 0.5em;
+}
+
+.congress-form-success {
+	color: #198754;
 	margin-inline: 0.5em;
 }
 
@@ -358,6 +357,33 @@ li:not(:last-child) > .congress-campaign-email-container {
 		border-top-right-radius: 0;
 		border-bottom-left-radius: var(--radius);
 		border-top-left-radius: var(--radius);
+	}
+}
+
+#congress-rep-actions-header {
+	display: flex;
+	max-width: 66em;
+	justify-content: space-around;
+	margin-top: 2em;
+	margin-bottom: 1em;
+	gap: 10%;
+	padding-inline: 2em;
+
+	div {
+		display: flex;
+		flex-direction: column;
+		flex-grow: 1;
+		gap: 0.1em;
+		min-height: 4em;
+
+		button {
+			width: 100%;
+		}
+
+		span {
+			width: 100;
+			text-align: center;
+		}
 	}
 }
 

@@ -26,6 +26,15 @@ require_once plugin_dir_path( __FILE__ ) . 'class-congress-admin-staffer.php';
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
 <div>
 	<h1>Representatives</h1>
+	<div id="congress-rep-actions-header">
+		<div>
+			<button id="congress-add-rep-button" class="buttton button-primary">Add Representative</button>
+		</div>
+		<div>
+			<button id="congress-sync-reps-button" class="buttton button-primary">Sync Representatives</button>
+			<span id="congress-sync-reps-hint" class="congress-form-success"></span>
+		</div>
+	</div>
 	<div id="congress-reps-container">
 		<?php
 		$reps = Congress_Admin_Rep::get_reps_from_db();
@@ -34,8 +43,6 @@ require_once plugin_dir_path( __FILE__ ) . 'class-congress-admin-staffer.php';
 		}
 		?>
 	</div>
-	<button id="congress-add-rep-button" class="buttton button-primary">Add Representative</button>
-	<button id="congress-sync-reps-button" class="buttton button-primary">Sync Representatives</button>
 	<template id="congress-staffer-template">
 		<?php
 			Congress_Admin_Staffer::get_html_template();

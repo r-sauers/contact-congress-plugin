@@ -436,7 +436,37 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 			};
 		}
 
-		wp_send_json( $results );
+		global $wpdb;
+		$res['reps_removed'] = array_map(
+			function ( Congress_Rep_Interface $rep ) {
+				return $rep->to_json();
+			},
+			$res['reps_removed']
+		);
+
+		$res['reps_added'] = array_map(
+			function ( Congress_Rep_Interface $rep ) {
+				$rep_json = $rep->to_json();
+
+				$rep_json['createNonce'] = wp_create_nonce( 'create-staffer_' . $rep_json['id'] );
+				$rep_json['editNonce']   = wp_create_nonce( 'edit-rep_' . $rep_json['id'] );
+				$rep_json['deleteNonce'] = wp_create_nonce( 'delete-rep_' . $rep_json['id'] );
+
+				if ( isset( $rep_json['staffers'] ) ) {
+					foreach ( $rep_json['staffers'] as &$staffer ) {
+						$rep_id                 = $rep_json['id'];
+						$staffer_id             = $staffer['id'];
+						$staffer['editNonce']   = wp_create_nonce( "edit-staffer_$rep_id-$staffer_id" );
+						$staffer['deleteNonce'] = wp_create_nonce( "delete-staffer_$rep_id-$staffer_id" );
+					}
+				}
+
+				return $rep_json;
+			},
+			$res['reps_added']
+		);
+
+		wp_send_json( $res );
 	}
 
 	/**
@@ -526,6 +556,36 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 				)
 			};
 		}
+
+		global $wpdb;
+		$res['reps_removed'] = array_map(
+			function ( Congress_Rep_Interface $rep ) {
+				return $rep->to_json();
+			},
+			$res['reps_removed']
+		);
+
+		$res['reps_added'] = array_map(
+			function ( Congress_Rep_Interface $rep ) {
+				$rep_json = $rep->to_json();
+
+				$rep_json['createNonce'] = wp_create_nonce( 'create-staffer_' . $rep_json['id'] );
+				$rep_json['editNonce']   = wp_create_nonce( 'edit-rep_' . $rep_json['id'] );
+				$rep_json['deleteNonce'] = wp_create_nonce( 'delete-rep_' . $rep_json['id'] );
+
+				if ( isset( $rep_json['staffers'] ) ) {
+					foreach ( $rep_json['staffers'] as &$staffer ) {
+						$rep_id                 = $rep_json['id'];
+						$staffer_id             = $staffer['id'];
+						$staffer['editNonce']   = wp_create_nonce( "edit-staffer_$rep_id-$staffer_id" );
+						$staffer['deleteNonce'] = wp_create_nonce( "delete-staffer_$rep_id-$staffer_id" );
+					}
+				}
+
+				return $rep_json;
+			},
+			$res['reps_added']
+		);
 
 		wp_send_json( $res );
 	}
