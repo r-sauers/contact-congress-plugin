@@ -133,7 +133,7 @@ class Congress_MN_API implements Congress_State_API_Interface {
 		foreach ( $body['members'] as $senate_rep ) {
 			$new_rep     = new Congress_Rep_Interface(
 				level: Congress_Level::State,
-				title: Congress_Title::Representative,
+				title: Congress_Title::Senator,
 				district: $senate_rep['dist'],
 				first_name: explode( ' ', $senate_rep['preferred_full_name'], 2 )[0],
 				last_name: $senate_rep['preferred_last_name'],
