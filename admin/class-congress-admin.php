@@ -341,29 +341,39 @@ class Congress_Admin {
 	 * Add the top level menu page.
 	 */
 	public function init_options_page(): void {
-		add_menu_page(
-			'Congress',
-			'Congress',
-			'manage_options',
-			'congress',
-			array( $this, 'congress_options_page_html' )
-		);
-		add_submenu_page(
-			'congress',
-			'Campaigns',
-			'Campaigns',
-			'manage_options',
-			'congress_campaign',
-			array( $this, 'congress_campaign_page_html' )
-		);
-		add_submenu_page(
-			'congress',
-			'Representatives',
-			'Representatives',
-			'manage_options',
-			'congress_rep',
-			array( $this, 'congress_rep_page_html' )
-		);
+		if (
+			current_user_can( 'congress_manage_representatives' ) ||
+			current_user_can( 'congress_manage_campaigns' ) ||
+			current_user_can( 'congress_manage_keys' )
+		) {
+			add_menu_page(
+				'Congress',
+				'Congress',
+				'manage_options',
+				'congress',
+				array( $this, 'congress_options_page_html' )
+			);
+		}
+		if ( current_user_can( 'congress_manage_campaigns' ) ) {
+			add_submenu_page(
+				'congress',
+				'Campaigns',
+				'Campaigns',
+				'manage_options',
+				'congress_campaign',
+				array( $this, 'congress_campaign_page_html' )
+			);
+		}
+		if ( current_user_can( 'congress_manage_representatives' ) ) {
+			add_submenu_page(
+				'congress',
+				'Representatives',
+				'Representatives',
+				'manage_options',
+				'congress_rep',
+				array( $this, 'congress_rep_page_html' )
+			);
+		}
 	}
 
 	/**
@@ -371,7 +381,29 @@ class Congress_Admin {
 	 */
 	public function congress_options_page_html(): void {
 		// check user capabilities.
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'congress_manage_keys' ) ) {
+			?>
+			<h1>Contact Congress Admin Panel</h1>
+			<h2>Settings</h2>
+			<p>You do not have permissions to manage the settings for the Contact Congress Plugin. A website admin must give you one of the following roles:<p>
+			<ul style="list-style: disc; padding-left: 1.5em;">
+				<li>Administrator</li>
+			</ul>
+			<?php
+			if ( current_user_can( 'congress_manage_representatives' ) ) {
+				?>
+				<h2>Representatives</h2>
+				<p>You can manage representatives <a href="./admin.php?page=congress_rep">here</a>!</p>
+				<?php
+			}
+			?>
+			<?php
+			if ( current_user_can( 'congress_manage_campaigns' ) ) {
+				?>
+				<h2>Campaigns</h2>
+				<p>You can manage campaigns <a href="./admin.php?page=congress_campaign">here</a>!</p>
+				<?php
+			}
 			return;
 		}
 
@@ -410,7 +442,16 @@ class Congress_Admin {
 	 */
 	public function congress_rep_page_html(): void {
 		// check user capabilities.
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'congress_manage_representatives' ) ) {
+			?>
+			<h1>Representatives</h1>
+			<p>Whoops! You do not have permissions to manage representatives, a website admin must give you one of the following roles:<p>
+			<ul style="list-style: disc; padding-left: 1.5em;">
+				<li>Author</li>
+				<li>Editor</li>
+				<li>Administrator</li>
+			</ul>
+			<?php
 			return;
 		}
 
@@ -428,7 +469,16 @@ class Congress_Admin {
 	 */
 	public function congress_campaign_page_html(): void {
 		// check user capabilities.
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'congress_manage_campaigns' ) ) {
+			?>
+			<h1>Campaigns</h1>
+			<p>Whoops! You do not have permissions to manage campaigns, a website admin must give you one of the following roles:<p>
+			<ul style="list-style: disc; padding-left: 1.5em;">
+				<li>Author</li>
+				<li>Editor</li>
+				<li>Administrator</li>
+			</ul>
+			<?php
 			return;
 		}
 
@@ -460,5 +510,24 @@ class Congress_Admin {
 			echo '. Please install them to use this plugin.';
 			echo '</p></div>';
 		}
+	}
+
+	/**
+	 * Defines custom roles and capabilities for the plugin.
+	 */
+	public function define_roles(): void {
+
+		$editor_role = get_role( 'editor' );
+		$editor_role->add_cap( 'congress_manage_campaigns' );
+		$editor_role->add_cap( 'congress_manage_representatives' );
+
+		$author_role = get_role( 'author' );
+		$author_role->add_cap( 'congress_manage_campaigns' );
+		$author_role->add_cap( 'congress_manage_representatives' );
+
+		$admin_role = get_role( 'administrator' );
+		$admin_role->add_cap( 'congress_manage_campaigns' );
+		$admin_role->add_cap( 'congress_manage_representatives' );
+		$admin_role->add_cap( 'congress_manage_keys' );
 	}
 }
