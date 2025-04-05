@@ -113,6 +113,15 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 	 */
 	public function insert_campaign(): void {
 
+		if ( ! current_user_can( 'congress_manage_campaigns' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
+
 		if (
 			! isset( $_POST['name'] ) ||
 			! isset( $_POST['level'] )
@@ -308,6 +317,15 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 	 */
 	public function archive_campaign(): void {
 
+		if ( ! current_user_can( 'congress_manage_campaigns' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
+
 		if (
 			! isset( $_POST['id'] )
 		) {
@@ -461,6 +479,15 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 	 * Sends a JSON response with a success message.
 	 */
 	public function delete_archived_campaign(): void {
+
+		if ( ! current_user_can( 'congress_manage_campaigns' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
 
 		if (
 			! isset( $_POST['id'] )

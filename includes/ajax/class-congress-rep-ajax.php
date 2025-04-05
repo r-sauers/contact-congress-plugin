@@ -163,6 +163,15 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 	 */
 	public function insert_rep(): void {
 
+		if ( ! current_user_can( 'congress_manage_representatives' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
+
 		if (
 			! isset( $_POST['title'] ) ||
 			! isset( $_POST['state'] ) ||
@@ -255,6 +264,15 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 	 */
 	public function delete_rep(): void {
 
+		if ( ! current_user_can( 'congress_manage_representatives' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
+
 		if ( ! isset( $_POST['rep_id'] ) ) {
 			wp_send_json(
 				array(
@@ -304,6 +322,15 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 	 * Handles AJAX requests to update a representative in the table.
 	 */
 	public function update_rep(): void {
+
+		if ( ! current_user_can( 'congress_manage_representatives' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
 
 		if (
 			! isset( $_POST['rep_id'] ) ||
@@ -402,6 +429,15 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 	 */
 	public function sync_all_reps(): void {
 
+		if ( ! current_user_can( 'congress_manage_representatives' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
+
 		if ( ! check_ajax_referer( 'sync-reps', false, false ) ) {
 			wp_send_json(
 				array(
@@ -477,6 +513,15 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 	 * Sends a JSON response with the updated representatives.
 	 */
 	public function sync_reps(): void {
+
+		if ( ! current_user_can( 'congress_manage_representatives' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
 
 		if ( ! check_ajax_referer( 'sync-reps', false, false ) ) {
 			wp_send_json(

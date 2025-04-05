@@ -81,6 +81,15 @@ class Congress_Staffer_AJAX implements Congress_AJAX_Collection {
 	 */
 	public function get_staffers(): void {
 
+		if ( ! current_user_can( 'congress_manage_representatives' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
+
 		$rep_id = 'all';
 		if ( isset( $_GET['rep_id'] ) ) {
 			$rep_id = sanitize_text_field(
@@ -131,6 +140,15 @@ class Congress_Staffer_AJAX implements Congress_AJAX_Collection {
 	 * Sends a JSON response with the id and nonces.
 	 */
 	public function insert_staffer(): void {
+
+		if ( ! current_user_can( 'congress_manage_representatives' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
 
 		if (
 			! isset( $_POST['rep_id'] ) ||
@@ -217,6 +235,15 @@ class Congress_Staffer_AJAX implements Congress_AJAX_Collection {
 	 */
 	public function delete_staffer(): void {
 
+		if ( ! current_user_can( 'congress_manage_representatives' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
+
 		if (
 			! isset( $_POST['rep_id'] ) ||
 			! isset( $_POST['staffer_id'] )
@@ -273,6 +300,15 @@ class Congress_Staffer_AJAX implements Congress_AJAX_Collection {
 	 * Handles AJAX requests to update a staffer in the table.
 	 */
 	public function update_staffer(): void {
+
+		if ( ! current_user_can( 'congress_manage_representatives' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
 
 		if (
 			! isset( $_POST['staffer_id'] ) ||

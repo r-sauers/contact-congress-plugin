@@ -92,6 +92,15 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 	 */
 	public function load_email_templates(): void {
 
+		if ( ! current_user_can( 'congress_manage_campaigns' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
+
 		if (
 			! isset( $_POST['campaign_id'] )
 		) {
@@ -177,6 +186,15 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 	 * Sends a JSON response with the email template data.
 	 */
 	public function create_email_template(): void {
+
+		if ( ! current_user_can( 'congress_manage_campaigns' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
 
 		if (
 			! isset( $_POST['campaign_id'] ) ||
@@ -264,6 +282,15 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 	 */
 	public function delete_all_email_templates(): void {
 
+		if ( ! current_user_can( 'congress_manage_campaigns' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
+
 		if (
 			! isset( $_POST['campaign_id'] )
 		) {
@@ -328,6 +355,15 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 	 * Sends a JSON success message.
 	 */
 	public function delete_email_template(): void {
+
+		if ( ! current_user_can( 'congress_manage_campaigns' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
 
 		if (
 			! isset( $_POST['campaign_id'] ) ||
@@ -407,6 +443,15 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 	 * Sends a json response with the columns that have been changed and their new values.
 	 */
 	public function update_email_template(): void {
+
+		if ( ! current_user_can( 'congress_manage_campaigns' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
 
 		if (
 			! isset( $_POST['id'] ) ||
@@ -509,6 +554,15 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 	 * Sends a JSON response with the data for the email templates.
 	 */
 	public function upload_csv_email_templates(): void {
+
+		if ( ! current_user_can( 'congress_manage_campaigns' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
 
 		/**
 		 *  Messages associated with the upload error code
