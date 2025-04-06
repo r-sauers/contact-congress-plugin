@@ -29,6 +29,12 @@ require_once plugin_dir_path( __FILE__ ) .
 	'class-congress-ajax-handler.php';
 
 /**
+ * Imports Congress_Captcha handler.
+ */
+require_once plugin_dir_path( __FILE__ ) .
+	'../class-congress-captcha.php';
+
+/**
  * Imports Congress_State_API_Factory.
  */
 require_once plugin_dir_path( __FILE__ ) .
@@ -79,6 +85,13 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 	private Congress_Google_Places_API $places_api;
 
 	/**
+	 * An instance for captcha handling.
+	 *
+	 * @var Congress_Captcha
+	 */
+	private Congress_Captcha $captcha;
+
+	/**
 	 * Congress.gov API.
 	 *
 	 * @var Congress_Congress_API
@@ -96,6 +109,7 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 	 * Constructs the Congress_Location_AJAX class.
 	 */
 	public function __construct() {
+		$this->captcha           = new Congress_Captcha();
 		$this->places_api        = new Congress_Google_Places_API();
 		$this->congress_api      = new Congress_Congress_API();
 		$this->state_api_factory = Congress_State_API_Factory::get_instance();
@@ -182,7 +196,8 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 	 */
 	public function autocomplete(): void {
 		if (
-			! isset( $_GET['address'] )
+			! isset( $_POST['g-recaptcha-response'] ) ||
+			! isset( $_POST['address'] )
 		) {
 			wp_send_json(
 				array(
@@ -214,6 +229,53 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 			return;
 		}
 
+		if ( ! $this->captcha->has_server_key() ) {
+			wp_send_json(
+				array(
+					'error' => 'No captcha server key.',
+				),
+				500
+			);
+		}
+
+		$token = sanitize_text_field(
+			wp_unslash( $_POST['g-recaptcha-response'] )
+		);
+
+		if ( ! isset( $_SERVER['REMOTE_ADDR'] ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Failed to get IP.',
+				),
+				500
+			);
+		}
+
+		$ip = sanitize_text_field(
+			wp_unslash( $_SERVER['REMOTE_ADDR'] )
+		);
+
+		$result = $this->captcha->verify_captcha( $token, $ip );
+
+		if ( false === $result ) {
+			wp_send_json(
+				array(
+					'error' => 'Captcha Request Failed.',
+				),
+				500
+			);
+		}
+
+		if ( ! $result['success'] ) {
+			wp_send_json(
+				array(
+					'error'   => 'Invalid Captcha.',
+					'details' => $result['error-codes'],
+				),
+				500
+			);
+		}
+
 		$session_token = null;
 		if ( isset( $_COOKIE[ self::$places_session_name ] ) ) {
 			$session_token = sanitize_text_field(
@@ -222,7 +284,7 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 		}
 
 		$results = $this->places_api->autocomplete_address(
-			sanitize_text_field( wp_unslash( $_GET['address'] ) ),
+			sanitize_text_field( wp_unslash( $_POST['address'] ) ),
 			$session_token
 		);
 
@@ -735,8 +797,8 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 			$db_reps = $this->get_reps_from_db(
 				'WHERE r.state=%s AND r.level=%s AND r.district IS NULL',
 				array(
-					Congress_Level::Federal->to_db_string(),
 					$state_code->to_db_string(),
+					Congress_Level::Federal->to_db_string(),
 				),
 			);
 

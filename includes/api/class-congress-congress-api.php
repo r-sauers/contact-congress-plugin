@@ -81,7 +81,7 @@ class Congress_Congress_API {
 			array(
 				'body' => array(
 					'api_key'       => $this->api_key,
-					'currentMember' => true,
+					'currentMember' => 'true',
 				),
 			)
 		);

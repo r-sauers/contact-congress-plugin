@@ -245,8 +245,8 @@
       const $hint = $( `#${prefix}get-reps-form .${prefix}form-hint` ).last();
       $hint.empty();
       $hint.text( err );
-      $hint.toggleClass( `${prefix}form-success`, true );
-      $hint.toggleClass( `${prefix}form-danger`, false );
+      $hint.toggleClass( `${prefix}form-success`, false );
+      $hint.toggleClass( `${prefix}form-danger`, true );
     },
 
     /**
@@ -302,12 +302,9 @@
             _wpnonce: registerEmailNonce,
             action: "register_email",
             "g-recaptcha-response": token,
-            campaignID: campaignID,
-            referer: "test"
+            campaignID: campaignID
           },
-          function( data ) {
-            console.log(data);
-          }
+          function() {}
         );
       });
     });
@@ -467,6 +464,27 @@
         return {
           results: results
         };
+      },
+      transport: async function( params, success, failure ) {
+
+        let token = await new Promise( ( res, rej ) => {
+          grecaptcha.ready( function() {
+            grecaptcha.execute( captchaKey, { action: "submit" }).then( function( token ) {
+              res( token );
+            }).catch( () => {
+              rej();
+            });
+          });
+        });
+
+        params.data["g-recaptcha-response"] = token;
+        params.method = "POST";
+        let $request = $.ajax( params );
+
+        $request.then( success );
+        $request.fail( failure );
+
+        return $request;
       }
     }
   }).on( "select2:select", function( e ) {
