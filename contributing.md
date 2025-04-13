@@ -22,7 +22,7 @@ Now there is code in two locations: Docker and the directory you cloned the repo
 - Docker Cons: If you delete your docker volume or the plugin, you will lose everything.
 For these reasons, I develop in docker, but have a symbolic link (no worries if you don't know what that means) and scripts to copy to and from the volume.
 Here's how to set that up (note that you need sudo permissions, and this may only work on linux and not wsl or Mac):
-1. Add permissions so you can copy to docker: `sudo setfacl -m u:$(whoami):rx /var/lib/docker var/lib/docker/volumes var/lib/docker/volumes/docker_wordpress var/lib/docker/volumes/docker_wordpress/_data var/lib/docker/volumes/docker_wordpress/_data/wp-content var/lib/docker/volumes/dokcer_wordpress/_data/wp-content/plugins`
+1. Add permissions so you can copy to docker: `sudo setfacl -m u:$(whoami):rx /var/lib/docker var/lib/docker/volumes var/lib/docker/volumes/docker_wordpress var/lib/docker/volumes/docker_wordpress/_data var/lib/docker/volumes/docker_wordpress/_data/wp-content var/lib/docker/volumes/docker_wordpress/_data/wp-content/plugins`
 2. Go to the root of your directory.
 3. Add a symbolic link: `ln -s /var/lib/docker/volumes/docker_wordpress/_data/wp-content/plugins/congress congress-volume`
 4. Run `composer run cp-to-volume`
