@@ -529,5 +529,6 @@ class Congress_Admin {
 		$admin_role->add_cap( 'congress_manage_campaigns' );
 		$admin_role->add_cap( 'congress_manage_representatives' );
 		$admin_role->add_cap( 'congress_manage_keys' );
+		$admin_role->add_cap( 'congress_manage_states' );
 	}
 }
