@@ -100,6 +100,16 @@ class Congress_Admin {
 			$this->version,
 			'all'
 		);
+
+		if ( isset( $_GET['page'] ) && 'congress_state' === $_GET['page'] ) { // phpcs:ignore
+			wp_enqueue_style(
+				$this->congress,
+				plugin_dir_url( __FILE__ ) . 'css/congress-admin-state.css',
+				array(),
+				$this->version,
+				'all'
+			);
+		}
 	}
 
 	/**
@@ -152,6 +162,14 @@ class Congress_Admin {
 				array(
 					'loadTemplateNonce' => $load_template_nonces,
 				),
+			);
+		} elseif ( isset( $_GET['page'] ) && 'congress_state' === $_GET['page'] ) { // phpcs:ignore
+			wp_enqueue_script(
+				$this->congress,
+				plugin_dir_url( __FILE__ ) . 'js/congress-admin-state.js',
+				array( 'jquery' ),
+				$this->version,
+				false
 			);
 		}
 	}
@@ -374,6 +392,16 @@ class Congress_Admin {
 				array( $this, 'congress_rep_page_html' )
 			);
 		}
+		if ( current_user_can( 'congress_manage_states' ) ) {
+			add_submenu_page(
+				'congress',
+				'States',
+				'States',
+				'manage_options',
+				'congress_state',
+				array( $this, 'congress_state_page_html' )
+			);
+		}
 	}
 
 	/**
@@ -459,6 +487,31 @@ class Congress_Admin {
 		<div class="wrap">
 			<?php
 				require_once plugin_dir_path( __FILE__ ) . 'partials/representatives/congress-admin-rep-display.php';
+			?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * States menu callback function.
+	 */
+	public function congress_state_page_html(): void {
+		// check user capabilities.
+		if ( ! current_user_can( 'congress_manage_states' ) ) {
+			?>
+			<h1>State Settings</h1>
+			<p>Whoops! You do not have permissions to manage stats, a website admin must give you one of the following roles:<p>
+			<ul style="list-style: disc; padding-left: 1.5em;">
+				<li>Administrator</li>
+			</ul>
+			<?php
+			return;
+		}
+
+		?>
+		<div class="wrap">
+			<?php
+				require_once plugin_dir_path( __FILE__ ) . 'partials/states/congress-admin-state-display.php';
 			?>
 		</div>
 		<?php
