@@ -103,7 +103,7 @@ class Congress_Admin {
 
 		if ( isset( $_GET['page'] ) && 'congress_state' === $_GET['page'] ) { // phpcs:ignore
 			wp_enqueue_style(
-				$this->congress,
+				$this->congress . '-state',
 				plugin_dir_url( __FILE__ ) . 'css/congress-admin-state.css',
 				array(),
 				$this->version,
