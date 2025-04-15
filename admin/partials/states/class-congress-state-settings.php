@@ -40,7 +40,7 @@ class Congress_State_Settings {
 	private const FIELD_DEFAULT_FEDERAL_SYNC = false;
 	private const FIELD_DEFAULT_STATE_SYNC   = false;
 	private const FIELD_DEFAULT_SYNC_EMAIL   = '';
-	private const FIELD_DEFAULT_API_ENABLED  = false;
+	private const FIELD_DEFAULT_API_ENABLED  = true;
 
 	/**
 	 * Gets a list of states actively being used.
@@ -100,7 +100,7 @@ class Congress_State_Settings {
 
 		$this->state = $state;
 
-		$this->options_name = 'congress_' . strtolower( $state->to_state_code ) . '_settings';
+		$this->options_name = 'congress_' . strtolower( $state->to_state_code() ) . '_settings';
 
 		$state_options = get_option( $this->options_name );
 
@@ -124,7 +124,10 @@ class Congress_State_Settings {
 		if ( ! isset( $state_options[ self::FIELD_NAME_SYNC_EMAIL ] ) ) {
 			$state_options[ self::FIELD_NAME_SYNC_EMAIL ] = self::FIELD_DEFAULT_SYNC_EMAIL;
 		}
-		if ( ! isset( $state_options[ self::FIELD_NAME_API_ENABLED ] ) ) {
+		if (
+			! isset( $state_options[ self::FIELD_NAME_API_ENABLED ] ) ||
+			! is_bool( $state_options[ self::FIELD_NAME_API_ENABLED ] )
+		) {
 			$state_options[ self::FIELD_NAME_API_ENABLED ] = self::FIELD_DEFAULT_API_ENABLED;
 		}
 
@@ -140,6 +143,7 @@ class Congress_State_Settings {
 			error_log( new Error( $this->options_name . ' option does not exist, it was deleted.' ) ); // phpcs:ignore
 			return new WP_Error( 'OPTIONS_FAILURE', 'Error getting value!' );
 		}
+		return $state_options;
 	}
 
 	/**
@@ -147,12 +151,13 @@ class Congress_State_Settings {
 	 *
 	 * @param string $field_name is one of the class constants FIELD_NAME_XXXX.
 	 */
-	private function get_state_option_field( string $field_name ): array|WP_Error {
+	private function get_state_option_field( string $field_name ): mixed {
 		$state_options = get_option( $this->options_name );
 		if ( false === $state_options ) {
 			error_log( new Error( $this->options_name . ' option does not exist, it was deleted.' ) ); // phpcs:ignore
 			return new WP_Error( 'OPTIONS_FAILURE', 'Error getting value!' );
 		}
+		return $state_options[ $field_name ];
 	}
 
 	/**
@@ -245,7 +250,7 @@ class Congress_State_Settings {
 			return false;
 		}
 
-		return $this->get_state_option_field[ self::FIELD_NAME_API_ENABLED ];
+		return $this->get_state_option_field( self::FIELD_NAME_API_ENABLED );
 	}
 
 	/**
