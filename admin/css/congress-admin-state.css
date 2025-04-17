@@ -1,10 +1,10 @@
-.congress-bulk-action-table-wrapper {
-	height: 70vh;
+#congress-bulk-action-table-wrapper {
+	max-height: 80vh;
 	overflow-y: scroll;
 	width: fit-content;
 }
 
-.congress-bulk-action-table {
+#congress-bulk-action-table {
 	border-collapse: collapse;
 	background-color: #fff;
 	min-width: 75vw;
@@ -164,6 +164,10 @@
 
 	.congress-state-row-expansion {
 		display: none;
+
+		form {
+			max-width: 65vw;
+		}
 	}
 
 	.congress-state-row-expansion.congress-expanded {

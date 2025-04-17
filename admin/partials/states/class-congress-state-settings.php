@@ -282,7 +282,7 @@ class Congress_State_Settings {
 			return $state_options;
 		}
 
-		if ( ! $state_options[ self::FIELD_NAME_API_ENABLED ] ) {
+		if ( ! $state_options[ self::FIELD_NAME_STATE_SYNC ] ) {
 			return false;
 		}
 
@@ -319,7 +319,7 @@ class Congress_State_Settings {
 			return $state_options;
 		}
 
-		if ( ! $state_options[ self::FIELD_NAME_API_ENABLED ] ) {
+		if ( ! $state_options[ self::FIELD_NAME_FEDERAL_SYNC ] ) {
 			return false;
 		}
 

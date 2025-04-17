@@ -53,7 +53,21 @@ function congress_draw_state_row( Congress_State $state ) {
 		wp_die();
 	}
 
+	$api_class = '';
+	$api_text  = '';
+	if ( ! $api_supported ) {
+		$api_text  = 'Not Supported!';
+		$api_class = 'congress-no-support';
+	} elseif ( $api_enabled ) {
+		$api_text  = 'Enabled!';
+		$api_class = 'congress-enabled';
+	} else {
+		$api_text  = 'Disabled';
+		$api_class = 'congress-disabled';
+	}
+
 	?>
+
 	<tr class="congress-state-row">
 
 		<td class="congress-state-row-checkbox">
@@ -73,21 +87,13 @@ function congress_draw_state_row( Congress_State $state ) {
 		</td>
 
 		<td
-			class="<?php echo $api_supported && $api_enabled ? 'congress-enabled' : 'congress-disabled'; ?> congress-state-api"
+			class="<?php echo esc_attr( $api_class ); ?> congress-state-row-api"
 		>
-			<?php
-			if ( ! $api_supported ) {
-				echo 'Not Supported!';
-			} else if ( $api_enabled ) {
-				echo 'Enabled!';
-			} else {
-				echo 'Disabled!';
-			}
-			?>
+			<?php echo esc_html( $api_text ); ?>
 		</td>
 
 		<td
-			class="<?php echo $federal_sync_enabled ? 'congress-enabled' : 'congress-disabled' ; ?> congress-state-row-federal-sync"
+			class="<?php echo $federal_sync_enabled ? 'congress-enabled' : 'congress-disabled'; ?> congress-state-row-federal-sync"
 		>
 			<?php echo $federal_sync_enabled ? 'Enabled!' : 'Disabled'; ?>
 		</td>
@@ -106,33 +112,43 @@ function congress_draw_state_row( Congress_State $state ) {
 	</tr>
 	<tr class="congress-state-row-expansion">
 		<td></td>
-		<td colspan="5">
+		<td colspan="6">
 			<h3>Settings</h3>
 			<form
+				action="set_sync_email"
 				class="congress-state-row-sync-form"
-				style="display: flex; align-items: center; gap: 1em;"
 			>
-				<div class="congress-inline-form-group">
-					<?php
-						Congress_Admin_Stacked_Input::display_email(
-							id: 'congress-state-' . strtolower( $state->to_state_code() ) . '-sync-email',
-							label: 'Sync Alert Email',
-							name: 'sync_email',
-							value: '',
-							placeholder: 'policy@gmail.com',
-						);
-					?>
-					<div>
-						<button class="button button-primary">Update</button>
+				<?php
+					wp_nonce_field( 'states-set-sync-email' );
+				?>
+				<input
+					type="hidden"
+					name="stateCode"
+					value="<?php echo esc_attr( strtolower( $state->to_state_code() ) ); ?>"
+				/>
+				<div style="display: flex; align-items: center; gap: 1em;">
+					<div class="congress-inline-form-group">
+						<?php
+							Congress_Admin_Stacked_Input::display_email(
+								id: 'congress-state-' . strtolower( $state->to_state_code() ) . '-sync-email',
+								label: 'Sync Alert Email',
+								name: 'email',
+								value: $sync_email,
+								placeholder: 'policy@gmail.com',
+							);
+						?>
+						<div>
+							<button type="submit" class="button button-primary">Update</button>
+						</div>
 					</div>
+					<span style="flex-shrink: 1;">
+						Whenever syncing makes changes to the representatives,
+						this email will be notified so staffers can be updated.
+					</span>
 				</div>
-				<span style="flex-shrink: 1;">
-					Whenever syncing makes changes to the representatives,
-					this email will be notified so staffers can be updated.
-				</span>
+				<p class="congress-sync-email-hint"></p>
 			</form>
 		</td>
-		<td></td>
 	</tr>
 	<?php
 }
@@ -149,57 +165,54 @@ function congress_draw_state_row( Congress_State $state ) {
 		<input id="congress-state-search" type="text"/>
 	</div>
 
-	<div class="congress-bulk-action-table-wrapper">
-		<table class="congress-bulk-action-table">
+	<div id="congress-bulk-action-table-wrapper">
+		<table id="congress-bulk-action-table">
 			<colgroup>
 				<col width="1em;"/>
 			</colgroup>
 			<thead>
 				<tr>
-					<th>
+					<th class="congress-header-checkbox">
 						<div>
-							<input class="congress-header-checkbox" type="checkbox"/>
+							<input type="checkbox"/>
 						</div>
 					</th>
-					<th aria-sort="descending">
+					<th class="congress-header-state-name congress-sortable-header">
 						<div class="congress-sort-toggle">
-							<button
-								class="congress-no-button congress-header-state-name"
-							>State Name
-							</button>
+							<button class="congress-no-button">State Name</button>
 						</div>
 					</th>
-					<th>
+					<th class="congress-header-status congress-sortable-header">
 						<div class="congress-sort-toggle">
 							<button
-								class="congress-no-button congress-header-status"
+								class="congress-no-button"
 							>Activation Status 
 								<sup><a href="#congress-notes-activation-status">1</a></sup>
 							</button>
 						</div>
 					</th>
-					<th>
+					<th class="congress-header-api congress-sortable-header">
 						<div class="congress-sort-toggle">
 							<button
-								class="congress-no-button congress-header-api"
+								class="congress-no-button"
 							>API
 								<sup><a href="#congress-notes-api">2</a></sup>
 							</button>
 						</div>
 					</th>
-					<th>
+					<th class="congress-header-federal-sync congress-sortable-header">
 						<div class="congress-sort-toggle">
 							<button
-								class="congress-no-button congress-header-federal-sync"
+								class="congress-no-button"
 							>Federal Sync
 								<sup><a href="#congress-notes-federal-sync">3</a></sup>
 							</button>
 						</div>
 					</th>
-					<th>
+					<th class="congress-header-state-sync congress-sortable-header">
 						<div class="congress-sort-toggle">
 							<button
-								class="congress-no-button congress-header-state-sync"
+								class="congress-no-button"
 							>State Sync
 								<sup><a href="#congress-notes-state-sync">4</a></sup>
 							</button>
@@ -220,6 +233,9 @@ function congress_draw_state_row( Congress_State $state ) {
 					<td colspan="7">
 						<div>
 						<form id="congress-bulk-action-form" method="post">
+							<?php
+								wp_nonce_field( "states-bulk-operation" );
+							?>
 							<div class="congress-inline-form-group">
 								<?php
 								Congress_Admin_Flat_Input::display_dropdown(

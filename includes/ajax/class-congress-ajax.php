@@ -58,6 +58,12 @@ require_once plugin_dir_path( __FILE__ ) .
 	'class-congress-email-ajax.php';
 
 /**
+ * Imports the state ajax collection.
+ */
+require_once plugin_dir_path( __FILE__ ) .
+	'class-congress-state-ajax.php';
+
+/**
  * A collection of AJAX handlers.
  *
  * @since      1.0.0
@@ -104,6 +110,7 @@ class Congress_AJAX {
 			new Congress_Template_AJAX(),
 			new Congress_Location_AJAX(),
 			new Congress_Email_AJAX(),
+			new Congress_State_AJAX(),
 		);
 	}
 
