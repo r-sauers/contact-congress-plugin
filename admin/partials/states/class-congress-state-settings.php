@@ -241,8 +241,8 @@ class Congress_State_Settings {
 			return $field_res;
 		}
 
-		if ( $use_default && $field_res === '' ) {
-			return Congress_State_Settings::get_default_sync_email();
+		if ( $use_default && '' === $field_res ) {
+			return self::get_default_sync_email();
 		} else {
 			return $field_res;
 		}
