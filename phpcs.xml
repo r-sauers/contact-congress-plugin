@@ -5,9 +5,9 @@
         <properties>
             <property name="custom_capabilities" type="array">
                 <element value="congress_manage_campaigns"/>
+                <element value="congress_manage_states"/>
                 <element value="congress_manage_representatives"/>
                 <element value="congress_manage_keys"/>
-                <element value="congress_manage_states"/>
             </property>
         </properties>
     </rule>

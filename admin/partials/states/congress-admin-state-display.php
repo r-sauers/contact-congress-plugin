@@ -32,6 +32,9 @@ require_once plugin_dir_path( __DIR__ ) . '../../includes/enum-congress-state.ph
 require_once plugin_dir_path( __FILE__ ) . 'class-congress-state-settings.php';
 
 /**
+ * Draws a state table row.
+ *
+ * @param Congress_State $state is the row's state.
  */
 function congress_draw_state_row( Congress_State $state ) {
 
@@ -186,7 +189,7 @@ if ( is_wp_error( $default_sync_email ) ) {
 					type="email"
 					name="email"
 					placeholder="policy@gmail.com"
-					value="<?php echo esc_attr( $default_sync_email ) ?>"
+					value="<?php echo esc_attr( $default_sync_email ); ?>"
 				/>
 				<button type="submit" class="button button-primary">Update</button>
 			</div>
@@ -274,7 +277,7 @@ if ( is_wp_error( $default_sync_email ) ) {
 						<div>
 						<form id="congress-bulk-action-form" method="post">
 							<?php
-								wp_nonce_field( "states-bulk-operation" );
+								wp_nonce_field( 'states-bulk-operation' );
 							?>
 							<div class="congress-inline-form-group">
 								<?php
