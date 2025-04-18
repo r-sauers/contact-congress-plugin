@@ -1189,5 +1189,40 @@
 
     });
 
+    $( "#congress-default-sync-email-form" )[0].email.oninput = () => {
+      const $formHint = $( "#congress-default-sync-email-hint" );
+      $formHint.text( "" );
+    };
+
+    $( "#congress-default-sync-email-form" ).on( "submit", function( evt ) {
+      evt.preventDefault();
+
+      const formData = new FormData( evt.target );
+
+      const $formHint = $( "#congress-default-sync-email-hint" );
+      $formHint.text( "Loading..." );
+      $formHint.toggleClass( "congress-form-success", false );
+      $formHint.toggleClass( "congress-form-error", false );
+
+      $.post(
+        ajaxurl,
+        {
+          action: evt.target.getAttribute( "action" ),
+          email: formData.get( "email" ),
+          "_wpnonce": formData.get( "_wpnonce" )
+        },
+        ( email ) => {
+          evt.target.email.value = email;
+          $formHint.text( "Success!" );
+          $formHint.toggleClass( "congress-form-success", true );
+          $formHint.toggleClass( "congress-form-error", false );
+        })
+        .fail( function({ responseJSON }) {
+          $formHint.text( responseJSON.error );
+          $formHint.toggleClass( "congress-form-success", false );
+          $formHint.toggleClass( "congress-form-error", true );
+        });
+    });
+
   });
 }( jQuery ) );

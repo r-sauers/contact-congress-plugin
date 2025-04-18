@@ -153,10 +153,50 @@ function congress_draw_state_row( Congress_State $state ) {
 	<?php
 }
 
+$default_sync_email = Congress_State_Settings::get_default_sync_email();
+
+if ( is_wp_error( $default_sync_email ) ) {
+	wp_die();
+}
+
 ?>
 <div>
 	<h1>State Settings</h1>
 
+	<h2 style="margin-bottom: 0em;">Sync Alerts</h2>
+
+	<div style="max-width: 800px;">
+		<p style="font-size: 1.1em;">Sync alerts are emails that notify you when syncing removes or adds representatives.
+		It is important to have this set up so that you know when a representative's staffers need updated.</p>
+		<p style="font-size: 1.1em;">By default, all alerts will be sent to the Default Email, but you can specify emails 
+		for each state by toggling "More" in the state row.</p>
+	</div>
+
+	<form id="congress-default-sync-email-form" action="set_default_sync_email" method="post">
+		<?php
+			wp_nonce_field( 'states-set-default-sync-email' );
+		?>
+		<div style="display: flex; align-items: flex-end; margin-top: 1em;">
+			<div class="congress-inline-form-group">
+				<span>
+					<label>Default Email: </label>
+				</span>
+				<input
+					id="congress-default-sync-email"
+					type="email"
+					name="email"
+					placeholder="policy@gmail.com"
+					value="<?php echo esc_attr( $default_sync_email ) ?>"
+				/>
+				<button type="submit" class="button button-primary">Update</button>
+			</div>
+			<div style="align-self: stretch; display: flex; align-items: center;">
+				<span id="congress-default-sync-email-hint"></span>
+			</div>
+		</div>
+	</form>
+
+	<h2>State Settings</h2>
 	<div style="display: flex; align-items: center; gap: 1em; margin-block: 1em;">
 		<label
 			for="congress-state-search"

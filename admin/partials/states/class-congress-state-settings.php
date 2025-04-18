@@ -32,6 +32,7 @@ class Congress_State_Settings {
 	private const FIELD_NAME_STATE_SYNC   = 'state_sync_enabled';
 	private const FIELD_NAME_SYNC_EMAIL   = 'federal_sync_enabled';
 	private const FIELD_NAME_API_ENABLED  = 'api_enabled';
+	private const OPT_NAME_DEFAULT_EMAIL  = 'congress-default-sync-email';
 
 	/**
 	 * Define field defaults.
@@ -75,6 +76,39 @@ class Congress_State_Settings {
 			$state_settings = new Congress_Admin_State_Settings( $state );
 			$state_settings->clean_options();
 		}
+	}
+
+	/**
+	 * Sets the default email for syncing alerts.
+	 *
+	 * @param string $email is the default email.
+	 *
+	 * @return ?WP_Error null if successful.
+	 */
+	public static function set_default_sync_email( $email ): ?WP_Error {
+		$res = update_option(
+			self::OPT_NAME_DEFAULT_EMAIL,
+			$email
+		);
+
+		if ( false === $res ) {
+			error_log( new Error( 'Could not set option: ' . self::OPT_NAME_DEFAULT_EMAIL ) ); // phpcs:ignore
+			return new WP_Error( 'OPTIONS_FAILURE', 'Error setting value!' );
+		}
+
+		return null;
+	}
+
+	/**
+	 * Gets the default email for syncing alerts.
+	 */
+	public static function get_default_sync_email(): string|WP_Error {
+		$default_email = get_option( self::OPT_NAME_DEFAULT_EMAIL );
+		if ( false === $default_email ) {
+			error_log( new Error( self::OPT_NAME_DEFAULT_EMAIL . ' option does not exist, it was deleted.' ) ); // phpcs:ignore
+			return new WP_Error( 'OPTIONS_FAILURE', 'Error getting value!' );
+		}
+		return $default_email;
 	}
 
 	/**
@@ -196,9 +230,22 @@ class Congress_State_Settings {
 
 	/**
 	 * Getter for the email used for sync alerts.
+	 *
+	 * @param bool $use_default will return the email default
+	 * if the state sync email is an empty string.
 	 */
-	public function get_sync_email(): string|WP_Error {
-		return $this->get_state_option_field( self::FIELD_NAME_SYNC_EMAIL );
+	public function get_sync_email( $use_default = false ): string|WP_Error {
+		$field_res = $this->get_state_option_field( self::FIELD_NAME_SYNC_EMAIL );
+
+		if ( is_wp_error( $field_res ) ) {
+			return $field_res;
+		}
+
+		if ( $use_default && $field_res === '' ) {
+			return Congress_State_Settings::get_default_sync_email();
+		} else {
+			return $field_res;
+		}
 	}
 
 	/**

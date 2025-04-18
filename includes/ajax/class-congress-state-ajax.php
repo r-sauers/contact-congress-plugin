@@ -101,6 +101,11 @@ class Congress_State_AJAX implements Congress_AJAX_Collection {
 				func_name: 'set_sync_email',
 				ajax_name: 'set_sync_email'
 			),
+			new Congress_AJAX_Handler(
+				callee: $this,
+				func_name: 'set_default_sync_email',
+				ajax_name: 'set_default_sync_email'
+			),
 		);
 	}
 
@@ -359,6 +364,63 @@ class Congress_State_AJAX implements Congress_AJAX_Collection {
 		$settings = new Congress_State_Settings( $state );
 
 		$res = $settings->set_sync_email( $email );
+
+		if ( is_wp_error( $res ) ) {
+			wp_send_json(
+				array(
+					'error' => $res->get_error_message(),
+				),
+				500
+			);
+		}
+
+		wp_send_json( $email );
+	}
+
+	/**
+	 * Handles AJAX requests to set the default sync alert email.
+	 * Requires the fields:
+	 * - 'email': the email to alert.
+	 *
+	 * Sends a response with the updated email.
+	 */
+	public function set_default_sync_email(): void {
+		if ( ! current_user_can( 'congress_manage_states' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
+
+		if (
+			! isset( $_POST['email'] )
+		) {
+			wp_send_json(
+				array(
+					'error' => 'Missing parameters',
+				),
+				400
+			);
+		}
+
+		if ( ! check_ajax_referer( 'states-set-default-sync-email', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+		}
+
+		$email = sanitize_text_field(
+			wp_unslash(
+				$_POST['email']
+			)
+		);
+
+		$res = Congress_State_Settings::set_default_sync_email( $email );
 
 		if ( is_wp_error( $res ) ) {
 			wp_send_json(
