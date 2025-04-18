@@ -34,6 +34,12 @@ require_once plugin_dir_path( __DIR__ ) .
 	'enum-congress-state.php';
 
 /**
+ * Imports Table Manager for creating tables.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'class-congress-table-manager.php';
+
+/**
  * A collection of AJAX handlers for state settings.
  *
  * @since      1.0.0
@@ -195,6 +201,16 @@ class Congress_State_AJAX implements Congress_AJAX_Collection {
 	public function deactivate_states(): void {
 		$this->handle_bulk_operation(
 			function ( Congress_State_Settings &$setting ) {
+				$rep_t = Congress_Table_Manager::get_table_name( 'representative' );
+				global $wpdb;
+
+				$state = $setting->get_state();
+				$wpdb->delete( // phpcs:ignore
+					$rep_t,
+					array(
+						'state' => $state->to_db_string(),
+					)
+				);
 				return $setting->deactivate();
 			}
 		);

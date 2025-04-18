@@ -298,7 +298,8 @@ function congress_draw_state_row( Congress_State $state ) {
 	<ol>
 		<li id="congress-notes-activation-status"><strong>Activation Status</strong> determines whether or not the state is used across the plugin. 
 		The main purpose is to reduce the size of state dropdowns.
-		You can use the "Activate States" and "Deactivate States" bulk actions to edit the status.</li>
+		You can use the "Activate States" and "Deactivate States" bulk actions to edit the status.
+		Deactivating a state will delete its representatives.</li>
 		<li id="congress-notes-api"><strong>API</strong> is used to find a reader's representatives, and sync representatives.
 		If this field states 'Not Supported', please contact the plugin development team to see if it can be added.</li>
 		<li id="congress-notes-federal-sync"><strong>Federal Sync</strong> will use the API to update the federal-level representatives for the given state every day.
