@@ -643,8 +643,8 @@
           $emailHint.toggleClass( "congress-form-success", true );
           $emailHint.toggleClass( "congress-form-error", false );
         })
-        .fail( function( errObj ) {
-          $emailHint.text( errObj.error );
+        .fail( function({ responseJSON }) {
+          $emailHint.text( responseJSON.error );
           $emailHint.toggleClass( "congress-form-success", false );
           $emailHint.toggleClass( "congress-form-error", true );
         });
@@ -1099,9 +1099,9 @@
           }
 
         })
-        .fail( ( errObj ) => {
+        .fail( ({ responseJSON }) => {
 
-          $formHint.text( errObj.error );
+          $formHint.text( responseJSON.error );
           $formHint.toggleClass( "congress-form-success", false );
           $formHint.toggleClass( "congress-form-error", true );
 
