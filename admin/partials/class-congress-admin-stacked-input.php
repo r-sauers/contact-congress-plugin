@@ -10,16 +10,14 @@
  */
 
 /**
+ * Imports Congress_State_Settings
+ */
+require_once plugin_dir_path( __FILE__ ) . 'states/class-congress-state-settings.php';
+
+/**
  * Responsible for displaying stacked inputs.
  */
 class Congress_Admin_Stacked_Input {
-
-	/**
-	 * An array of states.
-	 *
-	 * @var array $states
-	 */
-	private static array $states = array( 'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY' );
 
 	/**
 	 * Displays a text field with small label text above.
@@ -189,7 +187,13 @@ class Congress_Admin_Stacked_Input {
 	 * @param string $value is the input value.
 	 */
 	public static function display_state_dropdown( string $id, string $label, string $name, string $value ): void {
-		self::display_dropdown( $id, $label, $name, $value, self::$states );
+		$states = array_map(
+			function ( $state_row ) {
+				return strtoupper( $state_row->to_state_code() );
+			},
+			Congress_State_Settings::get_active_states()
+		);
+		self::display_dropdown( $id, $label, $name, $value, $states );
 	}
 }
 ?>

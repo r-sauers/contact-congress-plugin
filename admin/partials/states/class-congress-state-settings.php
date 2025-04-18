@@ -51,15 +51,15 @@ class Congress_State_Settings {
 		$states = Congress_State::cases();
 
 		$active_states = array_filter(
+			$states,
 			function ( $state ) {
-				$state_settings = new Congress_Admin_State_Settings( $state );
+				$state_settings = new Congress_State_Settings( $state );
 				$is_active      = $state_settings->is_active();
 				if ( is_wp_error( $is_active ) ) {
 					$is_active = false;
 				}
 				return $is_active;
-			},
-			$states
+			}
 		);
 
 		return $active_states;
