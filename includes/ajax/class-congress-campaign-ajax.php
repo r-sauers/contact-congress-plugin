@@ -28,6 +28,12 @@ require_once plugin_dir_path( __FILE__ ) .
 	'class-congress-ajax-handler.php';
 
 /**
+ * Import enums.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'enum-congress-state.php';
+
+/**
  * A collection of AJAX handlers for campaigns.
  *
  * @since      1.0.0
@@ -159,8 +165,7 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		$main_result = $wpdb->insert(
 			$campaign_table,
 			array(
-				'name'  => $name,
-				'level' => $level,
+				'name' => $name,
 			)
 		);
 
@@ -498,7 +503,7 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		//phpcs:disable
 		$results = $wpdb->get_results( // phpcs:ignore
 			$wpdb->prepare(
-				"SELECT id, name, ifnull( state, 'FEDERAL' ) as region, email_count, archived_date, created_date FROM $archived_campaign " .
+				"SELECT $campaign.id, name, ifnull( state, 'FEDERAL' ) as region, email_count, archived_date, created_date FROM $archived_campaign " .
 				"INNER JOIN $campaign ON $archived_campaign.id = $campaign.id " .
 				"LEFT JOIN $campaign ON $campaign_state.campaign_id = $campaign.id",
 				"WHERE $campaign.id = %d",

@@ -436,11 +436,11 @@
     _name;
 
     /**
-     * The level of the campaign.
+     * The region of the campaign.
      *
-     * @type {'federal' | 'state'}
+     * @type string
      */
-    _level;
+    _region;
 
     /**
      * The archived date of the campaign.
@@ -470,9 +470,9 @@
       const $dateSpan = $spans.eq( 2 );
 
       const titleText = $titleSpan.text();
-      let level = titleText.match( /\((.*)\)$/ )[1];
-      const name = titleText.replace( ` (${level})`, "" );
-      level = level.toLowerCase();
+      let region = titleText.match( /\((.*)\)$/ )[1];
+      const name = titleText.replace( ` (${region})`, "" );
+      region = region.toLowerCase();
       const numEmails = parseInt( $emailsSpan.text().match( /(\d*) emails sent!/ )[1]);
       const dateSplit = $dateSpan.text().split( " - " );
       const createdDate = new Date( dateSplit[0]);
@@ -481,7 +481,7 @@
       const form = $li.find( ".congress-campaign-delete-form" )[0];
       const id = form.id.value;
 
-      const campaign = new ArchivedCampaign( $li, id, name, level, numEmails, createdDate, archivedDate );
+      const campaign = new ArchivedCampaign( $li, id, name, region, numEmails, createdDate, archivedDate );
       campaign._initDeleteForm();
       return campaign;
     }
@@ -501,16 +501,16 @@
      * @param {jQueryElement} $root is the root of the Campaign's DOM.
      * @param {number} id is the database id of the campaign.
      * @param {string} name is the name of the campaign.
-     * @param {'federal'|'state'} level is the level of the campaign.
+     * @param string region is the region of the campaign.
      * @param {number} numEmails is the number of emails sent in this campaign.
      * @param {Date} createdDate is the date the campaign was created.
      * @param {Date} archivedDate is the date the campaign was archived.
      */
-    constructor( $root, id, name, level, numEmails, createdDate, archivedDate ) {
+    constructor( $root, id, name, region, numEmails, createdDate, archivedDate ) {
       this._$root = $root;
       this._id = id;
       this._name = name;
-      this._level = level;
+      this._region = region;
       this._numEmails = numEmails;
       this._createdDate = createdDate;
       this._archivedDate = archivedDate;
@@ -549,7 +549,7 @@
       const $emailsSpan = $spans.eq( 1 );
       const $dateSpan = $spans.eq( 2 );
 
-      $titleSpan.text( `${this._name} (${this._level.toProperCase()})` );
+      $titleSpan.text( `${this._name} (${this._region.toProperCase()})` );
       $emailsSpan.text( `${this._numEmails} emails sent!` );
       $dateSpan.text( `${this._displayDate( this._createdDate )} - ${this._displayDate( this._archivedDate )}` );
 
@@ -888,8 +888,8 @@
       const id = $li[0].id.match( /congress-campaign-(\d*)/ )[1];
       const form = $li.find( ".congress-campaign-edit-form" )[0];
       const name = form.name.value;
-      const level = form.level.value;
-      const campaign = new ActiveCampaign( id, name, level, $li );
+      const region = form.region.value;
+      const campaign = new ActiveCampaign( id, name, region, $li );
       campaign.changePage( "edit" );
       return campaign;
     }
@@ -898,15 +898,15 @@
      * Generates a campaign from the response of an Ajax create campaign request.
      *
      * @param {number} id  is the id of the campaign.
-     * @param {number} name  is the name of the campaign.
-     * @param {number} level  is the level of the campaign.
-     * @param {number} editNonce  is the nonce used for the edit form.
-     * @param {number} archiveNonce  is the nonce used for the archive button.
-     * @param {number} templateLoadNonce  is the nonce used for loading the email templates page.
+     * @param {string} name  is the name of the campaign.
+     * @param {string} region  is the region of the campaign.
+     * @param {string} editNonce  is the nonce used for the edit form.
+     * @param {string} archiveNonce  is the nonce used for the archive button.
+     * @param {string} templateLoadNonce  is the nonce used for loading the email templates page.
      *
      * @returns {ActiveCampaign}
      */
-    static fromCreateRequest({id, name, level, editNonce, archiveNonce, templateLoadNonce }) {
+    static fromCreateRequest({id, name, region, editNonce, archiveNonce, templateLoadNonce }) {
       const template = ActiveCampaign.createTemplate();
       const container = ActiveCampaign.getContainer();
       const li = document.createElement( "li" );
@@ -916,7 +916,7 @@
       const campaign = new ActiveCampaign( -1, "", "", $( li ) );
       campaign.toggleExpansion( false );
       campaign.setID( id );
-      campaign.setCampaignData( name, level );
+      campaign.setCampaignData( name, region );
       campaign.updateEditNonce( editNonce );
       campaign.updateArchiveNonce( archiveNonce );
       campaign.emailTemplatePage.setNonce( templateLoadNonce );
@@ -1020,14 +1020,14 @@
     _name;
 
     /**
-     * The level of the campaign.
+     * The region of the campaign.
      *
      * Setting this variable must be done through @see setCampaignData.
      * The only exception is the constructor.
      *
-     * @type {'federal' | 'state'}
+     * @type string
      */
-    _level;
+    _region;
 
     /**
      * The email template page.
@@ -1041,14 +1041,14 @@
      *
      * @param {number} id is the database id of the campaign.
      * @param {string} name is the name of the campaign.
-     * @param {'federal'|'state'} level is the level of the campaign.
+     * @param {string} region is the region of the campaign.
      * @param {jQueryElement} $root is the root of the Campaign's DOM.
      */
-    constructor( id, name, level, $root ) {
+    constructor( id, name, region, $root ) {
 
       this._id = id;
       this._name = name;
-      this._level = level;
+      this._region = region;
       this._$root = $root;
       this._initPageLinks();
       this._initExpansionToggle();
@@ -1084,7 +1084,7 @@
         $( this ).attr( "for", newID );
       });
       editForm.name.id = editForm.name.id.replace( idPlaceholder, id );
-      editForm.level.id = editForm.level.id.replace( idPlaceholder, id );
+      editForm.region.id = editForm.region.id.replace( idPlaceholder, id );
       editForm.id.value = id;
 
       // archive form
@@ -1167,27 +1167,27 @@
     /**
      * Sets campaign data.
      *
-     * This should be used instead of setting @see _name and @see _level manually.
+     * This should be used instead of setting @see _name and @see _region manually.
      * If campaign data and id need set at the same time, use @see setID first.
      *
      * Used when creating/editing.
      */
-    setCampaignData( name, level ) {
+    setCampaignData( name, region ) {
 
       // header
       this._$root
         .find( ".congress-card-header > span" )
         .first()
-        .text( `${name} (${level.toProperCase()})` );
+        .text( `${name} (${region.toProperCase()})` );
 
       // edit form
       const form = this._$root.find( ".congress-campaign-edit-form" )[0];
       form.name.value = name;
-      form.level.value = level;
+      form.region.value = region;
       form.id.value = this._id;
 
       this._name = name;
-      this._level = level;
+      this._region = region;
     }
 
     /**
@@ -1219,10 +1219,10 @@
      * Handles an the Ajax edit campaign response.
      *
      * @param {string} name
-     * @param {'federal'|'state'} level
+     * @param {string} region
      */
-    handleEdit({ name, level }) {
-      this.setCampaignData( name, level );
+    handleEdit({ name, region }) {
+      this.setCampaignData( name, region );
       const $form = this._$root.find( ".congress-campaign-edit-form" ).first();
       $form.find( ".congress-form-error" ).text( "" );
     }
@@ -1279,7 +1279,7 @@
         $root,
         this._id,
         this._name,
-        this._level,
+        this._region,
         emailCount,
         new Date( createdDate.replaceAll( "-", "/" ) ),
         new Date( archivedDate.replaceAll( "-", "/" ) )

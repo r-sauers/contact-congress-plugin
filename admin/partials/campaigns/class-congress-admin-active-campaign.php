@@ -26,6 +26,20 @@ require_once plugin_dir_path( __FILE__ ) .
 	'../../../includes/class-congress-table-manager.php';
 
 /**
+ * Import enums.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'../../includes/enum-congress-state.php';
+require_once plugin_dir_path( __DIR__ ) .
+	'../../includes/enum-congress-level.php';
+
+/**
+ * Import Congress_State_Settings.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'states/class-congress-state-settings.php';
+
+/**
  * Responsible for displaying active campaigns in the admin menu and fetching data from the DB.
  */
 class Congress_Admin_Active_Campaign {
@@ -54,11 +68,20 @@ class Congress_Admin_Active_Campaign {
 	private string $name;
 
 	/**
-	 * The level of the campaign ('federal' or 'state')
+	 * The level of the campaign.
 	 *
-	 * @var string $level
+	 * @var Congress_Level $level
 	 */
-	private string $level;
+	private Congress_Level $level;
+
+	/**
+	 * The state of the campaign.
+	 *
+	 * Null if it's a federal level campaign @see $level.
+	 *
+	 * @var ?Congress_State $state
+	 */
+	private ?Congress_State $state;
 
 	/**
 	 * The number of emails sent in the campaign.
@@ -70,16 +93,28 @@ class Congress_Admin_Active_Campaign {
 	/**
 	 * Constructs the Campaign object.
 	 *
-	 * @param int    $id The id of the campaign (-1 means it doesn't exist in db).
-	 * @param string $name The name of the campaign.
-	 * @param string $level The level of the campaign ('federal' or 'state').
-	 * @param int    $num_emails The number of emails sent in the campaign.
+	 * @param int                           $id The id of the campaign (-1 means it doesn't exist in db).
+	 * @param string                        $name The name of the campaign.
+	 * @param Congress_Level|Congress_State $region The region of the campaign (Congress_Level::Federal or a state).
+	 * @param int                           $num_emails The number of emails sent in the campaign.
+	 *
+	 * @throws Error If $region is not specified properly.
 	 */
-	public function __construct( int $id, string $name, string $level, int $num_emails ) {
+	public function __construct( int $id, string $name, Congress_Level|Congress_State $region, int $num_emails ) {
 		$this->id         = $id;
 		$this->name       = $name;
-		$this->level      = $level;
 		$this->num_emails = $num_emails;
+
+		if ( is_a( $region, 'Congress_Level' ) ) {
+			if ( Congress_Level::State === $region ) {
+				throw 'Bad Argument for $region.';
+			}
+			$this->state = null;
+			$this->level = $region;
+		} else {
+			$this->state = $region;
+			$this->level = Congress_Level::State;
+		}
 
 		if ( -1 === $this->id ) {
 			$this->string_id = 'campaign_id';
@@ -94,10 +129,19 @@ class Congress_Admin_Active_Campaign {
 	 * @param bool $editing makes the campaign display in it's expanded editable form.
 	 */
 	public function display( bool $editing ): void {
+		$region_value   = '';
+		$region_display = '';
+		if ( Congress_Level::Federal === $this->level ) {
+			$region_display = $this->level->to_display_string();
+			$region_value   = $this->level->to_db_string();
+		} else {
+			$region_display = $this->state->to_display_string();
+			$region_value   = $this->level->to_db_string();
+		}
 		?>
 <div class="congress-card">
 	<div class="congress-card-header">
-		<span><?php echo esc_html( "$this->name (" . ucwords( $this->level ) . ')' ); ?></span>
+		<span><?php echo esc_html( "$this->name (" . $region_display . ')' ); ?></span>
 		<form method="post" action="archive_campaign" class="congress-campaign-archive-form">
 			<div class="congress-form-group">
 				<button class="congress-campaign-archive button">Archive</button>
@@ -152,20 +196,27 @@ class Congress_Admin_Active_Campaign {
 					</div>
 					<div class="congress-form-group">
 						<label
-							for="<?php echo esc_attr( "congress-campaign-$this->string_id-edit-level" ); ?>"
-						>Level:</label>
+							for="<?php echo esc_attr( "congress-campaign-$this->string_id-edit-region" ); ?>"
+						>Region:</label>
 						<select 
-							id="<?php echo esc_attr( "congress-campaign-$this->string_id-edit-level" ); ?>"
-							name="level"
+							id="<?php echo esc_attr( "congress-campaign-$this->string_id-edit-region" ); ?>"
+							name="region"
 						>
 							<option 
-								value="federal"
-								<?php echo esc_attr( 'federal' === $this->level ? 'selected' : '' ); ?>
+							value="<?php echo esc_attr( Congress_Level::Federal->to_db_string() ); ?>"
+								<?php echo esc_attr( Congress_Level::Federal === $this->level ? 'selected' : '' ); ?>
 							>Federal</option>
-							<option 
-								value="state"
-								<?php echo esc_attr( 'state' === $this->level ? 'selected' : '' ); ?>
-							>State</option>
+							<?php
+							$states = Congress_State_Settings::get_active_states();
+							foreach ( $states as $state ) {
+								?>
+								<option 
+									value="<?php echo esc_attr( strtoupper( $state->to_state_code() ) ); ?>"
+									<?php echo esc_attr( $state === $this->state ? 'selected' : '' ); ?>
+								><?php echo esc_html( $state->to_db_string() ); ?></option>
+								<?php
+							}
+							?>
 						</select>
 					</div>
 					<div class="congress-form-group">
@@ -254,7 +305,7 @@ class Congress_Admin_Active_Campaign {
 	 * Returns an HTML template to be used by JQuery when new campaigns are added.
 	 */
 	public static function get_html_template(): void {
-		$template = new Congress_Admin_Active_Campaign( -1, '', '', 0 );
+		$template = new Congress_Admin_Active_Campaign( -1, '', Congress_Level::Federal, 0 );
 		$template->display( false );
 	}
 
@@ -267,20 +318,30 @@ class Congress_Admin_Active_Campaign {
 		global $wpdb;
 		$campaign_t = Congress_Table_Manager::get_table_name( 'campaign' );
 		$active_t   = Congress_Table_Manager::get_table_name( 'active_campaign' );
+		$state_t    = Congress_Table_Manager::get_table_name( 'campaign_state' );
 		// phpcs:disable
 		$result     = $wpdb->get_results(
-			"SELECT $active_t.id, name, level " .
-			"FROM $active_t LEFT JOIN $campaign_t ON $active_t.id = $campaign_t.id" );
+			"SELECT $active_t.id, name, state " .
+			"FROM $active_t " .
+			"LEFT JOIN $campaign_t ON $active_t.id = $campaign_t.id " .
+			"LEFT JOIN $state_t ON $active_t.id = $state_t.campaign_id"
+		);
 		// phpcs:enable
 
 		$campaigns = array();
 		foreach ( $result as $campaign_result ) {
+			$region = null;
+			if ( null === $campaign_result->state ) {
+				$region = Congress_Level::Federal;
+			} else {
+				$region = Congress_State::from_string( $campaign_result->state );
+			}
 			array_push(
 				$campaigns,
 				new Congress_Admin_Active_Campaign(
 					$campaign_result->id,
 					$campaign_result->name,
-					$campaign_result->level,
+					$region,
 					0,
 				),
 			);
