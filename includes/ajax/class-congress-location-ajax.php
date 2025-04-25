@@ -310,7 +310,7 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 
 		if (
 			! isset( $_POST['placeId'] ) ||
-			! isset( $_POST['campaignLevel'] ) ||
+			! isset( $_POST['campaignRegion'] ) ||
 			! isset( $_POST['campaignID'] )
 		) {
 			wp_send_json(
@@ -337,11 +337,16 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 		}
 
 		try {
-			$campaign_level = Congress_Level::from_string(
-				sanitize_text_field(
-					wp_unslash( $_POST['campaignLevel'] )
-				)
+			$campaign_region = sanitize_text_field(
+				wp_unslash( $_POST['campaignRegion'] )
 			);
+			try {
+				$campaign_level = Congress_Level::from_string( $campaign_region );
+				$campaign_state = null;
+			} catch ( Error $e ) {
+				$campaign_level = Congress_Level::State;
+				$campaign_state = Congress_State::from_string( $campaign_region );
+			}
 		} catch ( Error $e ) {
 			wp_send_json(
 				array(
@@ -413,6 +418,25 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 				500
 			);
 			return;
+		}
+
+		if ( Congress_Level::State === $campaign_level && $state !== $campaign_state ) {
+			wp_send_json(
+				array(
+					'error' => 'The campaign is for ' . $campaign_state->to_display_string() . ', not ' . $state->to_display_string() . '.',
+				),
+				400
+			);
+		}
+
+		$state_settings = new Congress_State_Settings( $state );
+		if ( ! $state_settings->is_active() ) {
+			wp_send_json(
+				array(
+					'error' => 'Representatives for ' . $state->to_display_string() . ' are not maintained, sorry!',
+				),
+				500
+			);
 		}
 
 		$response = array(

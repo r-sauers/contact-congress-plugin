@@ -74,11 +74,20 @@ class Congress_Activator {
 			array(
 				'id mediumint(9) NOT NULL AUTO_INCREMENT',
 				'name tinytext NOT NULL',
-				"level ENUM('federal', 'state') NOT NULL",
 				'created_date DATE NOT NULL DEFAULT (CURRENT_DATE)',
 				'PRIMARY KEY (id)',
-				'CHECK (level <> "")',
 				'CHECK (name <> "")',
+			)
+		);
+
+		$campaign_state = Congress_Table_Manager::create_table(
+			'campaign_state',
+			array(
+				'campaign_id mediumint(9) NOT NULL UNIQUE',
+				'state tinytext NOT NULL',
+				'PRIMARY KEY (campaign_id)',
+				'CHECK (state <> "")',
+				"FOREIGN KEY (campaign_id) REFERENCES $campaign(id) ON DELETE CASCADE",
 			)
 		);
 

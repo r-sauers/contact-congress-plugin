@@ -45,6 +45,7 @@ class Congress_Deactivator {
 		Congress_Table_Manager::delete_table( 'archived_campaign' );
 		Congress_Table_Manager::delete_table( 'email_template' );
 		Congress_Table_Manager::delete_table( 'campaign_excludes_rep' );
+		Congress_Table_Manager::delete_table( 'campaign_state' );
 		Congress_Table_Manager::delete_table( 'campaign' );
 		Congress_Table_Manager::delete_table( 'staffer' );
 		Congress_Table_Manager::delete_table( 'representative' );

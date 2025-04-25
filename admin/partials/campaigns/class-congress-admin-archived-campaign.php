@@ -21,6 +21,14 @@ require_once plugin_dir_path( __FILE__ ) .
 	'../../../includes/class-congress-table-manager.php';
 
 /**
+ * Import enums.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'../../includes/enum-congress-state.php';
+require_once plugin_dir_path( __DIR__ ) .
+	'../../includes/enum-congress-level.php';
+
+/**
  * Responsible for displaying archived campaigns in the admin menu and fetching data from the DB.
  */
 class Congress_Admin_Archived_Campaign {
@@ -40,11 +48,21 @@ class Congress_Admin_Archived_Campaign {
 	private string $name;
 
 	/**
-	 * The level of the campaign ('Federal' or 'State')
+	 * The level of the campaign.
 	 *
-	 * @var string $level
+	 * @var Congress_Level $level
 	 */
-	private string $level;
+	private Congress_Level $level;
+
+	/**
+	 * The state of the campaign.
+	 *
+	 * Null if it's a federal level campaign @see $level.
+	 *
+	 * @var ?Congress_State $state
+	 */
+	private ?Congress_State $state;
+
 
 	/**
 	 * The number of emails sent in the campaign.
@@ -70,20 +88,32 @@ class Congress_Admin_Archived_Campaign {
 	/**
 	 * Constructs the Campaign object.
 	 *
-	 * @param int    $id The id of the campaign.
-	 * @param string $name The name of the campaign.
-	 * @param string $level The level of the campaign ('Federal' or 'State').
-	 * @param int    $num_emails The number of emails sent in the campaign.
-	 * @param int    $created_date The date the campaign was created.
-	 * @param int    $archived_date The date the campaign was archived.
+	 * @param int                           $id The id of the campaign.
+	 * @param string                        $name The name of the campaign.
+	 * @param Congress_Level|Congress_State $region The region of the campaign (Congress_Level::Federal or a state).
+	 * @param int                           $num_emails The number of emails sent in the campaign.
+	 * @param int                           $created_date The date the campaign was created.
+	 * @param int                           $archived_date The date the campaign was archived.
+	 *
+	 * @throws Error If $region is not specified properly.
 	 */
-	public function __construct( int $id, string $name, string $level, int $num_emails, int $created_date, int $archived_date ) {
+	public function __construct( int $id, string $name, Congress_Level|Congress_State $region, int $num_emails, int $created_date, int $archived_date ) {
 		$this->id            = $id;
 		$this->name          = $name;
-		$this->level         = $level;
 		$this->num_emails    = $num_emails;
 		$this->created_date  = $created_date;
 		$this->archived_date = $archived_date;
+
+		if ( is_a( $region, 'Congress_Level' ) ) {
+			if ( Congress_Level::State === $region ) {
+				throw 'Bad Argument for $region.';
+			}
+			$this->state = null;
+			$this->level = $region;
+		} else {
+			$this->state = $region;
+			$this->level = Congress_Level::State;
+		}
 	}
 
 	/**
@@ -92,10 +122,17 @@ class Congress_Admin_Archived_Campaign {
 	public function display(): void {
 		$created_string  = gmdate( 'm/d/Y', $this->created_date );
 		$archived_string = gmdate( 'm/d/Y', $this->created_date );
+
+		$region_display = '';
+		if ( Congress_Level::Federal === $this->level ) {
+			$region_display = $this->level->to_display_string();
+		} else {
+			$region_display = $this->state->to_display_string();
+		}
 		?>
 		<div class="congress-card">
 			<div class="congress-card-header">
-				<span><?php echo esc_html( "$this->name ($this->level)" ); ?></span>
+				<span><?php echo esc_html( "$this->name ($region_display)" ); ?></span>
 				<span><?php echo esc_html( "$this->num_emails emails sent!" ); ?></span>
 				<span><?php echo esc_html( "$created_string - $archived_string" ); ?></span>
 				<form method="post" action="delete_archived_campaign" class="congress-campaign-delete-form">
@@ -124,7 +161,7 @@ class Congress_Admin_Archived_Campaign {
 	 * Returns an HTML template to be used by JQuery when new campaigns are added.
 	 */
 	public static function get_html_template(): void {
-		$template = new Congress_Admin_Archived_Campaign( -1, '', '', 0, 0, 0 );
+		$template = new Congress_Admin_Archived_Campaign( -1, '', Congress_Level::Federal, 0, 0, 0 );
 		$template->display( false );
 	}
 
@@ -138,20 +175,30 @@ class Congress_Admin_Archived_Campaign {
 		global $wpdb;
 		$campaign_t = Congress_Table_Manager::get_table_name( 'campaign' );
 		$archived_t = Congress_Table_Manager::get_table_name( 'archived_campaign' );
+		$state_t    = Congress_Table_Manager::get_table_name( 'campaign_state' );
 		// phpcs:disable;
 		$result     = $wpdb->get_results(  // phpcs:ignore
-			"SELECT $archived_t.id, email_count, name, level, UNIX_TIMESTAMP(created_date) AS created_date, UNIX_TIMESTAMP(archived_date) AS archived_date " .
-			"FROM $archived_t LEFT JOIN $campaign_t ON $archived_t.id = $campaign_t.id" );
+			"SELECT $archived_t.id, email_count, name, state, UNIX_TIMESTAMP(created_date) AS created_date, UNIX_TIMESTAMP(archived_date) AS archived_date " .
+			"FROM $archived_t " . 
+			"LEFT JOIN $campaign_t ON $archived_t.id = $campaign_t.id " .
+			"LEFT JOIN $state_t ON $archived_t.id = $state_t.campaign_id"
+		);
 		// phpcs:enable
 
 		$campaigns = array();
 		foreach ( $result as $campaign_result ) {
+			$region = null;
+			if ( null === $campaign_result->state ) {
+				$region = Congress_Level::Federal;
+			} else {
+				$region = Congress_State::from_string( $campaign_result->state );
+			}
 			array_push(
 				$campaigns,
 				new Congress_Admin_Archived_Campaign(
 					$campaign_result->id,
 					$campaign_result->name,
-					$campaign_result->level,
+					$region,
 					$campaign_result->email_count,
 					$campaign_result->created_date,
 					$campaign_result->archived_date,

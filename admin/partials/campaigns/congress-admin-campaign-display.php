@@ -26,6 +26,20 @@ require_once plugin_dir_path( __FILE__ ) . 'class-congress-admin-active-campaign
  */
 require_once plugin_dir_path( __FILE__ ) . '../class-congress-admin-stacked-input.php';
 
+/**
+ * Import enums.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'../../includes/enum-congress-state.php';
+require_once plugin_dir_path( __DIR__ ) .
+	'../../includes/enum-congress-level.php';
+
+/**
+ * Import Congress_State_Settings.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'states/class-congress-state-settings.php';
+
 $display_campaign_type = 'active';
 
 ?>
@@ -53,21 +67,27 @@ $display_campaign_type = 'active';
 			<div class="congress-inline-form-group">
 				<button type="submit" class="button button-primary">Add Campaign</button>
 				<?php
+				$options = array(
+					array(
+						'label' => Congress_Level::Federal->to_display_string(),
+						'value' => Congress_Level::Federal->to_db_string(),
+					),
+				);
+				foreach ( Congress_State_Settings::get_active_states() as $state ) {
+					array_push(
+						$options,
+						array(
+							'label' => strtoupper( $state->to_state_code() ),
+							'value' => $state->to_db_string(),
+						)
+					);
+				}
 				Congress_Admin_Stacked_Input::display_dropdown(
 					id: 'congress-campaign-add-level',
-					label: 'Level',
-					name: 'level',
-					value: 'federal',
-					options: array(
-						array(
-							'label' => 'Federal',
-							'value' => 'federal',
-						),
-						array(
-							'label' => 'State',
-							'value' => 'state',
-						),
-					),
+					label: 'Region',
+					name: 'region',
+					value: Congress_Level::Federal->to_db_string(),
+					options: $options
 				);
 				wp_nonce_field( 'create-campaign' );
 				Congress_Admin_Stacked_Input::display_text(
