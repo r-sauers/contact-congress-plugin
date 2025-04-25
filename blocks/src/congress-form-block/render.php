@@ -45,7 +45,7 @@ if ( false === $campaign_template ) {
 				</select>
 			</div>
 		</div>
-			<input type="hidden" name="campaignLevel" value="<?php echo esc_attr( $campaign_template->level ); ?>"/>
+			<input type="hidden" name="campaignRegion" value="<?php echo esc_attr( $campaign_template->region ); ?>"/>
 			<input type="hidden" name="campaignID" value="<?php echo esc_attr( $campaign_id ); ?>"/>
 			<input type="hidden" name="placeId" value=""/>
 			<?php

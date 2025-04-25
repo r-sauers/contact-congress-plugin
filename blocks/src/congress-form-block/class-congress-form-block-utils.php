@@ -136,14 +136,21 @@ class Congress_Form_Block_Utils {
 		global $wpdb;
 		$campaign_t = Congress_Table_Manager::get_table_name( 'campaign' );
 		$template_t = Congress_Table_Manager::get_table_name( 'email_template' );
+		$state_t    = Congress_Table_Manager::get_table_name( 'campaign_state' );
 
 		$results = false;
 		$results = $wpdb->get_results( // phpcs:ignore
 			$wpdb->prepare(
-				"SELECT * FROM $campaign_t LEFT JOIN $template_t " . // phpcs:ignore
-				"ON $campaign_t.id = $template_t.campaign_id " . // phpcs:ignore
+				'SELECT ' .
+					"$campaign_t.id as campaign_id, " .
+					"$template_t.id as template_id, " .
+					'name, created_date, template, subject, ' .
+					"ifnull( state, 'FEDERAL' ) as region " .
+				"FROM $campaign_t " .
+				"LEFT JOIN $template_t ON $campaign_t.id = $template_t.campaign_id " . // phpcs:ignore
+				"LEFT JOIN $state_t ON $campaign_t.id = $state_t.campaign_id " . // phpcs:ignore
 				"WHERE $campaign_t.id = %d " . // phpcs:ignore
-				'ORDER BY	RAND() LIMIT 1',
+				'ORDER BY RAND() LIMIT 1',
 				array(
 					$campaign_id,
 				)
@@ -153,6 +160,9 @@ class Congress_Form_Block_Utils {
 			return false;
 		}
 		if ( 0 === $results ) {
+			return false;
+		}
+		if ( count( $results ) === 0 ) {
 			return false;
 		}
 
