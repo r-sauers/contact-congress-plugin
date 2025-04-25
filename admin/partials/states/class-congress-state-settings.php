@@ -285,6 +285,59 @@ class Congress_State_Settings {
 	 * Dectivates the state for use throughout the plugin.
 	 */
 	public function deactivate(): ?WP_Error {
+
+		global $wpdb;
+
+		$campaign          = Congress_Table_Manager::get_table_name( 'campaign' );
+		$email             = Congress_Table_Manager::get_table_name( 'email' );
+		$active_campaign   = Congress_Table_Manager::get_table_name( 'active_campaign' );
+		$archived_campaign = Congress_Table_Manager::get_table_name( 'archived_campaign' );
+		$campaign_state    = Congress_Table_Manager::get_table_name( 'campaign_state' );
+
+		$wpdb->query( 'START TRANSACTION' ); // phpcs:ignore
+
+		// phpcs:ignore
+		$result = $wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO $archived_campaign (id, email_count) " . // phpcs:ignore
+				"SELECT $campaign.id, COUNT($email.campaign_id) FROM $campaign " . // phpcs:ignore
+				"LEFT JOIN $email ON $email.campaign_id = $campaign.id " . // phpcs:ignore
+				"WHERE $campaign.id IN (" . // phpcs:ignore
+					"SELECT $campaign_state.campaign_id as id FROM $campaign_state " . // phpcs:ignore
+					"WHERE $campaign_state.state=%s" . // phpcs:ignore
+				')',
+				array(
+					$this->get_state()->to_db_string(),
+				),
+			)
+		);
+
+		if ( false === $result ) {
+			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+			return new WP_Error( 'DB_ERROR', 'Failed to create archived campaign rows!' );
+		}
+
+		// phpcs:ignore
+		$result = $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM $active_campaign " . // phpcs:ignore
+				"WHERE $active_campaign.id IN (" . // phpcs:ignore
+					"SELECT $campaign_state.campaign_id as id FROM $campaign_state " . // phpcs:ignore
+					"WHERE $campaign_state.state=%s" . // phpcs:ignore
+				')',
+				array(
+					$this->get_state()->to_db_string(),
+				),
+			)
+		);
+
+		if ( false === $result ) {
+			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+			return new WP_Error( 'DB_ERROR', 'Failed to remove active campaign rows!' );
+		}
+
+		$wpdb->query( 'COMMIT' ); // phpcs:ignore
+
 		return $this->set_state_option_field( self::FIELD_NAME_ACTIVE, false );
 	}
 
