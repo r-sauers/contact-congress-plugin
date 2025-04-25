@@ -156,6 +156,21 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 			wp_unslash( $_POST['region'] ),
 		);
 
+		try {
+			$region = Congress_Level::from_string( $region );
+		} catch ( Error $e ) {
+			try {
+				$region = Congress_State::from_string( $region );
+			} catch ( Error $e ) {
+				wp_send_json(
+					array(
+						'error' => 'Invalid parameters',
+					),
+					400
+				);
+			}
+		}
+
 		global $wpdb;
 
 		$wpdb->query( 'START TRANSACTION' ); // phpcs:ignore
@@ -191,15 +206,14 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 
 		$campaign_id = $wpdb->insert_id;
 
-		if ( 'federal' !== strtolower( $region ) ) {
-			$state            = Congress_State::from_string( $region );
+		if ( Congress_Level::Federal !== $region ) {
 			$campaign_state_t = Congress_Table_Manager::get_table_name( 'campaign_state' );
 
 			$state_res = $wpdb->insert( // phpcs:ignore
 				$campaign_state_t,
 				array(
 					'campaign_id' => $campaign_id,
-					'state'       => $state->to_db_string(),
+					'state'       => $region->to_db_string(),
 				)
 			);
 
@@ -259,7 +273,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 			array(
 				'id'                => $campaign_id,
 				'name'              => $name,
-				'region'            => $region,
+				'region'            => $region->to_db_string(),
+				'regionDisplay'     => $region->to_display_string(),
 				'editNonce'         => wp_create_nonce( "update-campaign_$campaign_id" ),
 				'archiveNonce'      => wp_create_nonce( "archive-campaign_$campaign_id" ),
 				'templateLoadNonce' => wp_create_nonce( "load-templates_$campaign_id" ),
@@ -295,6 +310,21 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		$region      = sanitize_text_field(
 			wp_unslash( $_POST['region'] )
 		);
+
+		try {
+			$region = Congress_Level::from_string( $region );
+		} catch ( Error $e ) {
+			try {
+				$region = Congress_State::from_string( $region );
+			} catch ( Error $e ) {
+				wp_send_json(
+					array(
+						'error' => 'Invalid parameters',
+					),
+					400
+				);
+			}
+		}
 
 		if ( ! check_ajax_referer( "update-campaign_$campaign_id", false, false ) ) {
 			wp_send_json(
@@ -332,14 +362,13 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		}
 
 		$campaign_state_t = Congress_Table_Manager::get_table_name( 'campaign_state' );
-		if ( 'federal' !== strtolower( $region ) ) {
-			$state = Congress_State::from_string( $region );
+		if ( Congress_Level::Federal !== $region ) {
 
 			$state_res = $wpdb->insert( // phpcs:ignore
 				$campaign_state_t,
 				array(
 					'campaign_id' => $campaign_id,
-					'state'       => $state->to_db_string(),
+					'state'       => $region->to_db_string(),
 				)
 			);
 
@@ -375,9 +404,10 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 
 		wp_send_json(
 			array(
-				'id'     => $campaign_id,
-				'name'   => $name,
-				'region' => $region,
+				'id'            => $campaign_id,
+				'name'          => $name,
+				'region'        => $region->to_db_string(),
+				'regionDisplay' => $region->to_display_string(),
 			),
 		);
 	}

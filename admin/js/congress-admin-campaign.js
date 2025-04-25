@@ -906,7 +906,7 @@
      *
      * @returns {ActiveCampaign}
      */
-    static fromCreateRequest({id, name, region, editNonce, archiveNonce, templateLoadNonce }) {
+    static fromCreateRequest({id, name, region, regionDisplay, editNonce, archiveNonce, templateLoadNonce }) {
       const template = ActiveCampaign.createTemplate();
       const container = ActiveCampaign.getContainer();
       const li = document.createElement( "li" );
@@ -916,7 +916,7 @@
       const campaign = new ActiveCampaign( -1, "", "", $( li ) );
       campaign.toggleExpansion( false );
       campaign.setID( id );
-      campaign.setCampaignData( name, region );
+      campaign.setCampaignData( name, region, regionDisplay );
       campaign.updateEditNonce( editNonce );
       campaign.updateArchiveNonce( archiveNonce );
       campaign.emailTemplatePage.setNonce( templateLoadNonce );
@@ -1172,13 +1172,13 @@
      *
      * Used when creating/editing.
      */
-    setCampaignData( name, region ) {
+    setCampaignData( name, region, regionDisplay ) {
 
       // header
       this._$root
         .find( ".congress-card-header > span" )
         .first()
-        .text( `${name} (${region.toProperCase()})` );
+        .text( `${name} (${regionDisplay})` );
 
       // edit form
       const form = this._$root.find( ".congress-campaign-edit-form" )[0];
@@ -1221,8 +1221,8 @@
      * @param {string} name
      * @param {string} region
      */
-    handleEdit({ name, region }) {
-      this.setCampaignData( name, region );
+    handleEdit({ name, region, regionDisplay }) {
+      this.setCampaignData( name, region, regionDisplay );
       const $form = this._$root.find( ".congress-campaign-edit-form" ).first();
       $form.find( ".congress-form-error" ).text( "" );
     }
