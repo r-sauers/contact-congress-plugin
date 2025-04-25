@@ -8,10 +8,18 @@
  */
 
 /**
- * Imports Table Manager for getting table names;
+ * Imports utils for html helper functions and retrieving block attributes and table information.
  */
 require_once plugin_dir_path( __FILE__ ) .
 	'class-congress-form-block-utils.php';
+
+/**
+ * Imports enums.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'../../includes/enum-congress-state.php';
+require_once plugin_dir_path( __DIR__ ) .
+	'../../includes/enum-congress-level.php';
 
 $utils = new Congress_Form_Block_Utils();
 

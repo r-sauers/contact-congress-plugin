@@ -32,6 +32,8 @@ require_once plugin_dir_path( __FILE__ ) .
  */
 require_once plugin_dir_path( __DIR__ ) .
 	'enum-congress-state.php';
+require_once plugin_dir_path( __DIR__ ) .
+	'enum-congress-level.php';
 
 /**
  * A collection of AJAX handlers for campaigns.
@@ -364,11 +366,16 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		$campaign_state_t = Congress_Table_Manager::get_table_name( 'campaign_state' );
 		if ( Congress_Level::Federal !== $region ) {
 
-			$state_res = $wpdb->insert( // phpcs:ignore
-				$campaign_state_t,
-				array(
-					'campaign_id' => $campaign_id,
-					'state'       => $region->to_db_string(),
+			$state_res = $wpdb->query( // phpcs:ignore
+				$wpdb->prepare(
+					"INSERT INTO $campaign_state_t (campaign_id, state) " . // phpcs:ignore
+					'VALUES (%d, %s) ' .
+					'ON DUPLICATE KEY UPDATE campaign_id=%d',
+					array(
+						$campaign_id,
+						$region->to_db_string(),
+						$campaign_id,
+					)
 				)
 			);
 

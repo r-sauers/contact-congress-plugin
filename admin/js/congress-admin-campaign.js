@@ -900,6 +900,7 @@
      * @param {number} id  is the id of the campaign.
      * @param {string} name  is the name of the campaign.
      * @param {string} region  is the region of the campaign.
+     * @param {string} regionDisplay  is the fullname, properly capitalized, region of the campaign.
      * @param {string} editNonce  is the nonce used for the edit form.
      * @param {string} archiveNonce  is the nonce used for the archive button.
      * @param {string} templateLoadNonce  is the nonce used for loading the email templates page.
@@ -1220,6 +1221,7 @@
      *
      * @param {string} name
      * @param {string} region
+     * @param {string} regionDisplay  is the fullname, properly capitalized, region of the campaign.
      */
     handleEdit({ name, region, regionDisplay }) {
       this.setCampaignData( name, region, regionDisplay );
