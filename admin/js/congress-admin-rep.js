@@ -534,6 +534,15 @@
     repID;
 
     /**
+     * Gets the container to store representatives in.
+     *
+     * @return {JQueryElement}
+     */
+    static getContainer() {
+      return $( "#congress-reps-container" );
+    }
+
+    /**
      * Constructs a Staffer that has no information and doesn't exist in the DB.
      */
     constructor() {
@@ -1005,7 +1014,61 @@
     });
   }
 
+  /**
+   * Adds event handlers for the filter form.
+   */
+  function initFilter() {
+
+    const $filterHint = $( "#congress-filter-hint" );
+    const filterForm = $( "#congress-filter-form" )[0];
+    filterForm.level.oninput = () => $filterHint.text( "" );
+    filterForm.title.oninput = () => $filterHint.text( "" );
+    filterForm.state.oninput = () => $filterHint.text( "" );
+
+    $( filterForm ).on( "submit", function( evt ) {
+      evt.preventDefault();
+
+      Rep.getContainer().empty();
+      const body = {
+          "action": filterForm.attributes.action.value,
+          "_wpnonce": filterForm._wpnonce.value
+      };
+      if ( filterForm.level.value ) {
+        body.level = filterForm.level.value;
+      }
+      if ( filterForm.title.value ) {
+        body.title = filterForm.title.value;
+      }
+      if ( filterForm.state.value ) {
+        body.state = filterForm.state.value;
+      }
+
+      $filterHint.text( "Loading..." );
+      $filterHint.toggleClass( "congress-form-success", false );
+      $filterHint.toggleClass( "congress-form-error", false );
+
+      $.get(
+        ajaxurl,
+        body,
+        function( reps ) {
+          for ( const rep of Object.values( reps ) ) {
+            Rep.fromJSON( rep );
+          }
+          $filterHint.text( "Success!" );
+          $filterHint.toggleClass( "congress-form-success", true );
+          $filterHint.toggleClass( "congress-form-error", false );
+        }
+      ).fail( function({ error }) {
+
+        $filterHint.text( error );
+        $filterHint.toggleClass( "congress-form-success", false );
+        $filterHint.toggleClass( "congress-form-error", true );
+      });
+    });
+  }
+
   $( () => {
     initOfficials();
+    initFilter();
   });
 }( jQuery ) );

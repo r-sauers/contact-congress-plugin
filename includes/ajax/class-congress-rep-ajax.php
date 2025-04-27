@@ -69,11 +69,6 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 			),
 			new Congress_AJAX_Handler(
 				callee: $this,
-				func_name: 'get_reps',
-				ajax_name: 'get_representatives'
-			),
-			new Congress_AJAX_Handler(
-				callee: $this,
 				func_name: 'insert_rep',
 				ajax_name: 'add_representative'
 			),
@@ -106,23 +101,62 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 	 * @return array<Congress_AJAX_Handler>
 	 */
 	public function get_public_handlers(): array {
-		return array(
-			new Congress_AJAX_Handler(
-				callee: $this,
-				func_name: 'get_reps',
-				ajax_name: 'get_representatives'
-			),
-		);
+		return array();
 	}
 
 	/**
 	 * Returns a JSON response with the representatives in the database.
+	 *
+	 * May take arguments for 'state', 'level', and 'title' to filter results.
 	 */
 	public function get_reps(): void {
 
-		$state = 'all';
+		$state = null;
 		if ( isset( $_GET['state'] ) ) {
-			$state = sanitize_text_field( wp_unslash( $_GET['state'] ) );
+			try {
+				$state = Congress_State::from_string(
+					sanitize_text_field( wp_unslash( $_GET['state'] ) )
+				);
+			} catch ( Error $e ) {
+				wp_send_json(
+					array(
+						'error' => 'Invalid state parameter.',
+					),
+					400
+				);
+			}
+		}
+
+		$level = null;
+		if ( isset( $_GET['level'] ) ) {
+			try {
+				$level = Congress_Level::from_string(
+					sanitize_text_field( wp_unslash( $_GET['level'] ) )
+				);
+			} catch ( Error $e ) {
+				wp_send_json(
+					array(
+						'error' => 'Invalid level parameter.',
+					),
+					400
+				);
+			}
+		}
+
+		$title = null;
+		if ( isset( $_GET['title'] ) ) {
+			try {
+				$title = Congress_Title::from_string(
+					sanitize_text_field( wp_unslash( $_GET['title'] ) )
+				);
+			} catch ( Error $e ) {
+				wp_send_json(
+					array(
+						'error' => 'Invalid title parameter.',
+					),
+					400
+				);
+			}
 		}
 
 		if ( ! check_ajax_referer( 'get-reps', false, false ) ) {
@@ -136,25 +170,114 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 
 		global $wpdb;
 
-		$tablename = Congress_Table_Manager::get_table_name( 'representative' );
+		$rep_t     = Congress_Table_Manager::get_table_name( 'representative' );
+		$staffer_t = Congress_Table_Manager::get_table_name( 'staffer' );
 
-		if ( 'all' === $state ) {
-			$result = $wpdb->get_results( // phpcs:ignore
-				$wpdb->prepare(
-					"SELECT * FROM $tablename WHERE state=%s", // phpcs:ignore
-					array(
-						$state,
-					),
-				)
-			);
-		} else {
+		$query =
+			'SELECT ' .
+				'r.id as rep_id, ' .
+				'r.title as rep_title, ' .
+				'r.first_name as rep_first, ' .
+				'r.last_name as rep_last, ' .
+				'r.state, r.district, r.level, ' .
+				's.id as staffer_id, ' .
+				's.title as staffer_title, ' .
+				's.first_name as staffer_first, ' .
+				's.last_name as staffer_last, ' .
+				's.email ' .
+			"FROM $rep_t AS r " .
+			"LEFT JOIN $staffer_t AS s ON r.id = s.representative";
 
-			$result = $wpdb->get_results( "SELECT * FROM $tablename" ); // phpcs:ignore
+		$query_args = array();
+		$first_arg  = true;
+
+		if ( null !== $state ) {
+			if ( $first_arg ) {
+				$query    .= ' WHERE';
+				$first_arg = false;
+			} else {
+				$query .= ' AND';
+			}
+			$query .= ' r.state=%s';
+			array_push( $query_args, $state->to_db_string() );
 		}
 
-		wp_send_json(
-			$result
+		if ( null !== $level ) {
+			if ( $first_arg ) {
+				$query    .= ' WHERE';
+				$first_arg = false;
+			} else {
+				$query .= ' AND';
+			}
+			$query .= ' r.level=%s';
+			array_push( $query_args, $level->to_db_string() );
+		}
+
+		if ( null !== $title ) {
+			if ( $first_arg ) {
+				$query    .= ' WHERE';
+				$first_arg = false;
+			} else {
+				$query .= ' AND';
+			}
+			$query .= ' r.title=%s';
+			array_push( $query_args, $title->to_db_string() );
+		}
+
+		$result = $wpdb->get_results( // phpcs:ignore
+			$wpdb->prepare( $query, $query_args ) // phpcs:ignore
 		);
+
+		if ( null === $result ) {
+			wp_send_json(
+				array(
+					'error' => 'Failed to get representatives.',
+				),
+				500
+			);
+		}
+
+		$reps = array();
+
+		foreach ( $result as &$rep_staffer ) {
+
+			if ( ! isset( $reps[ $rep_staffer->rep_id ] ) ) {
+				$reps[ $rep_staffer->rep_id ] = array(
+					'id'          => $rep_staffer->rep_id,
+					'level'       => $rep_staffer->level,
+					'title'       => $rep_staffer->rep_title,
+					'state'       => $rep_staffer->state,
+					'district'    => $rep_staffer->district,
+					'firstName'   => $rep_staffer->rep_first,
+					'lastName'    => $rep_staffer->rep_last,
+					'editNonce'   => wp_create_nonce( 'edit-rep_' . $rep_staffer->rep_id ),
+					'deleteNonce' => wp_create_nonce( 'delete-rep_' . $rep_staffer->rep_id ),
+					'createNonce' => wp_create_nonce( 'create-staffer_' . $rep_staffer->rep_id ),
+					'staffers'    => array(),
+				);
+			}
+
+			if ( isset( $rep_staffer->staffer_id ) ) {
+				$rep        = &$reps[ $rep_staffer->rep_id ];
+				$rep_id     = $rep['id'];
+				$staffer_id = $rep_staffer->staffer_id;
+				array_push(
+					$rep['staffers'],
+					array(
+						'repID'       => $rep_staffer->rep_id,
+						'id'          => $rep_staffer->staffer_id,
+						'title'       => $rep_staffer->staffer_title,
+						'firstName'   => $rep_staffer->staffer_first,
+						'lastName'    => $rep_staffer->staffer_last,
+						'email'       => $rep_staffer->email,
+						'editNonce'   => wp_create_nonce( "edit-staffer_$rep_id-$staffer_id" ),
+						'deleteNonce' => wp_create_nonce( "delete-staffer_$rep_id-$staffer_id" ),
+					)
+				);
+			}
+		}
+
+		wp_send_json( $reps );
 	}
 
 	/**
