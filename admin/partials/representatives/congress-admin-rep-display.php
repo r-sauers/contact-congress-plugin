@@ -21,6 +21,11 @@ require_once plugin_dir_path( __FILE__ ) . 'class-congress-admin-rep.php';
  */
 require_once plugin_dir_path( __FILE__ ) . 'class-congress-admin-staffer.php';
 
+/**
+ * Imports Congress_State_Settings.
+ */
+require_once plugin_dir_path( __DIR__ ) . 'states/class-congress-state-settings.php';
+
 ?>
 
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
