@@ -336,6 +336,11 @@ li:not(:last-child) > .congress-campaign-email-container {
 		border-top: 1px solid #888;
 		border-bottom: 1px solid #888;
 
+		&.congress-stacked-input {
+			align-self: flex-end;
+			padding-block: 0.35em;
+		}
+
 		&:last-child {
 			border-right: 1px solid #888;
 		}

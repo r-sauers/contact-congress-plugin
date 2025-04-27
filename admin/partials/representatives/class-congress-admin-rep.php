@@ -26,6 +26,16 @@ require_once plugin_dir_path( __FILE__ ) .
 	'../../../includes/class-congress-table-manager.php';
 
 /**
+ * Imports enums.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'../../includes/enum-congress-state.php';
+require_once plugin_dir_path( __DIR__ ) .
+	'../../includes/enum-congress-level.php';
+require_once plugin_dir_path( __DIR__ ) .
+	'../../includes/enum-congress-title.php';
+
+/**
  * Responsible for displaying representatives in the admin menu.
  */
 class Congress_Admin_Rep {
@@ -259,24 +269,63 @@ class Congress_Admin_Rep {
 	/**
 	 * Gets a list of representatives from the DB.
 	 *
-	 * @param string $state is the state code e.g. 'MN'.
+	 * @param ?Congress_Level $level filters reps by level.
+	 * @param ?Congress_State $state filters reps by state.
+	 * @param ?Congress_Title $title filters reps by title.
+	 *
 	 * @return array<Congress_Admin_Rep>
 	 */
-	public static function get_reps_from_db( string $state = 'all' ): array {
+	public static function get_reps_from_db(
+		?Congress_Level $level = null,
+		?Congress_State $state = null,
+		?Congress_Title $title = null
+	): array {
 		global $wpdb;
 		$tablename = Congress_Table_Manager::get_table_name( 'representative' );
 
-		if ( 'all' === $state ) {
-			$result = $wpdb->get_results( // phpcs:ignore
-				"SELECT * FROM $tablename", // phpcs:ignore
-			);
-		} else {
-			$result = $wpdb->get_results( // phpcs:ignore
-				$wpdb->prepare(
-					"SELECT * FROM $tablename WHERE state=%s", // phpcs:ignore
-					array( $state )
-				)
-			);
+		$query      = "SELECT * FROM $tablename";
+		$query_args = array();
+		$first_arg  = true;
+
+		if ( null !== $state ) {
+			if ( $first_arg ) {
+				$query    .= ' WHERE';
+				$first_arg = false;
+			} else {
+				$query .= ' AND';
+			}
+			$query .= ' state=%s';
+			array_push( $query_args, $state->to_db_string() );
+		}
+
+		if ( null !== $level ) {
+			if ( $first_arg ) {
+				$query    .= ' WHERE';
+				$first_arg = false;
+			} else {
+				$query .= ' AND';
+			}
+			$query .= ' level=%s';
+			array_push( $query_args, $level->to_db_string() );
+		}
+
+		if ( null !== $title ) {
+			if ( $first_arg ) {
+				$query    .= ' WHERE';
+				$first_arg = false;
+			} else {
+				$query .= ' AND';
+			}
+			$query .= ' title=%s';
+			array_push( $query_args, $title->to_db_string() );
+		}
+
+		$result = $wpdb->get_results( // phpcs:ignore
+			$wpdb->prepare( $query, $query_args ) // phpcs:ignore
+		);
+
+		if ( null === $result ) {
+			wp_die();
 		}
 
 		$reps = array();
