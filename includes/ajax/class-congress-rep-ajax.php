@@ -113,7 +113,7 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 	/**
 	 * Returns a JSON response with the representatives in the database.
 	 *
-	 * May take arguments for 'state' and 'level' to filter results.
+	 * May take arguments for 'state', 'level', and 'title' to filter results.
 	 */
 	public function get_reps(): void {
 
@@ -149,6 +149,22 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 			}
 		}
 
+		$title = null;
+		if ( isset( $_GET['title'] ) ) {
+			try {
+				$title = Congress_Title::from_string(
+					sanitize_text_field( wp_unslash( $_GET['title'] ) )
+				);
+			} catch ( Error $e ) {
+				wp_send_json(
+					array(
+						'error' => 'Invalid title parameter.',
+					),
+					400
+				);
+			}
+		}
+
 		if ( ! check_ajax_referer( 'get-reps', false, false ) ) {
 			wp_send_json(
 				array(
@@ -165,6 +181,7 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 		$query      = "SELECT * FROM $tablename";
 		$query_args = array();
 		$first_arg  = true;
+
 		if ( null !== $state ) {
 			if ( $first_arg ) {
 				$query    += ' WHERE';
@@ -175,6 +192,7 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 			$query += ' state=%s';
 			array_push( $query_args, $state->to_db_string() );
 		}
+
 		if ( null !== $level ) {
 			if ( $first_arg ) {
 				$query    += ' WHERE';
@@ -185,6 +203,18 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 			$query += ' level=%s';
 			array_push( $query_args, $level->to_db_string() );
 		}
+
+		if ( null !== $title ) {
+			if ( $first_arg ) {
+				$query    += ' WHERE';
+				$first_arg = false;
+			} else {
+				$query += ' AND';
+			}
+			$query += ' title=%s';
+			array_push( $query_args, $title->to_db_string() );
+		}
+
 		$result = $wpdb->get_results( // phpcs:ignore
 			$wpdb->prepare( $query, $query_args ) // phpcs:ignore
 		);
