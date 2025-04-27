@@ -112,12 +112,41 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 
 	/**
 	 * Returns a JSON response with the representatives in the database.
+	 *
+	 * May take arguments for 'state' and 'level' to filter results.
 	 */
 	public function get_reps(): void {
 
-		$state = 'all';
+		$state = null;
 		if ( isset( $_GET['state'] ) ) {
-			$state = sanitize_text_field( wp_unslash( $_GET['state'] ) );
+			try {
+				$state = Congress_State::from_string(
+					sanitize_text_field( wp_unslash( $_GET['state'] ) )
+				);
+			} catch ( Error $e ) {
+				wp_send_json(
+					array(
+						'error' => 'Invalid state parameter.',
+					),
+					400
+				);
+			}
+		}
+
+		$level = null;
+		if ( isset( $_GET['level'] ) ) {
+			try {
+				$level = Congress_Level::from_string(
+					sanitize_text_field( wp_unslash( $_GET['level'] ) )
+				);
+			} catch ( Error $e ) {
+				wp_send_json(
+					array(
+						'error' => 'Invalid level parameter.',
+					),
+					400
+				);
+			}
 		}
 
 		if ( ! check_ajax_referer( 'get-reps', false, false ) ) {
@@ -133,23 +162,43 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 
 		$tablename = Congress_Table_Manager::get_table_name( 'representative' );
 
-		if ( 'all' === $state ) {
-			$result = $wpdb->get_results( // phpcs:ignore
-				$wpdb->prepare(
-					"SELECT * FROM $tablename WHERE state=%s", // phpcs:ignore
-					array(
-						$state,
-					),
-				)
-			);
-		} else {
+		$query      = "SELECT * FROM $tablename";
+		$query_args = array();
+		$first_arg  = true;
+		if ( null !== $state ) {
+			if ( $first_arg ) {
+				$query    += ' WHERE';
+				$first_arg = false;
+			} else {
+				$query += ' AND';
+			}
+			$query += ' state=%s';
+			array_push( $query_args, $state->to_db_string() );
+		}
+		if ( null !== $level ) {
+			if ( $first_arg ) {
+				$query    += ' WHERE';
+				$first_arg = false;
+			} else {
+				$query += ' AND';
+			}
+			$query += ' level=%s';
+			array_push( $query_args, $level->to_db_string() );
+		}
+		$result = $wpdb->get_results( // phpcs:ignore
+			$wpdb->prepare( $query, $query_args ) // phpcs:ignore
+		);
 
-			$result = $wpdb->get_results( "SELECT * FROM $tablename" ); // phpcs:ignore
+		if ( null === $result ) {
+			wp_send_json(
+				array(
+					'error' => 'Failed to get representatives.',
+				),
+				500
+			);
 		}
 
-		wp_send_json(
-			$result
-		);
+		wp_send_json( $result );
 	}
 
 	/**
