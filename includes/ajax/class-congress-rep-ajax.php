@@ -69,11 +69,6 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 			),
 			new Congress_AJAX_Handler(
 				callee: $this,
-				func_name: 'get_reps',
-				ajax_name: 'get_representatives'
-			),
-			new Congress_AJAX_Handler(
-				callee: $this,
 				func_name: 'insert_rep',
 				ajax_name: 'add_representative'
 			),
