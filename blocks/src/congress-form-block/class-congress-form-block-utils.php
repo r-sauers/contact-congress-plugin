@@ -124,7 +124,7 @@ class Congress_Form_Block_Utils {
 	 */
 	public function get_campaign_template( $attributes ): stdClass|false {
 		if (
-			! isset( $attributes['campaignName'] ) &&
+			! isset( $attributes['campaignName'] ) ||
 			! isset( $attributes['campaignID'] )
 		) {
 			return false;
