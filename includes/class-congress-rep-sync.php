@@ -13,6 +13,11 @@
 require_once plugin_dir_path( __FILE__ ) . 'api/class-congress-state-api-factory.php';
 
 /**
+ * Imports Congress_State_Settings.
+ */
+require_once plugin_dir_path( __DIR__ ) . 'admin/partials/states/class-congress-state-settings.php';
+
+/**
  * Imports Congress_State enum.
  */
 require_once plugin_dir_path( __FILE__ ) . 'enum-congress-state.php';
@@ -189,93 +194,225 @@ class Congress_Rep_Sync {
 	}
 
 	/**
-	 * Syncs the database entries with the all external apis that are enabled.
+	 * Gets federal representatives from the Congress.gov API.
 	 *
-	 * @return array<string,array> an array with the following fields:
-	 * - 'reps_removed' : array<Congress_Rep_Interface>
-	 * - 'reps_added' : array<Congress_Rep_Interface>
+	 * @param Congress_Congress_API $federal_api is the instance of the Congress.gov API the function will use.
+	 * @param ?Congress_State       $state is the state to filter by.
+	 * @param ?array                $errors will be filled with any errors that occur.
+	 *
+	 * @return array<Congress_Rep_Interface> the resulting representatives.
 	 */
-	public static function sync_all_reps(): array {
+	private static function get_federal_reps( Congress_Congress_API $federal_api, ?Congress_State $state, ?array &$errors = null ): array {
 
 		$api_reps = array();
 
-		$federal_api = new Congress_Congress_API();
 		if ( $federal_api->has_api_key() ) {
-			$raw_api_reps = $federal_api->get_reps();
 
-			if ( false !== $raw_api_reps ) {
-
-				$members = $raw_api_reps['members'];
-
-				foreach ( $members as &$member ) {
-
-					$last_term = null;
-
-					foreach ( $member['terms']['item'] as &$term ) {
-						if (
-							! isset( $term['endYear'] )
-						) {
-							$last_term = &$term;
-						}
-					}
-
-					if ( null === $last_term ) {
-						error_log( // phpcs:ignore
-							new Error( 'Assertion failed for Congress.gov API.' )
+			if ( null === $state ) {
+				foreach ( Congress_State_Settings::get_federal_syncing_states() as $active_state ) {
+					$federal_api_reps = $federal_api->get_reps( $active_state );
+					if ( false !== $federal_api_reps ) {
+						$api_reps = array_merge( $api_reps, $federal_api_reps );
+					} elseif ( null !== $errors ) {
+						array_push(
+							$errors,
+							new WP_Error(
+								'API_FAILURE',
+								'Congress.gov API failed for ' . $active_state->to_display_string() . '.'
+							)
 						);
-						continue;
 					}
-
-					$title = null;
-					if ( 'Senate' === $last_term['chamber'] ) {
-						$title = Congress_Title::Senator;
-					} else {
-						$title = Congress_Title::Representative;
-					}
-
+				}
+			} else {
+				$federal_api_reps = $federal_api->get_reps( $state );
+				if ( false !== $federal_api_reps ) {
+					$api_reps = array_merge( $api_reps, $federal_api_reps );
+				} elseif ( null !== $errors ) {
 					array_push(
-						$api_reps,
-						new Congress_Rep_Interface(
-							first_name: $member['name'],
-							first_name: $member['name'],
-							district: $member['district'],
-							title: $title,
-							level: Congress_Level::Federal,
-							state: Congress_State::from_string( $member['state'] ),
+						$errors,
+						new WP_Error(
+							'API_FAILURE',
+							'Congress.gov API failed for ' . $state->to_display_string() . '.'
 						)
 					);
 				}
 			}
 		}
 
+		return $api_reps;
+	}
+
+	/**
+	 * Syncs the database entries filtered by $state and $level with the appropriate external apis.
+	 *
+	 * If $state or $level is null, it will use Congress_State_Settings->is_state_sync_enabled and
+	 * Congress_State_Settings->is_federal_sync_enabled to determine which states / levels to sync.
+	 *
+	 * @param ?Congress_State $state is the state to filter by.
+	 * @param ?Congress_Level $level is the level of government to filter by.
+	 *
+	 * @return array<string,array> an array with the following fields:
+	 * - 'reps_removed' : array<Congress_Rep_Interface>
+	 * - 'reps_added' : array<Congress_Rep_Interface>
+	 * - 'errors' : array<WP_Error>
+	 */
+	public static function sync_reps( ?Congress_State $state, ?Congress_Level $level ): array {
+
+		$api_reps = array();
+		$errors   = array();
+
+		$federal_api       = new Congress_Congress_API();
 		$state_api_factory = Congress_State_API_Factory::get_instance();
-		$state_apis        = $state_api_factory->get_enabled_apis();
-		$states            = array();
-		$placeholders      = array();
-		foreach ( $state_apis as &$state_api ) {
-			$res = $state_api->get_state_reps();
-			if ( false !== $res ) {
-				array_merge( $api_reps, $res );
-				array_push( $placeholders, '%s' );
-				array_push( $states, $state_api->get_state()->to_db_string() );
+
+		$sync_federal = null === $level || Congress_Level::Federal === $level;
+		$sync_state   = null === $level || Congress_Level::State === $level;
+
+		if ( $sync_federal && ! $federal_api->has_api_key() ) {
+			array_push(
+				$errors,
+				new WP_Error( 'MISSING_API_KEY', 'Missing Congress.gov API key.' )
+			);
+			$sync_federal = false;
+		}
+
+		if ( $sync_state && null !== $state && ! $state_api_factory->has_state_api( $state ) ) {
+			array_push(
+				$errors,
+				new WP_Error( 'API_NOT_IMPLEMENTED', 'The API for ' . $state->to_display_string() . ' is not implemented.' )
+			);
+			$sync_state = false;
+		}
+
+		if ( $sync_federal ) {
+			$reps = self::get_federal_reps( $federal_api, $state );
+			if ( is_wp_error( $reps ) ) {
+				return $reps;
 			}
+			$api_reps = array_merge( $api_reps, $reps );
+		}
+
+		$state_level_states   = array();
+		$federal_level_states = array();
+
+		if ( $sync_state ) {
+
+			$state_apis = null;
+			if ( null === $state ) {
+				$state_apis = $state_api_factory->get_enabled_apis();
+				$state_apis = array_filter(
+					$state_apis,
+					function ( Congress_State_API_Interface $state_api ) {
+						$state    = $state_api->get_state();
+						$settings = new Congress_State_Settings( $state );
+						return $settings->is_state_sync_enabled();
+					}
+				);
+			} else {
+				$state_api = $state_api_factory->get_state_api( $state );
+				if ( false === $state_api ) {
+					$state_apis = array();
+				} else {
+					$state_api = array( $state_api );
+				}
+			}
+
+			foreach ( $state_apis as &$state_api ) {
+				$res = $state_api->get_all_reps();
+				if ( false !== $res ) {
+					$api_reps = array_merge( $api_reps, $res );
+					array_push( $state_level_states, $state_api->get_state()->to_db_string() );
+				} else {
+					array_push(
+						$errors,
+						new WP_Error(
+							'API_FAILURE',
+							'Failed to get ' .
+								$state_api->get_state()->to_display_string() .
+								' representatives from the API.'
+						)
+					);
+				}
+			}
+		} else {
+			$state_level_states = array_map(
+				function ( Congress_State $state ) {
+					return $state->to_db_string();
+				},
+				Congress_State_Settings::get_state_syncing_states(),
+			);
+		}
+
+		if ( null === $state ) {
+			$federal_level_states = array_map(
+				function ( Congress_State $state ) {
+					return $state->to_db_string();
+				},
+				Congress_State_Settings::get_federal_syncing_states()
+			);
+		} else {
+			$federal_level_states = array( $state->to_db_string() );
 		}
 
 		global $wpdb;
-		$rep_t        = Congress_Table_Manager::get_table_name( 'representative' );
-		$placeholders = join(
-			', ',
-			$placeholders
-		);
+
+		$where_clause = 'WHERE ';
+		$placeholders = array();
+		$first_clause = true;
+
+		if ( null === $level || Congress_Level::Federal === $level ) {
+			if ( 1 === count( $federal_level_states ) ) {
+				$where_clause .= '(r.level = %s AND r.state = %s) ';
+				array_push(
+					$placeholders,
+					Congress_Level::Federal->to_db_string(),
+					$federal_level_states[0]
+				);
+			} else {
+				$state_placeholders = join( ', ', array_fill( 0, count( $federal_level_states ), '%s', ) );
+				$where_clause      .= "(r.level = %s AND r.state IN ($state_placeholders)) ";
+				array_push(
+					$placeholders,
+					Congress_Level::Federal->to_db_string(),
+					$federal_level_states
+				);
+			}
+			$first_clause = false;
+		}
+
+		if ( null === $level || Congress_Level::State === $level ) {
+
+			if ( ! $first_clause ) {
+				$where_clause .= 'OR ';
+			}
+
+			if ( 1 === count( $state_level_states ) ) {
+				$where_clause .= '(r.level = %s AND r.state = %s) ';
+				array_push(
+					$placeholders,
+					Congress_Level::State->to_db_string(),
+					$state_level_states[0]
+				);
+			} else {
+				$state_placeholders = join( ', ', array_fill( 0, count( $state_level_states ), '%s', ) );
+				$where_clause      .= "(r.level = %s AND r.state IN ($state_placeholders)) ";
+				array_push(
+					$placeholders,
+					Congress_Level::State->to_db_string(),
+					$state_level_states
+				);
+			}
+		}
+
+		$rep_t = Congress_Table_Manager::get_table_name( 'representative' );
 
 		// phpcs:disable
 		$db_reps = $wpdb->get_results(
 			$wpdb->prepare(
 				'SELECT id, first_name, last_name, district, title, level, state ' .
-				"FROM $rep_t " .
-				"WHERE r.state IN ($placeholders)" .
+				"FROM $rep_t AS r " .
+				$where_clause .
 				'ORDER BY state, district, last_name, first_name',
-				$states
+				$placeholders
 			)
 		);
 		// phpcs:enable
@@ -291,124 +428,8 @@ class Congress_Rep_Sync {
 			$db_reps
 		);
 
-		return self::sync( $db_reps, $api_reps );
-	}
-
-	/**
-	 * Syncs the database entries filtered by $state and $level with the appropriate external apis.
-	 *
-	 * If an appropriate API is not found, returns WP_Error.
-	 *
-	 * @param Congress_State $state is the state to filter by.
-	 * @param Congress_Level $level is the level of government to filter by.
-	 *
-	 * @return array<string,array>|WP_Error an array with the following fields:
-	 * - 'reps_removed' : array<Congress_Rep_Interface>
-	 * - 'reps_added' : array<Congress_Rep_Interface>
-	 */
-	public static function sync_reps( Congress_State $state, Congress_Level $level ): array|WP_Error {
-
-		if ( Congress_Level::Federal === $level ) {
-			$federal_api = new Congress_Congress_API();
-			if ( ! $federal_api->has_api_key() ) {
-				return new WP_Error(
-					'MISSING_API_KEY',
-					'Error, Contact the page admin.',
-					'Missing Congress.gov API key.'
-				);
-			}
-			$raw_api_reps = $federal_api->get_reps( $state );
-			$api_reps     = false;
-
-			if ( false !== $raw_api_reps ) {
-
-				$api_reps = array();
-				$members  = $raw_api_reps['members'];
-
-				foreach ( $members as &$member ) {
-
-					$last_term = null;
-
-					foreach ( $member['terms']['item'] as &$term ) {
-						if (
-							! isset( $term['endYear'] )
-						) {
-							$last_term = &$term;
-						}
-					}
-
-					if ( null === $last_term ) {
-						error_log( // phpcs:ignore
-							new Error( 'Assertion failed for Congress.gov API.' )
-						);
-						continue;
-					}
-
-					$title = null;
-					if ( 'Senate' === $last_term['chamber'] ) {
-						$title = Congress_Title::Senator;
-					} else {
-						$title = Congress_Title::Representative;
-					}
-
-					$name_explode = explode( ' ', $member['name'] );
-					array_push(
-						$api_reps,
-						new Congress_Rep_Interface(
-							last_name: substr( $name_explode[0], 0, -1 ),
-							first_name: $name_explode[ count( $name_explode ) - 1 ],
-							district: $member['district'],
-							title: $title,
-							level: Congress_Level::Federal,
-							state: Congress_State::from_string( $member['state'] ),
-						)
-					);
-				}
-			}
-		} else {
-			$state_api_factory = Congress_State_API_Factory::get_instance();
-			if ( ! $state_api_factory->has_state_api( $state ) ) {
-				return new WP_Error(
-					'API_NOT_IMPLEMENTED',
-					'The API for ' . $state->to_display_string() . ' is not implementd.'
-				);
-			}
-			$state_api = $state_api_factory->get_state_api( $state );
-			$api_reps  = $state_api->get_all_reps();
-		}
-
-		if ( false === $api_reps ) {
-			return new WP_Error( 'API_FAILURE', 'Failed to get representative from the API.' );
-		}
-
-		usort( $api_reps, 'Congress_Rep_Interface::cmp_by_position_and_name' );
-
-		global $wpdb;
-		$rep_t   = Congress_Table_Manager::get_table_name( 'representative' );
-		$db_reps = $wpdb->get_results( // phpcs:ignore
-			$wpdb->prepare(
-				'SELECT id, first_name, last_name, district, title, level, state ' .
-				"FROM $rep_t ". // phpcs:ignore
-				'WHERE state=%s AND level=%s ' .
-				'ORDER BY state, district, last_name, first_name',
-				array(
-					$state->to_db_string(),
-					$level->to_db_string(),
-				)
-			)
-		);
-
-		if ( null === $db_reps ) {
-			return new WP_Error( 'DB_FAILURE', 'Failed to get representatives from database.' );
-		}
-
-		$db_reps = array_map(
-			function ( $db_rep ) {
-				return Congress_Rep_Interface::from_db_result( $db_rep );
-			},
-			$db_reps
-		);
-
-		return self::sync( $db_reps, $api_reps );
+		$ret           = self::sync( $db_reps, $api_reps );
+		$ret['errors'] = $errors;
+		return $ret;
 	}
 }
