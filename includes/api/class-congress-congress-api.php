@@ -147,9 +147,9 @@ class Congress_Congress_API {
 			}
 
 			$name_split = explode( ', ', $member['name'] );
-			$first_name = $name_split[0];
-			$name_split = explode( ' ', $name_split[1] );
 			$last_name  = $name_split[0];
+			$name_split = explode( ' ', $name_split[1] );
+			$first_name = $name_split[0];
 
 			if ( isset( $member['district'] ) ) {
 				$rep = new Congress_Rep_Interface(

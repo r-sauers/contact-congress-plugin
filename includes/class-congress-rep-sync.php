@@ -353,6 +353,8 @@ class Congress_Rep_Sync {
 			$federal_level_states = array( $state->to_db_string() );
 		}
 
+		usort( $api_reps, 'Congress_Rep_Interface::cmp_by_position_and_name' );
+
 		global $wpdb;
 
 		$where_clause = 'WHERE ';
