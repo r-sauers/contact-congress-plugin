@@ -10,6 +10,18 @@
  */
 
 /**
+ * Import Congress_Rep_Interface.
+ */
+require_once plugin_dir_path( __DIR__ ) . 'class-congress-rep-interface.php';
+
+/**
+ * Import enums.
+ */
+require_once plugin_dir_path( __DIR__ ) . 'enum-congress-state.php';
+require_once plugin_dir_path( __DIR__ ) . 'enum-congress-level.php';
+require_once plugin_dir_path( __DIR__ ) . 'enum-congress-title.php';
+
+/**
  * Handles Congress.gov API requests.
  *
  * @since      1.0.0
@@ -64,29 +76,35 @@ class Congress_Congress_API {
 	/**
 	 * Makes a call to Congress.gov/members
 	 *
-	 * @param ?Congress_State $state_code is the state code.
+	 * @param Congress_State $state_code is the state code.
 	 *
 	 * @throws Error If missing api key, @see has_api_key.
 	 *
-	 * @return array|false the api results or false on failure.
+	 * @return array<Congress_Rep_Interface>|false the api results or false on failure.
 	 */
-	public function get_reps( ?Congress_State $state_code ): array|false {
+	public function get_reps( Congress_State $state_code ): array|false {
 
 		if ( ! $this->has_api_key() ) {
 			throw 'Needs API Key';
 		}
 
+		// Congress.gov does not support pagination very well, so I have decided
+		// not to support the '/member' endpoint.
+		$member_path = 'member/' . strtoupper( $state_code->to_state_code() );
+
 		$results = wp_remote_get(
-			'https://api.congress.gov/v3/member/' . strtoupper( $state_code->to_state_code() ),
+			'https://api.congress.gov/v3/' . $member_path,
 			array(
 				'body' => array(
 					'api_key'       => $this->api_key,
 					'currentMember' => 'true',
+					'limit'         => 250,
 				),
 			)
 		);
 
 		if ( is_a( $results, 'WP_Error' ) || 200 !== $results['response']['code'] ) {
+			error_log( 'Failed to fetch from Congress.gov API' ); // phpcs:ignore
 			return false;
 		}
 
@@ -98,47 +116,64 @@ class Congress_Congress_API {
 
 		foreach ( $members as &$member ) {
 
-			if ( 'Senate' === $member['terms']['item'][0]['chamber'] ) {
+			$last_term = null;
 
-				// check the term isn't up.
+			foreach ( $member['terms']['item'] as &$term ) {
 				if (
-					isset( $member['terms']['item'][0]['endYear'] ) &&
-					intval( $member['terms']['item'][0]['endYear'] ) < intval( gmdate( 'Y' ) )
+					! isset( $term['endYear'] )
 				) {
-					continue;
+					$last_term = &$term;
 				}
+			}
 
-				array_push(
-					$reps,
-					array(
-						'img'        => $member['depiction']['imageUrl'],
-						'state'      => $member['state'],
-						'fullName'   => $member['name'],
-						'first_name' => $member['name'],
-						'last_name'  => $member['name'],
-					)
+			if ( null === $last_term ) {
+				error_log( // phpcs:ignore
+					new Error( 'Assertion failed for Congress.gov API.' )
 				);
-			} elseif ( 'House of Representatives' === $member['terms']['item'][0]['chamber'] ) {
+				continue;
+			}
 
-				// check the term isn't up.
-				if (
-					isset( $member['terms']['item'][0]['endYear'] ) &&
-					intval( $member['terms']['item'][0]['endYear'] ) < intval( gmdate( 'Y' ) )
-				) {
-					continue;
-				}
+			try {
+				$state = Congress_State::from_string( $member['state'] );
+			} catch ( Error $e ) {
+				continue;
+			}
 
-				array_push(
-					$reps,
-					array(
-						'img'      => $member['depiction']['imageUrl'],
-						'state'    => $member['state'],
-						'fullName' => $member['name'],
-					)
+			$title = null;
+			if ( 'Senate' === $last_term['chamber'] ) {
+				$title = Congress_Title::Senator;
+			} else {
+				$title = Congress_Title::Representative;
+			}
+
+			$name_split = explode( ', ', $member['name'] );
+			$first_name = $name_split[0];
+			$name_split = explode( ' ', $name_split[1] );
+			$last_name  = $name_split[0];
+
+			if ( isset( $member['district'] ) ) {
+				$rep = new Congress_Rep_Interface(
+					first_name: $first_name,
+					last_name: $last_name,
+					img: $member['depiction']['imageUrl'],
+					district: $member['district'],
+					title: $title,
+					level: Congress_Level::Federal,
+					state: $state,
+				);
+			} else {
+				$rep = new Congress_Rep_Interface(
+					first_name: $first_name,
+					last_name: $last_name,
+					img: $member['depiction']['imageUrl'],
+					title: $title,
+					level: Congress_Level::Federal,
+					state: $state,
 				);
 			}
+			array_push( $reps, $rep );
 		}
 
-		return json_decode( $results['body'], true );
+		return $reps;
 	}
 }

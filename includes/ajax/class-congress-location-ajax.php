@@ -732,7 +732,8 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 	 */
 	private function get_federal_senate_reps( Congress_State $state_code ): array|false {
 
-		$api_senators    = array();
+		$api_senators = array();
+
 		$senator_success = false;
 
 		// Get from API.
@@ -741,61 +742,26 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 
 			if ( false !== $results ) {
 				$senator_success = true;
-
-				$members = $results['members'];
-
-				foreach ( $members as &$member ) {
-
-					$last_term = null;
-
-					foreach ( $member['terms']['item'] as &$term ) {
-						if (
-							! isset( $term['endYear'] )
-						) {
-							$last_term = &$term;
-						}
-					}
-
-					if ( null === $last_term ) {
-						error_log( // phpcs:ignore
-							new Error( 'Assertion failed for Congress.gov API.' )
-						);
-						continue;
-					}
-
-					$title = null;
-					if ( 'Senate' !== $last_term['chamber'] ) {
-						continue;
-					}
-
-					array_push(
-						$api_senators,
-						array(
-							'img'      => $member['depiction']['imageUrl'],
-							'state'    => $member['state'],
-							'fullName' => $member['name'],
-						)
-					);
-				}
+				$api_senators    = array_merge( $api_senators, $results );
 			}
 		}
 
 		// Reconcile api with db.
 		if ( $senator_success ) {
 			$senate_reps = array();
-			foreach ( $api_senators as $api_rep ) {
+			foreach ( $api_senators as &$api_rep ) {
 
 				$where_clause = 'WHERE ' .
 					'r.state=%s AND ' .
 					'r.level=%s AND ' .
-					'INSTR(%s, r.first_name) AND ' .
-					'INSTR(%s, r.last_name) AND ' .
+					'r.first_name=%s AND ' .
+					'r.last_name=%s AND ' .
 					'r.district IS NULL';
 				$where_vars   = array(
 					$state_code->to_db_string(),
 					Congress_Level::Federal->to_db_string(),
-					$api_rep['fullName'],
-					$api_rep['fullName'],
+					$api_rep->first_name,
+					$api_rep->last_name,
 				);
 
 				$db_reps = $this->get_reps_from_db( $where_clause, $where_vars );
@@ -808,7 +774,7 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 				$rep_id = array_key_first( $db_reps );
 				$rep    = $db_reps[ $rep_id ];
 
-				$rep['img'] = $api_rep['img'];
+				$rep['img'] = $api_rep->get_img();
 
 				array_push( $senate_reps, $rep );
 			}
