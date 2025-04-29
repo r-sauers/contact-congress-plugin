@@ -56,6 +56,9 @@
         "vendor/composer",
         "vendor/maennchen",
         "vendor/markbaker",
-        "vendor/psr"
+        "vendor/psr",
+        "vendor/symfony",
+        "vendor/ralouphie",
+        "vendor/guzzlehttp"
     ]
 }
