@@ -605,7 +605,7 @@
      * @param {number} id
      * @param {'federal'|'state'} level
      * @param {string} state
-     * @param {string} district
+     * @param {string|null} district
      * @param {'Representative'|'Senator'} title
      * @param {string} firstName
      * @param {string} lastName
@@ -614,7 +614,7 @@
      * @param {string} createNonce
      * @param {array<Object>|null} staffers
      */
-    initHTML({ id, level, state, district, title, firstName, lastName, editNonce, deleteNonce, createNonce, staffers = null }) {
+    initHTML({ id, level, state, district = null, title, firstName, lastName, editNonce, deleteNonce, createNonce, staffers = null }) {
 
       const editForm = this.getForm();
 
@@ -630,7 +630,7 @@
       editForm.state.id = editForm.state.id.replace( "--", `-${id}-` );
       editForm.state.previousElementSibling.setAttribute( "for", editForm.state.id );
 
-      editForm.district.value = district;
+      editForm.district.value = district || "";
       editForm.district.id = editForm.district.id.replace( "--", `-${id}-` );
       editForm.district.previousElementSibling.setAttribute( "for", editForm.district.id );
 
