@@ -560,7 +560,7 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 			 */
 			foreach ( $api_reps as $api_rep ) {
 				$db_reps = $this->get_reps_from_db(
-					'WHERE r.state=%s AND r.district=%s AND r.level=%s AND r.first_name=%s r.last_name=%s',
+					'WHERE r.state=%s AND r.district=%s AND r.level=%s AND r.first_name=%s AND r.last_name=%s',
 					array(
 						$api_rep->state->to_db_string(),
 						$api_rep->get_district(),
