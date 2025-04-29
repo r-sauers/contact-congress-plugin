@@ -103,11 +103,19 @@ class Congress_State_Settings {
 	 * Gets the default email for syncing alerts.
 	 */
 	public static function get_default_sync_email(): string|WP_Error {
+
 		$default_email = get_option( self::OPT_NAME_DEFAULT_EMAIL );
+
 		if ( false === $default_email ) {
-			error_log( new Error( self::OPT_NAME_DEFAULT_EMAIL . ' option does not exist, it was deleted.' ) ); // phpcs:ignore
-			return new WP_Error( 'OPTIONS_FAILURE', 'Error getting value!' );
+			$err = self::set_default_sync_email( '' );
+
+			if ( is_wp_error( $err ) ) {
+				return $err;
+			}
+
+			return '';
 		}
+
 		return $default_email;
 	}
 
