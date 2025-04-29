@@ -390,17 +390,17 @@ li:not(:last-child) > .congress-campaign-email-container {
 	display: flex;
 	max-width: 66em;
 	justify-content: space-around;
+	align-items: end;
 	margin-top: 2em;
-	margin-bottom: 1em;
+	margin-bottom: 2em;
 	gap: 10%;
 	padding-inline: 2em;
 
-	div {
+	& > div {
 		display: flex;
 		flex-direction: column;
 		flex-grow: 1;
 		gap: 0.1em;
-		min-height: 4em;
 
 		button {
 			width: 100%;
