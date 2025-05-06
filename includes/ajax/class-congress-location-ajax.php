@@ -751,6 +751,10 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 			$senate_reps = array();
 			foreach ( $api_senators as &$api_rep ) {
 
+				if ( Congress_Title::Senator !== $api_rep->title ) {
+					continue;
+				}
+
 				$where_clause = 'WHERE ' .
 					'r.state=%s AND ' .
 					'r.level=%s AND ' .
@@ -782,6 +786,7 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 
 		// Recover senators using database.
 		if ( ! $senator_success ) {
+
 			$senate_reps = array();
 
 			$db_reps = $this->get_reps_from_db(
