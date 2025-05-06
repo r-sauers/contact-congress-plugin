@@ -99,6 +99,7 @@ class Congress_Google_Places_API {
 		$headers = array(
 			'Content-Type'   => 'application/json',
 			'X-Goog-Api-Key' => $api_key,
+			'Referer'        => get_site_url(),
 		);
 
 		$body = array(
@@ -116,7 +117,13 @@ class Congress_Google_Places_API {
 			)
 		);
 
-		if ( is_a( $results, 'WP_Error' ) || 200 !== $results['response']['code'] ) {
+		if ( is_a( $results, 'WP_Error' ) ) {
+			error_log( 'Contact Congress Plugin Autocomplete Error: ' . $results->get_error_message() ); // phpcs:ignore
+			return false;
+		}
+		if ( 200 !== $results['response']['code'] ) {
+			$json = json_decode( wp_remote_retrieve_body( $results ), false );
+			error_log( 'Contact Congress Plugin Google Places Autocomplete Error: ' . $json->error->message ); // phpcs:ignore
 			return false;
 		}
 
@@ -143,6 +150,7 @@ class Congress_Google_Places_API {
 			'Content-Type'     => 'application/json',
 			'X-Goog-Api-Key'   => $api_key,
 			'X-Goog-FieldMask' => 'location,addressComponents',
+			'Referer'          => get_site_url(),
 		);
 
 		$body = array();
@@ -158,7 +166,13 @@ class Congress_Google_Places_API {
 			)
 		);
 
-		if ( is_a( $results, 'WP_Error' ) || 200 !== $results['response']['code'] ) {
+		if ( is_a( $results, 'WP_Error' ) ) {
+			error_log( 'Contact Congress Plugin Place Details Error: ' . $results->get_error_message() ); // phpcs:ignore
+			return false;
+		}
+		if ( 200 !== $results['response']['code'] ) {
+			$json = json_decode( wp_remote_retrieve_body( $results ), false );
+			error_log( 'Contact Congress Plugin Google Places Place Details Error: ' . $json->error->message ); // phpcs:ignore
 			return false;
 		}
 
