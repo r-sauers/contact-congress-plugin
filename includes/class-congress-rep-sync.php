@@ -218,7 +218,8 @@ class Congress_Rep_Sync {
 							$errors,
 							new WP_Error(
 								'API_FAILURE',
-								'Congress.gov API failed for ' . $active_state->to_display_string() . '.'
+								'Congress.gov API failed for ' . $active_state->to_display_string() . '.',
+								$active_state
 							)
 						);
 					}
@@ -232,7 +233,8 @@ class Congress_Rep_Sync {
 						$errors,
 						new WP_Error(
 							'API_FAILURE',
-							'Congress.gov API failed for ' . $state->to_display_string() . '.'
+							'Congress.gov API failed for ' . $state->to_display_string() . '.',
+							$state
 						)
 					);
 				}
@@ -256,7 +258,7 @@ class Congress_Rep_Sync {
 	 * - 'reps_added' : array<Congress_Rep_Interface>
 	 * - 'errors' : array<WP_Error>
 	 */
-	public static function sync_reps( ?Congress_State $state, ?Congress_Level $level ): array {
+	public static function sync_reps( ?Congress_State $state = null, ?Congress_Level $level = null ): array {
 
 		$api_reps = array();
 		$errors   = array();
@@ -328,7 +330,8 @@ class Congress_Rep_Sync {
 							'API_FAILURE',
 							'Failed to get ' .
 								$state_api->get_state()->to_display_string() .
-								' representatives from the API.'
+								' representatives from the API.',
+							$state_api->get_state()
 						)
 					);
 				}

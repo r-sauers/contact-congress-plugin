@@ -16,6 +16,12 @@ require_once plugin_dir_path( __FILE__ ) .
 	'class-congress-table-manager.php';
 
 /**
+ * Imports Congress_Cron for cleaning up cron jobs.
+ */
+require_once plugin_dir_path( __FILE__ ) .
+	'class-congress-cron.php';
+
+/**
  * Fired during plugin deactivation.
  *
  * This class defines all code necessary to run during the plugin's deactivation.
@@ -28,13 +34,9 @@ require_once plugin_dir_path( __FILE__ ) .
 class Congress_Deactivator {
 
 	/**
-	 * Handles plugin deactivation.
-	 *
-	 * Cleans up plugin tables.
-	 *
-	 * @since    1.0.0
+	 * Drops the plugin's tables from the database.
 	 */
-	public static function deactivate(): void {
+	private static function clean_tables(): void {
 		global $wpdb;
 
 		$wpdb->query( 'START TRANSACTION' ); // phpcs:ignore
@@ -51,5 +53,25 @@ class Congress_Deactivator {
 		Congress_Table_Manager::delete_table( 'representative' );
 
 		$wpdb->query( 'COMMIT' ); // phpcs:ignore
+	}
+
+	/**
+	 * Starts cron jobs for the plugin.
+	 */
+	private static function clean_cron(): void {
+		$congress_cron = new Congress_Cron();
+		$congress_cron->clear_cron();
+	}
+
+	/**
+	 * Handles plugin deactivation.
+	 *
+	 * Cleans up plugin tables.
+	 *
+	 * @since    1.0.0
+	 */
+	public static function deactivate(): void {
+		self::clean_cron();
+		self::clean_tables();
 	}
 }
