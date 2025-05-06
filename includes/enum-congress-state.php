@@ -183,7 +183,7 @@ enum Congress_State {
 				'wyoming' => Congress_State::WY
 			};
 		} catch ( UnhandledMatchError $e ) {
-			throw 'Could not coerce string.';
+			throw new Error( 'Could not coerce string.' );
 		}
 	}
 

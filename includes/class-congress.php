@@ -131,6 +131,12 @@ class Congress {
 			'includes/ajax/class-congress-ajax.php';
 
 		/**
+		 * The class responsible for cron handlers
+		 */
+		require_once plugin_dir_path( __DIR__ ) .
+			'includes/class-congress-cron.php';
+
+		/**
 		 * Load plugin blocks.
 		 */
 		require_once plugin_dir_path( __DIR__ ) .
@@ -202,6 +208,10 @@ class Congress {
 			'define_roles',
 			11
 		);
+
+		$congress_cron = new Congress_Cron();
+		$congress_cron->load_actions( $this->loader );
+		$congress_cron->schedule_cron();
 
 		$congress_ajax = Congress_AJAX::get_instance();
 		foreach ( $congress_ajax->get_admin_handlers() as $handler ) {

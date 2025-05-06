@@ -122,10 +122,69 @@ require_once plugin_dir_path( __DIR__ ) . 'states/class-congress-state-settings.
 		<div>
 			<button id="congress-add-rep-button" class="buttton button-primary">Add Representative</button>
 		</div>
-		<div>
-			<button id="congress-sync-reps-button" class="buttton button-primary">Sync Representatives</button>
-			<span id="congress-sync-reps-hint" class="congress-form-success"></span>
-		</div>
+		<form id="congress-sync-form" action="sync_reps" method="post" style="display: flex; align-items: flex-end;">
+			<div class="congress-inline-form-group">
+				<span class="congress-stacked-input">
+					<label>Sync Representatives:</label>
+				</span>
+				<?php
+				Congress_Admin_Stacked_Input::display_dropdown(
+					id: 'congress-sync-level',
+					label: 'Level',
+					name: 'level',
+					value: Congress_Level::Federal->to_db_string(),
+					options: array(
+						array(
+							'value' => '',
+							'label' => 'All',
+						),
+						array(
+							'value' => Congress_Level::Federal->to_db_string(),
+							'label' => Congress_Level::Federal->to_display_string(),
+						),
+						array(
+							'value' => Congress_Level::State->to_db_string(),
+							'label' => Congress_Level::State->to_display_string(),
+						),
+					),
+				);
+
+				$options = array(
+					array(
+						'value' => '',
+						'label' => 'All',
+					),
+				);
+
+				$states = Congress_State_Settings::get_active_states();
+
+				foreach ( $states as &$state ) {
+					array_push(
+						$options,
+						array(
+							'value' => $state->to_db_string(),
+							'label' => strtoupper( $state->to_state_code() ),
+						)
+					);
+				}
+
+				Congress_Admin_Stacked_Input::display_dropdown(
+					id: 'congress-sync-state',
+					label: 'State',
+					name: 'state',
+					value: '',
+					options: $options
+				);
+				?>
+				<button type="submit" id="congress-sync-reps-button" class="buttton button-primary">Sync</button>
+			</div>
+			<?php
+				wp_nonce_field( 'get-reps' );
+			?>
+			<div style="align-self: stretch; display: flex; align-items: center; padding-top: 1.35em;">
+				<span id="congress-sync-reps-hint" class="congress-form-success"></span>
+			</div>
+		</form>
 	</div>
 	<div id="congress-reps-container">
 		<?php

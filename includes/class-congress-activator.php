@@ -14,6 +14,13 @@
  */
 require_once plugin_dir_path( __FILE__ ) .
 	'class-congress-table-manager.php';
+
+/**
+ * Imports Congress_Cron for setting up cron jobs.
+ */
+require_once plugin_dir_path( __FILE__ ) .
+	'class-congress-cron.php';
+
 /**
  * Imports dbDelta for altering tables.
  */
@@ -34,13 +41,9 @@ require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 class Congress_Activator {
 
 	/**
-	 * Handles everything needed for plugin activation.
-	 *
-	 * Plugin activation mainly refers to setting up tables in the database.
-	 *
-	 * @since    1.0.0
+	 * Initializes plugin tables.
 	 */
-	public static function activate(): void {
+	private static function init_tables(): void {
 
 		global $wpdb;
 
@@ -177,5 +180,16 @@ class Congress_Activator {
 				"FOREIGN KEY (campaign) REFERENCES $campaign(id) ON DELETE CASCADE",
 			)
 		);
+	}
+
+	/**
+	 * Handles everything needed for plugin activation.
+	 *
+	 * Plugin activation mainly refers to setting up tables in the database.
+	 *
+	 * @since    1.0.0
+	 */
+	public static function activate(): void {
+		self::init_tables();
 	}
 }

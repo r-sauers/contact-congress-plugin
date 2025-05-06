@@ -44,6 +44,52 @@ class Congress_State_Settings {
 	private const FIELD_DEFAULT_API_ENABLED  = true;
 
 	/**
+	 * Gets a list of states that have state syncing enabled.
+	 *
+	 * @return array<Congress_State>
+	 */
+	public static function get_state_syncing_states(): array {
+		$states = Congress_State::cases();
+
+		$active_states = array_filter(
+			$states,
+			function ( $state ) {
+				$state_settings = new Congress_State_Settings( $state );
+				$is_active      = $state_settings->is_state_sync_enabled();
+				if ( is_wp_error( $is_active ) ) {
+					$is_active = false;
+				}
+				return $is_active;
+			}
+		);
+
+		return $active_states;
+	}
+
+	/**
+	 * Gets a list of states that have federal syncing enabled.
+	 *
+	 * @return array<Congress_State>
+	 */
+	public static function get_federal_syncing_states(): array {
+		$states = Congress_State::cases();
+
+		$active_states = array_filter(
+			$states,
+			function ( $state ) {
+				$state_settings = new Congress_State_Settings( $state );
+				$is_active      = $state_settings->is_federal_sync_enabled();
+				if ( is_wp_error( $is_active ) ) {
+					$is_active = false;
+				}
+				return $is_active;
+			}
+		);
+
+		return array_values( $active_states );
+	}
+
+	/**
 	 * Gets a list of states actively being used.
 	 *
 	 * @return array<Congress_State>

@@ -35,7 +35,7 @@ enum Congress_Title {
 		} elseif ( 0 === strcasecmp( 'representative', $str ) ) {
 			return self::Representative;
 		} else {
-			throw 'String could not be coerced to enum.';
+			throw new Error( 'String could not be coerced to enum.' );
 		}
 	}
 

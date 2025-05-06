@@ -210,6 +210,8 @@ class Congress_Admin_Rep {
 					$district_text = " District $this->district";
 				}
 
+				$level_text = ucwords( $this->level );
+
 				?>
 				<input type="hidden" name="rep_id" value="<?php echo esc_attr( $this->rep_id ); ?>"/>
 				<div style="flex-shrink: 0;">
@@ -218,7 +220,7 @@ class Congress_Admin_Rep {
 				</div>
 			</form>
 			<div class="congress-official-readonly">
-				<span><?php echo esc_html( "$this->level $this->title $this->first_name $this->last_name ($this->state$district_text)" ); ?></span>
+				<span><?php echo esc_html( "$level_text $this->title $this->first_name $this->last_name ($this->state$district_text)" ); ?></span>
 				<button class="congress-staffer-toggle button">Staffers &gt;</button>
 				<div>
 					<button class="congress-edit-button congress-icon-button"></button>

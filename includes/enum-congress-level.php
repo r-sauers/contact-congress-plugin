@@ -35,7 +35,7 @@ enum Congress_Level {
 		} elseif ( 0 === strcasecmp( 'federal', $str ) ) {
 			return self::Federal;
 		} else {
-			throw 'String could not be coerced to enum.';
+			throw new Error( 'String could not be coerced to enum.' );
 		}
 	}
 

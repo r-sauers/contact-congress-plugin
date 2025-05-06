@@ -87,11 +87,6 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 				func_name: 'sync_reps',
 				ajax_name: 'sync_reps'
 			),
-			new Congress_AJAX_Handler(
-				callee: $this,
-				func_name: 'sync_all_reps',
-				ajax_name: 'sync_all_reps'
-			),
 		);
 	}
 
@@ -546,92 +541,9 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 	}
 
 	/**
-	 * An AJAX handler for syncing all representatives.
+	 * An AJAX handler for syncing representatives.
 	 *
-	 * Sends a JSON response with the updated representatives.
-	 */
-	public function sync_all_reps(): void {
-
-		if ( ! current_user_can( 'congress_manage_representatives' ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Insufficient Permissions.',
-				),
-				403
-			);
-		}
-
-		if ( ! check_ajax_referer( 'sync-reps', false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
-			);
-		}
-
-		$res = Congress_Rep_Sync::sync_all_reps();
-
-		if ( is_wp_error( $res ) ) {
-			match ( $res->get_error_code() ) {
-				'API_FAILURE' => wp_send_json(
-					array(
-						'error' => $res->get_error_message(),
-					),
-					500
-				),
-				'DB_FAILURE' => wp_send_json(
-					array(
-						'error' => $res->get_error_message(),
-					),
-					500
-				),
-				default => wp_send_json(
-					array(
-						'error' => $res->get_error_message(),
-					),
-					500
-				)
-			};
-		}
-
-		global $wpdb;
-		$res['reps_removed'] = array_map(
-			function ( Congress_Rep_Interface $rep ) {
-				return $rep->to_json();
-			},
-			$res['reps_removed']
-		);
-
-		$res['reps_added'] = array_map(
-			function ( Congress_Rep_Interface $rep ) {
-				$rep_json = $rep->to_json();
-
-				$rep_json['createNonce'] = wp_create_nonce( 'create-staffer_' . $rep_json['id'] );
-				$rep_json['editNonce']   = wp_create_nonce( 'edit-rep_' . $rep_json['id'] );
-				$rep_json['deleteNonce'] = wp_create_nonce( 'delete-rep_' . $rep_json['id'] );
-
-				if ( isset( $rep_json['staffers'] ) ) {
-					foreach ( $rep_json['staffers'] as &$staffer ) {
-						$rep_id                 = $rep_json['id'];
-						$staffer_id             = $staffer['id'];
-						$staffer['editNonce']   = wp_create_nonce( "edit-staffer_$rep_id-$staffer_id" );
-						$staffer['deleteNonce'] = wp_create_nonce( "delete-staffer_$rep_id-$staffer_id" );
-					}
-				}
-
-				return $rep_json;
-			},
-			$res['reps_added']
-		);
-
-		wp_send_json( $res );
-	}
-
-	/**
-	 * An AJAX handler for syncing representatives based on the state and level.
-	 *
-	 * Requires 'state' and 'level' fields.
+	 * Accepts 'state' and 'level' fields.
 	 *
 	 * Sends a JSON response with the updated representatives.
 	 */
@@ -655,29 +567,23 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
-		if (
-			! isset( $_POST['state'] ) ||
-			! isset( $_POST['level'] )
-		) {
-			wp_send_json(
-				array(
-					'error' => 'Invalid parameters!',
-				),
-				400
-			);
-		}
-
+		$state = null;
+		$level = null;
 		try {
-			$state = Congress_State::from_string(
-				sanitize_text_field(
-					wp_unslash( $_POST['state'] )
-				)
-			);
-			$level = Congress_Level::from_string(
-				sanitize_text_field(
-					wp_unslash( $_POST['level'] )
-				)
-			);
+			if ( isset( $_POST['state'] ) ) {
+				$state = Congress_State::from_string(
+					sanitize_text_field(
+						wp_unslash( $_POST['state'] )
+					)
+				);
+			}
+			if ( isset( $_POST['level'] ) ) {
+				$level = Congress_Level::from_string(
+					sanitize_text_field(
+						wp_unslash( $_POST['level'] )
+					)
+				);
+			}
 		} catch ( Error $e ) {
 			wp_send_json(
 				array(
@@ -689,36 +595,37 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 
 		$res = Congress_Rep_Sync::sync_reps( $state, $level );
 
-		if ( is_wp_error( $res ) ) {
-			match ( $res->get_error_code() ) {
+		if ( 0 < count( $res['errors'] ) ) {
+			$error = $res['errors'][0];
+			match ( $error->get_error_code() ) {
 				'API_NOT_IMPLEMENTED' => wp_send_json(
 					array(
-						'error' => $res->get_error_message(),
+						'error' => $error->get_error_message(),
 					),
 					501
 				),
 				'MISSING_API_KEY' => wp_send_json(
 					array(
-						'error'   => $res->get_error_message(),
-						'message' => $res->get_error_data(),
+						'error'   => $error->get_error_message(),
+						'message' => $error->get_error_data(),
 					),
 					501
 				),
 				'API_FAILURE' => wp_send_json(
 					array(
-						'error' => $res->get_error_message(),
+						'error' => $error->get_error_message(),
 					),
 					500
 				),
 				'DB_FAILURE' => wp_send_json(
 					array(
-						'error' => $res->get_error_message(),
+						'error' => $error->get_error_message(),
 					),
 					500
 				),
 				default => wp_send_json(
 					array(
-						'error' => $res->get_error_message(),
+						'error' => $error->get_error_message(),
 					),
 					500
 				)
