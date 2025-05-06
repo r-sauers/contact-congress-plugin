@@ -103,8 +103,13 @@ class Congress_Congress_API {
 			)
 		);
 
-		if ( is_a( $results, 'WP_Error' ) || 200 !== $results['response']['code'] ) {
-			error_log( 'Failed to fetch from Congress.gov API' ); // phpcs:ignore
+		if ( is_a( $results, 'WP_Error' ) ) {
+			error_log( 'Failed to fetch from Congress.gov API: ' . $results->get_error_message() ); // phpcs:ignore
+			return false;
+		}
+		if ( 200 !== $results['response']['code'] ) {
+			$msg = print_r( json_decode( wp_remote_retrieve_body( $results ), false ), true ); // phpcs:ignore
+			error_log( 'Failed to fetch from Congress.gov API: ' . $results->get_error_message() ); // phpcs:ignore
 			return false;
 		}
 
