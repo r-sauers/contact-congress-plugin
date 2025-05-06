@@ -46,6 +46,20 @@ require_once plugin_dir_path( __DIR__ ) .
 class Congress_Admin {
 
 	/**
+	 * The name of the page for managing representatives.
+	 *
+	 * @var {string}
+	 */
+	public static string $rep_page_slug = 'congress_rep';
+
+	/**
+	 * The name of the page for managing state settings.
+	 *
+	 * @var {string}
+	 */
+	public static string $state_page_slug = 'congress_state';
+
+	/**
 	 * The ID of this plugin.
 	 *
 	 * @since    1.0.0
@@ -101,7 +115,7 @@ class Congress_Admin {
 			'all'
 		);
 
-		if ( isset( $_GET['page'] ) && 'congress_state' === $_GET['page'] ) { // phpcs:ignore
+		if ( isset( $_GET['page'] ) && self::$state_page_slug === $_GET['page'] ) { // phpcs:ignore
 			wp_enqueue_style(
 				$this->congress . '-state',
 				plugin_dir_url( __FILE__ ) . 'css/congress-admin-state.css',
@@ -130,7 +144,7 @@ class Congress_Admin {
 		 * class.
 		 */
 
-		if ( isset( $_GET['page'] ) && 'congress_rep' === $_GET['page'] ) { // phpcs:ignore
+		if ( isset( $_GET['page'] ) && self::$rep_page_slug === $_GET['page'] ) { // phpcs:ignore
 			wp_enqueue_script(
 				$this->congress,
 				plugin_dir_url( __FILE__ ) . 'js/congress-admin-rep.js',
@@ -163,7 +177,7 @@ class Congress_Admin {
 					'loadTemplateNonce' => $load_template_nonces,
 				),
 			);
-		} elseif ( isset( $_GET['page'] ) && 'congress_state' === $_GET['page'] ) { // phpcs:ignore
+		} elseif ( isset( $_GET['page'] ) && self::$state_page_slug === $_GET['page'] ) { // phpcs:ignore
 			wp_enqueue_script(
 				$this->congress,
 				plugin_dir_url( __FILE__ ) . 'js/congress-admin-state.js',
@@ -388,7 +402,7 @@ class Congress_Admin {
 				'Representatives',
 				'Representatives',
 				'manage_options',
-				'congress_rep',
+				self::$rep_page_slug,
 				array( $this, 'congress_rep_page_html' )
 			);
 		}
@@ -398,7 +412,7 @@ class Congress_Admin {
 				'States',
 				'States',
 				'manage_options',
-				'congress_state',
+				self::$state_page_slug,
 				array( $this, 'congress_state_page_html' )
 			);
 		}
@@ -410,6 +424,7 @@ class Congress_Admin {
 	public function congress_options_page_html(): void {
 		// check user capabilities.
 		if ( ! current_user_can( 'congress_manage_keys' ) ) {
+			$form_url = admin_url( 'admin.php?page=' . self::$rep_page_slug );
 			?>
 			<h1>Contact Congress Admin Panel</h1>
 			<h2>Settings</h2>
@@ -421,7 +436,7 @@ class Congress_Admin {
 			if ( current_user_can( 'congress_manage_representatives' ) ) {
 				?>
 				<h2>Representatives</h2>
-				<p>You can manage representatives <a href="./admin.php?page=congress_rep">here</a>!</p>
+				<p>You can manage representatives <a href="<?php echo esc_attr( $form_url ); ?>">here</a>!</p>
 				<?php
 			}
 			?>
