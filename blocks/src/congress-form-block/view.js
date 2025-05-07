@@ -22,6 +22,7 @@
   const prefix = "wp-block-congress-form-block__"; // id/class prefix.
   const ajaxurl = congressAjaxObj.ajaxurl;
   const captchaKey = congressCaptchaObj.clientSecret;
+  let addressGlobal = "101 Fake St. Minneapolis, MN, USA";
   let repsGlobal = {}; // Stores data about representatives.
   let repsOrder = []; // Order of repsGlobal.
   let registerEmailNonce = undefined;
@@ -273,6 +274,7 @@
     template = template.replaceAll( /\[\[REP_FIRST\]\]/ig, rep.first_name );
     template = template.replaceAll( /\[\[REP_LAST\]\]/ig, rep.last_name );
     template = template.replaceAll( /\[\[REP_TITLE\]\]/ig, rep.title );
+    template = template.replaceAll( /\[\[ADDRESS\]\]/ig, addressGlobal );
     if ( emailForm.firstName.value ) {
       template = template.replaceAll( /\[\[SENDER_FIRST\]\]/ig, emailForm.firstName.value );
     }
@@ -491,6 +493,7 @@
     const $form = $( `#${prefix}get-reps-form` );
     $form[0].placeId.value = e.params.data.id;
     $form.trigger( "submit" );
+    addressGlobal = e.params.data.text.text;
   });
 
   $( `#${prefix}get-reps-form` ).on( "submit", null, getRepsHandlers, ajaxHandler );
