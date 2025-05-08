@@ -215,7 +215,7 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 		$subject     = sanitize_text_field(
 			wp_unslash( $_POST['subject'] )
 		);
-		$template    = "DEAR [[REP_TITLE]] [[REP_FIRST]] [[REP_LAST]],\n\nPlease support...\n\nSincerely,\n[[SENDER_FIRST]] [[SENDER_LAST]]";
+		$template    = "DEAR [[REP_TITLE]] [[REP_FIRST]] [[REP_LAST]],\n\nPlease support...\n\nSincerely,\n[[SENDER_FIRST]] [[SENDER_LAST]]\n[[ADDRESS]]";
 		$favorable   = false;
 
 		if ( ! check_ajax_referer( "create-email_$campaign_id", false, false ) ) {
