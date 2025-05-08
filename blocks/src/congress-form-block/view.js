@@ -335,11 +335,11 @@
       url += staffer.email;
       firstIter = false;
     }
-    const params = new URLSearchParams();
-    params.append( "subject", evt.originalEvent.target.subject.value );
-    params.append( "body", evt.originalEvent.target.body.value );
-    params.append( "email", evt.originalEvent.target.email.value );
-    window.open( url + "?" + params.toString(), "_blank" );
+    url += "?subject=" + evt.originalEvent.target.subject.value;
+    url += "&body=" + evt.originalEvent.target.body.value;
+    url += "&email=" + evt.originalEvent.target.email.value;
+    url = encodeURI( url );
+    window.open( url, "_blank" );
 
     $( repBtn ).prop( "disabled", true );
     $( repBtn ).text( "Sent!" );
