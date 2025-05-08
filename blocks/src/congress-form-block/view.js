@@ -504,7 +504,7 @@
     const $form = $( `#${prefix}get-reps-form` );
     $form[0].placeId.value = e.params.data.id;
     $form.trigger( "submit" );
-    addressGlobal = e.params.data.text.text;
+    addressGlobal = e.params.data.text;
   });
 
   $( `#${prefix}get-reps-form` ).on( "submit", null, getRepsHandlers, ajaxHandler );
