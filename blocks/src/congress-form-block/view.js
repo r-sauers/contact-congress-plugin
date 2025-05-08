@@ -131,7 +131,7 @@
       $container.empty();
       repsGlobal = {};
 
-      for ( const rep of reps ) {
+      for ( const rep of reps.reverse() ) {
 
         const repEl = $( `#${prefix}rep-template` )[0].content.cloneNode( true );
         const $li = $( "<li>" );
@@ -386,13 +386,14 @@
     const $previewToggle = $( `#${prefix}preview-toggle` );
     let scrolling = ""; // Keeps track of whether the body is being scrolled or the template is.
 
-    $emailBody.hide();
-    $emailTemplate.show();
-    $previewToggle.text( "Show Preview" );
-    $previewToggle.toggleClass( `${prefix}preview-open`, false );
+    updateEmailPreview();
+    $emailBody.show();
+    $emailTemplate.hide();
+    $previewToggle.text( "View & Edit Raw Email Template" );
+    $previewToggle.toggleClass( `${prefix}preview-open`, true );
     $previewToggle.on( "click", function() {
       if ( $previewToggle.hasClass( `${prefix}preview-open` ) ) {
-        $previewToggle.text( "Show Preview" );
+        $previewToggle.text( "View Email Preview" );
         $previewToggle.toggleClass( `${prefix}preview-open`, false );
         $emailTemplate.show();
         $emailBody.hide();
@@ -400,7 +401,7 @@
 
         updateEmailPreview();
 
-        $previewToggle.text( "Hide Preview" );
+        $previewToggle.text( "View & Edit Raw Email Template" );
         $previewToggle.toggleClass( `${prefix}preview-open`, true );
         $emailTemplate.hide();
         $emailBody.show();
