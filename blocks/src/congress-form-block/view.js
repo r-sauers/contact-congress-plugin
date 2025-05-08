@@ -327,12 +327,7 @@
     const repBtn = $( repEl ).find( "button" )[0];
 
     let isGmail = ( -1 !== evt.originalEvent.target.email.value.search( "@gmail\.com" ) );
-    let url = "";
-    if ( isGmail ) {
-      url += "https://mail.google.com/mail/u/0/?to=";
-    } else {
-      url += "mailto:";
-    }
+    let url = "mailto:";
     let firstIter = true;
     for ( const staffer of rep.staffers ) {
       if ( ! firstIter ) {
@@ -341,12 +336,7 @@
       url += staffer.email;
       firstIter = false;
     }
-    if ( isGmail ) {
-      url += "&fs=1&tf=cm&";
-    } else {
-      url += "?";
-    }
-    url += "subject=" + evt.originalEvent.target.subject.value;
+    url += "?subject=" + evt.originalEvent.target.subject.value;
     url += "&body=" + evt.originalEvent.target.body.value;
     url += "&email=" + evt.originalEvent.target.email.value;
     url = encodeURI( url );
