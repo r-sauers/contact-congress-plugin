@@ -38,13 +38,19 @@ require_once plugin_dir_path( __FILE__ ) . 'class-congress-state-settings.php';
  */
 function congress_draw_state_row( Congress_State $state ) {
 
-	$state_settings       = new Congress_State_Settings( $state );
-	$activated            = $state_settings->is_active();
-	$state_sync_enabled   = $state_settings->is_state_sync_enabled();
-	$federal_sync_enabled = $state_settings->is_federal_sync_enabled();
+	$state_settings = new Congress_State_Settings( $state );
+
+	$cache            = array();
+	$no_cross_enabled = true;
+	$no_cross_state   = true;
+	$no_cross_federal = true;
+
+	$activated            = $state_settings->is_active( $cache );
+	$state_sync_enabled   = $state_settings->is_state_sync_enabled( $no_cross_state, $cache );
+	$federal_sync_enabled = $state_settings->is_federal_sync_enabled( $no_cross_federal, $cache );
 	$api_supported        = $state_settings->is_api_supported();
-	$api_enabled          = $state_settings->is_api_enabled();
-	$sync_email           = $state_settings->get_sync_email();
+	$api_enabled          = $state_settings->is_api_enabled( $no_cross_enabled, $cache );
+	$sync_email           = $state_settings->get_sync_email( false, $cache );
 
 	if (
 		is_wp_error( $activated ) ||
@@ -69,6 +75,10 @@ function congress_draw_state_row( Congress_State $state ) {
 		$api_class = 'congress-disabled';
 	}
 
+	if ( ! $no_cross_enabled && ! $activated ) {
+		$api_class .= ' congress-crossed';
+	}
+
 	?>
 
 	<tr class="congress-state-row">
@@ -90,19 +100,25 @@ function congress_draw_state_row( Congress_State $state ) {
 		</td>
 
 		<td
+			class="
+				<?php echo $federal_sync_enabled ? 'congress-enabled' : 'congress-disabled'; ?>
+				<?php echo $no_cross_federal ? '' : 'congress-crossed'; ?>
+				congress-state-row-federal-sync"
+		>
+			<?php echo $federal_sync_enabled ? 'Enabled!' : 'Disabled'; ?>
+		</td>
+
+		<td
 			class="<?php echo esc_attr( $api_class ); ?> congress-state-row-api"
 		>
 			<?php echo esc_html( $api_text ); ?>
 		</td>
 
 		<td
-			class="<?php echo $federal_sync_enabled ? 'congress-enabled' : 'congress-disabled'; ?> congress-state-row-federal-sync"
-		>
-			<?php echo $federal_sync_enabled ? 'Enabled!' : 'Disabled'; ?>
-		</td>
-
-		<td
-			class="<?php echo $state_sync_enabled ? 'congress-enabled' : 'congress-disabled'; ?> congress-state-row-state-sync"
+			class="
+				<?php echo $state_sync_enabled ? 'congress-enabled' : 'congress-disabled'; ?>
+				<?php echo $no_cross_state ? '' : 'congress-crossed'; ?>
+				congress-state-row-state-sync"
 		>
 			<?php echo $state_sync_enabled ? 'Enabled!' : 'Disabled'; ?>
 		</td>
@@ -234,21 +250,21 @@ if ( is_wp_error( $default_sync_email ) ) {
 							</button>
 						</div>
 					</th>
-					<th class="congress-header-api congress-sortable-header">
-						<div class="congress-sort-toggle">
-							<button
-								class="congress-no-button"
-							>API
-								<sup><a href="#congress-notes-api">2</a></sup>
-							</button>
-						</div>
-					</th>
 					<th class="congress-header-federal-sync congress-sortable-header">
 						<div class="congress-sort-toggle">
 							<button
 								class="congress-no-button"
 							>Federal Sync
-								<sup><a href="#congress-notes-federal-sync">3</a></sup>
+								<sup><a href="#congress-notes-federal-sync">2</a></sup>
+							</button>
+						</div>
+					</th>
+					<th class="congress-header-api congress-sortable-header">
+						<div class="congress-sort-toggle">
+							<button
+								class="congress-no-button"
+							>State API
+								<sup><a href="#congress-notes-api">3</a></sup>
 							</button>
 						</div>
 					</th>
@@ -343,11 +359,11 @@ if ( is_wp_error( $default_sync_email ) ) {
 		The main purpose is to reduce the size of state dropdowns.
 		You can use the "Activate States" and "Deactivate States" bulk actions to edit the status.
 		Deactivating a state will delete its representatives.</li>
-		<li id="congress-notes-api"><strong>API</strong> is used to find a reader's representatives, and sync representatives.
-		If this field states 'Not Supported', please contact the plugin development team to see if it can be added.</li>
 		<li id="congress-notes-federal-sync"><strong>Federal Sync</strong> will use the API to update the federal-level representatives for the given state every day.
 		If any representative details change, a notification will be sent to the email you specify in the state dropdown.
 		Use the 'Enable Federal-Level Syncing' and 'Disable Federal-Level Syncing' bulk actions to enable/disable.</li>
+		<li id="congress-notes-api"><strong>State API</strong> is used to find a reader's representatives, and sync representatives.
+		If this field states 'Not Supported', please contact the plugin development team to see if it can be added.</li>
 		<li id="congress-notes-state-sync"><strong>State Sync</strong> is similary to <strong>Federal Sync</strong>, but for local state-level representatives.</li>
 	</ol>
 </div>

@@ -11,6 +11,7 @@
 	--congress-bg-color-lighter: #f6f6f6;
 	--congress-bg-color-lightest: #fdfdfd;
 	--congress-danger: #b61616;
+	--congress-success: #198754;
 }
 
 .congress-official-readonly,
@@ -235,7 +236,7 @@
 }
 
 .congress-form-success {
-	color: #198754;
+	color: var(--congress-success);
 	margin-inline: 0.5em;
 }
 

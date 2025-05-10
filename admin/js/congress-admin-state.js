@@ -511,16 +511,29 @@
      * @param {boolean|null} active
      */
     toggleStatus( active = null ) {
+
       const $status = $( this._statusCell );
+      const $stateSync = $( this._stateSyncCell );
+      const $federalSync = $( this._federalSyncCell );
+      const $api = $( this._apiCell );
+
       if ( null === active ) {
         active = $status.hasClass( "congress-activated" );
       }
 
       if ( active ) {
+        if ( "enabled" === this.getAPISupport() ) {
+          $stateSync.toggleClass( "congress-crossed", false );
+        }
+        $federalSync.toggleClass( "congress-crossed", false );
+        $api.toggleClass( "congress-crossed", false );
         $status.toggleClass( "congress-deactivated", false );
         $status.toggleClass( "congress-activated", true );
         $status.text( "Active!" );
       } else {
+        $stateSync.toggleClass( "congress-crossed", true );
+        $federalSync.toggleClass( "congress-crossed", true );
+        $api.toggleClass( "congress-crossed", true );
         $status.toggleClass( "congress-deactivated", true );
         $status.toggleClass( "congress-activated", false );
         $status.text( "Deactivated" );
@@ -533,11 +546,15 @@
      * @returns {boolean} true on success, false on failure.
      */
     enableAPI() {
-      const $api = this._apiCell;
+
+      const $api = $( this._apiCell );
+      const $stateSync = $( this._stateSyncCell );
+
       if ( $api.hasClass( "congress-no-support" ) ) {
         return false;
       }
 
+      $stateSync.toggleClass( "congress-crossed", false );
       $api.toggleClass( "congress-enabled", true );
       $api.toggleClass( "congress-disabled", false );
       return true;
@@ -549,9 +566,16 @@
      * @returns {boolean} true on success, false on failure.
      */
     disableAPI() {
-      const $api = this._apiCell;
+
+      const $api = $( this._apiCell );
+      const $stateSync = $( this._stateSyncCell );
+
       if ( $api.hasClass( "congress-no-support" ) ) {
         return false;
+      }
+
+      if ( ! $api.hasClass( "congress-crossed" ) ) {
+        $stateSync.toggleClass( "congress-crossed", true );
       }
 
       $api.toggleClass( "congress-enabled", false );
