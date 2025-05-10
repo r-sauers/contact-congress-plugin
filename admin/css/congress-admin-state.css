@@ -113,20 +113,40 @@
 
 		border-bottom: none;
 
-		.congress-activated {
+		&.congress-crossed {
+			text-decoration: line-through;
+		}
+
+		&.congress-activated {
 			content: "Activated!";
+
+			&:not(.congress-crossed) {
+				color: var(--congress-success);
+			}
 		}
 
-		.congress-deactivated {
+		&.congress-deactivated {
 			content: "Deactivated!";
+
+			&:not(.congress-crossed) {
+				color: var(--congress-danger);
+			}
 		}
 
-		.congress-enabled {
+		&.congress-enabled {
 			content: "Enabled!";
+
+			&:not(.congress-crossed) {
+				color: var(--congress-success);
+			}
 		}
 
-		.congress-disabled {
+		&.congress-disabled {
 			content: "Disabled!";
+
+			&:not(.congress-crossed) {
+				color: var(--congress-danger);
+			}
 		}
 
 		&:nth-last-child(2) {

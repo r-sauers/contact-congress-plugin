@@ -224,12 +224,25 @@ class Congress_State_Settings {
 
 	/**
 	 * Helper function to get state options from WordPress.
+	 *
+	 * @param ?array $cache is an associative array that is used to store and use db
+	 * info to speed up multiple calls to this and related functions.
 	 */
-	private function get_state_options(): array|WP_Error {
+	private function get_state_options( ?array &$cache = null ): array|WP_Error {
+
+		if ( null !== $cache && ! empty( $cache ) ) {
+			return $cache;
+		}
+
 		$state_options = get_option( $this->options_name );
 		if ( false === $state_options ) {
 			error_log( new Error( $this->options_name . ' option does not exist, it was deleted.' ) ); // phpcs:ignore
 			return new WP_Error( 'OPTIONS_FAILURE', 'Error getting value!' );
+		}
+		if ( null !== $cache ) {
+			foreach ( array_keys( $state_options ) as $key ) {
+				$cache[ $key ] = $state_options[ $key ];
+			}
 		}
 		return $state_options;
 	}
@@ -238,12 +251,13 @@ class Congress_State_Settings {
 	 * Helper function to get a state option field from WordPress.
 	 *
 	 * @param string $field_name is one of the class constants FIELD_NAME_XXXX.
+	 * @param ?array $cache is an associative array that is used to store and use db
+	 * info to speed up multiple calls to this and related functions.
 	 */
-	private function get_state_option_field( string $field_name ): mixed {
-		$state_options = get_option( $this->options_name );
-		if ( false === $state_options ) {
-			error_log( new Error( $this->options_name . ' option does not exist, it was deleted.' ) ); // phpcs:ignore
-			return new WP_Error( 'OPTIONS_FAILURE', 'Error getting value!' );
+	private function get_state_option_field( string $field_name, ?array &$cache = null ): mixed {
+		$state_options = $this->get_state_options( $cache );
+		if ( is_wp_error( $state_options ) ) {
+			return $state_options;
 		}
 		return $state_options[ $field_name ];
 	}
@@ -257,6 +271,8 @@ class Congress_State_Settings {
 	 * @return null if no error.
 	 */
 	private function set_state_option_field( string $field_name, mixed $value ): ?WP_Error {
+		// Caching is a bad idea here because it could cause race conditions.
+
 		$state_options = get_option( $this->options_name );
 		if ( false === $state_options ) {
 			error_log( new Error( $this->options_name . ' option does not exist, it was deleted.' ) ); // phpcs:ignore
@@ -285,11 +301,13 @@ class Congress_State_Settings {
 	/**
 	 * Getter for the email used for sync alerts.
 	 *
-	 * @param bool $use_default will return the email default
+	 * @param bool   $use_default will return the email default
 	 * if the state sync email is an empty string.
+	 * @param ?array $cache is an associative array that is used to store and use db
+	 * info to speed up multiple calls to this and related functions.
 	 */
-	public function get_sync_email( $use_default = false ): string|WP_Error {
-		$field_res = $this->get_state_option_field( self::FIELD_NAME_SYNC_EMAIL );
+	public function get_sync_email( bool $use_default = false, ?array &$cache = null ): string|WP_Error {
+		$field_res = $this->get_state_option_field( self::FIELD_NAME_SYNC_EMAIL, $cache );
 
 		if ( is_wp_error( $field_res ) ) {
 			return $field_res;
@@ -323,9 +341,12 @@ class Congress_State_Settings {
 
 	/**
 	 * Determines whether or not the state is being actively used.
+	 *
+	 * @param ?array $cache is an associative array that is used to store and use db
+	 * info to speed up multiple calls to this and related functions.
 	 */
-	public function is_active(): bool|WP_Error {
-		return $this->get_state_option_field( self::FIELD_NAME_ACTIVE );
+	public function is_active( ?array &$cache = null ): bool|WP_Error {
+		return $this->get_state_option_field( self::FIELD_NAME_ACTIVE, $cache );
 	}
 
 	/**
@@ -344,14 +365,33 @@ class Congress_State_Settings {
 
 	/**
 	 * Determines whether or not the state should use its API.
+	 *
+	 * @param ?bool $dependency if given as false will cause the function to not
+	 * check for other settings that would turn this setting to false. If
+	 * $dependency is given as true, the reference variable will be set to false if
+	 * the 'other settings' would have turned this setting to false.
+	 * @param array $cache is an associative array that is used to store and use db
+	 * info to speed up multiple calls to this and related functions.
 	 */
-	public function is_api_enabled(): bool|WP_Error {
+	public function is_api_enabled( ?bool &$dependency = null, array &$cache = array() ): bool|WP_Error {
 
-		if ( ! $this->is_api_supported() ) {
-			return false;
+		$check_dependency = ( null === $dependency || true === $dependency );
+		if ( $check_dependency ) {
+			$is_active = $this->is_active();
+			if ( is_wp_error( $is_active ) ) {
+				return $is_active;
+			}
+			$is_api_supported = $this->is_api_supported( $cache );
+			if ( ! $is_active || ! $is_api_supported ) {
+				if ( null === $dependency ) {
+					return false;
+				} else {
+					$dependency = false;
+				}
+			}
 		}
 
-		return $this->get_state_option_field( self::FIELD_NAME_API_ENABLED );
+		return $this->get_state_option_field( self::FIELD_NAME_API_ENABLED, $cache );
 	}
 
 	/**
@@ -370,24 +410,33 @@ class Congress_State_Settings {
 
 	/**
 	 * Determines whether or not the state should be used for state-level Syncing.
+	 *
+	 * @param ?bool $dependency if given as false will cause the function to not
+	 * check for other settings that would turn this setting to false. If
+	 * $dependency is given as true, the reference variable will be set to false if
+	 * the 'other settings' would have turned this setting to false.
+	 * @param array $cache is an associative array that is used to store and use db
+	 * info to speed up multiple calls to this and related functions.
 	 */
-	public function is_state_sync_enabled(): bool|WP_Error {
+	public function is_state_sync_enabled( ?bool &$dependency = null, array &$cache = array() ): bool|WP_Error {
 
-		if ( ! $this->is_api_supported() ) {
-			return false;
+		$check_dependency = ( null === $dependency || true === $dependency );
+
+		if ( $check_dependency ) {
+			$is_api_enabled = $this->is_api_enabled( cache: $cache );
+			if ( is_wp_error( $is_api_enabled ) ) {
+				return $is_api_enabled;
+			}
+			if ( ! $is_api_enabled ) {
+				if ( null === $dependency ) {
+					return false;
+				} else {
+					$dependency = false;
+				}
+			}
 		}
 
-		$state_options = $this->get_state_options();
-
-		if ( is_wp_error( $state_options ) ) {
-			return $state_options;
-		}
-
-		if ( ! $state_options[ self::FIELD_NAME_STATE_SYNC ] ) {
-			return false;
-		}
-
-		return $state_options[ self::FIELD_NAME_STATE_SYNC ];
+		return $this->get_state_option_field( self::FIELD_NAME_STATE_SYNC, $cache );
 	}
 
 	/**
@@ -407,28 +456,33 @@ class Congress_State_Settings {
 
 	/**
 	 * Determines whether or not the state should be used for federal-level Syncing.
+	 *
+	 * @param ?bool $dependency if given as false will cause the function to not
+	 * check for other settings that would turn this setting to false. If
+	 * $dependency is given as true, the reference variable will be set to false if
+	 * the 'other settings' would have turned this setting to false.
+	 * @param array $cache is an associative array that is used to store and use db
+	 * info to speed up multiple calls to this and related functions.
 	 */
-	public function is_federal_sync_enabled(): bool|WP_Error {
+	public function is_federal_sync_enabled( ?bool &$dependency = null, array &$cache = array() ): bool|WP_Error {
 
-		$is_active = $this->is_active();
+		$check_dependency = ( null === $dependency || true === $dependency );
 
-		if ( is_wp_error( $is_active ) ) {
-			return $is_active;
-		} elseif ( ! $is_active ) {
-			return false;
+		if ( $check_dependency ) {
+			$is_active = $this->is_active( $cache );
+			if ( is_wp_error( $is_active ) ) {
+				return $is_active;
+			}
+			if ( ! $is_active ) {
+				if ( null === $dependency ) {
+					return false;
+				} else {
+					$dependency = false;
+				}
+			}
 		}
 
-		$state_options = $this->get_state_options();
-
-		if ( is_wp_error( $state_options ) ) {
-			return $state_options;
-		}
-
-		if ( ! $state_options[ self::FIELD_NAME_FEDERAL_SYNC ] ) {
-			return false;
-		}
-
-		return $state_options[ self::FIELD_NAME_FEDERAL_SYNC ];
+		return $this->get_state_option_field( self::FIELD_NAME_FEDERAL_SYNC, $cache );
 	}
 
 	/**
