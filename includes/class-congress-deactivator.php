@@ -22,6 +22,30 @@ require_once plugin_dir_path( __FILE__ ) .
 	'class-congress-cron.php';
 
 /**
+ * Imports Congress_Google_Places_API.
+ */
+require_once plugin_dir_path( __FILE__ ) .
+	'api/class-congress-google-places-api.php';
+
+/**
+ * Imports Congress_Congress_API.
+ */
+require_once plugin_dir_path( __FILE__ ) .
+	'api/class-congress-congress-api.php';
+
+/**
+ * Imports Congress_Captcha.
+ */
+require_once plugin_dir_path( __FILE__ ) .
+	'class-congress-captcha.php';
+
+/**
+ * Imports Congress_State_Settings.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'admin/partials/states/class-congress-state-settings.php';
+
+/**
  * Fired during plugin deactivation.
  *
  * This class defines all code necessary to run during the plugin's deactivation.
@@ -64,6 +88,17 @@ class Congress_Deactivator {
 	}
 
 	/**
+	 * Delete WordPress options.
+	 */
+	private static function clean_options(): void {
+		Congress_State_Settings::clean_all_settings();
+		delete_option( Congress_Captcha::$server_key_options_name );
+		delete_option( Congress_Captcha::$client_key_options_name );
+		delete_option( Congress_Congress_API::$options_name );
+		delete_option( Congress_Google_Places_API::$options_name );
+	}
+
+	/**
 	 * Handles plugin deactivation.
 	 *
 	 * Cleans up plugin tables.
@@ -72,6 +107,7 @@ class Congress_Deactivator {
 	 */
 	public static function deactivate(): void {
 		self::clean_cron();
+		self::clean_options();
 		self::clean_tables();
 	}
 }
