@@ -768,10 +768,11 @@
           function() {
 
             const form = I.getForm();
-            const districtText = ( "" === form.district.value ? "" : ` District${form.district.value}` );
-            I.$el.find( ".congress-official-readonly > span" )
+            const districtText = ( "" === form.district.value ? "" : ` District ${form.district.value}` );
+            I.$el.children( ".congress-official-readonly" )
+              .children( "span" )
               .text(
-`${form.level.value} ${form.title.value} ${form.first_name.value} ${form.last_name.value} \
+`${form.level.value.toProperCase()} ${form.title.value} ${form.first_name.value} ${form.last_name.value} \
 (${form.state.value}${districtText})`
               );
 

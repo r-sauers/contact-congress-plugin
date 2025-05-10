@@ -528,15 +528,6 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
-		if ( 0 === $result ) {
-			wp_send_json(
-				array(
-					'error' => 'Malformed request.',
-				),
-				400
-			);
-		}
-
 		wp_send_json( $result );
 	}
 
