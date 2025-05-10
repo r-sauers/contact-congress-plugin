@@ -90,17 +90,31 @@ class Congress_Block {
 			$this->version,
 			true
 		);
-		$option_name    = Congress_Captcha::$client_key_options_name;
-		$options        = get_option( $option_name );
-		$field_name     = Congress_Captcha::$client_key_field_name;
-		$captcha_client = $options[ $field_name ];
-		wp_register_script(
-			'congress-captcha',
-			"https://www.google.com/recaptcha/api.js?render=$captcha_client",
-			array(),
-			$this->version,
-			true
-		);
+		$option_name = Congress_Captcha::$client_key_options_name;
+		$options     = get_option( $option_name );
+		$field_name  = Congress_Captcha::$client_key_field_name;
+		if ( false !== $options && isset( $options[ $field_name ] ) ) {
+			$captcha_client = $options[ $field_name ];
+			wp_register_script(
+				'congress-captcha',
+				"https://www.google.com/recaptcha/api.js?render=$captcha_client",
+				array(),
+				$this->version,
+				true
+			);
+		} else {
+			$url = admin_url( 'admin.php?page=' . Congress_Admin::$main_page_slug );
+			error_log( // phpcs:ignore
+				"Error: Please set the client google recaptcha key for Contact Congress plugin at $url"
+			);
+			wp_register_script(
+				'congress-captcha',
+				'https://www.google.com/recaptcha/api.js',
+				array(),
+				$this->version,
+				true
+			);
+		}
 		wp_localize_script(
 			'congress-form-block',
 			'congressCaptchaObj',

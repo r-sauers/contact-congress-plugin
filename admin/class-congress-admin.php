@@ -46,6 +46,20 @@ require_once plugin_dir_path( __DIR__ ) .
 class Congress_Admin {
 
 	/**
+	 * The name of the page for basic settings.
+	 *
+	 * @var {string}
+	 */
+	public static string $main_page_slug = 'congress';
+
+	/**
+	 * The name of the page for managing campaigns.
+	 *
+	 * @var {string}
+	 */
+	public static string $campaign_page_slug = 'congress_campaign';
+
+	/**
 	 * The name of the page for managing representatives.
 	 *
 	 * @var {string}
@@ -157,7 +171,7 @@ class Congress_Admin {
 				'congressSyncRepsNonce',
 				wp_create_nonce( 'sync-reps' ),
 			);
-		} elseif ( isset( $_GET['page'] ) && 'congress_campaign' === $_GET['page'] ) { // phpcs:ignore
+		} elseif ( isset( $_GET['page'] ) && self::$campaign_page_slug === $_GET['page'] ) { // phpcs:ignore
 			wp_enqueue_script(
 				$this->congress,
 				plugin_dir_url( __FILE__ ) . 'js/congress-admin-campaign.js',
@@ -382,23 +396,23 @@ class Congress_Admin {
 				'Congress',
 				'Congress',
 				'manage_options',
-				'congress',
+				self::$main_page_slug,
 				array( $this, 'congress_options_page_html' )
 			);
 		}
 		if ( current_user_can( 'congress_manage_campaigns' ) ) {
 			add_submenu_page(
-				'congress',
+				self::$main_page_slug,
 				'Campaigns',
 				'Campaigns',
 				'manage_options',
-				'congress_campaign',
+				self::$campaign_page_slug,
 				array( $this, 'congress_campaign_page_html' )
 			);
 		}
 		if ( current_user_can( 'congress_manage_representatives' ) ) {
 			add_submenu_page(
-				'congress',
+				self::$main_page_slug,
 				'Representatives',
 				'Representatives',
 				'manage_options',
@@ -408,7 +422,7 @@ class Congress_Admin {
 		}
 		if ( current_user_can( 'congress_manage_states' ) ) {
 			add_submenu_page(
-				'congress',
+				self::$main_page_slug,
 				'States',
 				'States',
 				'manage_options',
@@ -444,7 +458,7 @@ class Congress_Admin {
 			if ( current_user_can( 'congress_manage_campaigns' ) ) {
 				?>
 				<h2>Campaigns</h2>
-				<p>You can manage campaigns <a href="./admin.php?page=congress_campaign">here</a>!</p>
+				<p>You can manage campaigns <a href="<?php echo esc_attr( './admin.php?page=' . self::$campaign_page_slug ); ?>">here</a>!</p>
 				<?php
 			}
 			return;
