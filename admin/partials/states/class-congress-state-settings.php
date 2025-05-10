@@ -30,7 +30,7 @@ class Congress_State_Settings {
 	private const FIELD_NAME_ACTIVE       = 'active';
 	private const FIELD_NAME_FEDERAL_SYNC = 'federal_sync_enabled';
 	private const FIELD_NAME_STATE_SYNC   = 'state_sync_enabled';
-	private const FIELD_NAME_SYNC_EMAIL   = 'federal_sync_enabled';
+	private const FIELD_NAME_SYNC_EMAIL   = 'sync_email';
 	private const FIELD_NAME_API_ENABLED  = 'api_enabled';
 	private const OPT_NAME_DEFAULT_EMAIL  = 'congress-default-sync-email';
 
@@ -410,7 +410,11 @@ class Congress_State_Settings {
 	 */
 	public function is_federal_sync_enabled(): bool|WP_Error {
 
-		if ( ! $this->is_api_supported() ) {
+		$is_active = $this->is_active();
+
+		if ( is_wp_error( $is_active ) ) {
+			return $is_active;
+		} elseif ( ! $is_active ) {
 			return false;
 		}
 
