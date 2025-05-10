@@ -529,7 +529,7 @@
         $api.toggleClass( "congress-crossed", false );
         $status.toggleClass( "congress-deactivated", false );
         $status.toggleClass( "congress-activated", true );
-        $status.text( "Active!" );
+        $status.text( "Activated!" );
       } else {
         $stateSync.toggleClass( "congress-crossed", true );
         $federalSync.toggleClass( "congress-crossed", true );
