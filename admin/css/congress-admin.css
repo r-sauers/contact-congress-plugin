@@ -398,14 +398,6 @@ li:not(:last-child) > .congress-campaign-email-container {
 	}
 }
 
-.congress-official-readonly > *:nth-child(1),
-.congress-card-header > *:nth-child(1) {
-	width: 35%;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
 #congress-rep-actions-header {
 	display: flex;
 	max-width: 66em;

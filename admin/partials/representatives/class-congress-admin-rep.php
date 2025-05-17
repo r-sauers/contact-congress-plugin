@@ -228,7 +228,7 @@ class Congress_Admin_Rep {
 				</div>
 			</form>
 			<div class="congress-official-readonly">
-				<span><?php echo esc_html( "$level_text $this->title $this->first_name $this->last_name ($this->state$district_text)" ); ?></span>
+				<span style="width: 50%;"><?php echo esc_html( "$level_text $this->title $this->first_name $this->last_name ($this->state$district_text)" ); ?></span>
 				<button class="congress-staffer-toggle button">
 					Emails 
 					(<span class="congress-staffer-count"><?php echo esc_html( $staffer_count ); ?></span>)

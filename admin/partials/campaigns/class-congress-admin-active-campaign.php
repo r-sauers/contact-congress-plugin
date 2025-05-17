@@ -141,7 +141,7 @@ class Congress_Admin_Active_Campaign {
 		?>
 <div class="congress-card">
 	<div class="congress-card-header">
-		<span><?php echo esc_html( "$this->name (" . $region_display . ')' ); ?></span>
+		<span style="width: 50%;"><?php echo esc_html( "$this->name (" . $region_display . ')' ); ?></span>
 		<form method="post" action="archive_campaign" class="congress-campaign-archive-form">
 			<div class="congress-form-group">
 				<button class="congress-campaign-archive button">Archive</button>
