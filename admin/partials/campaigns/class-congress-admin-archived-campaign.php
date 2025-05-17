@@ -132,9 +132,12 @@ class Congress_Admin_Archived_Campaign {
 		?>
 		<div class="congress-card">
 			<div class="congress-card-header">
-				<span><?php echo esc_html( "$this->name ($region_display)" ); ?></span>
-				<span><?php echo esc_html( "$this->num_emails emails sent!" ); ?></span>
-				<span><?php echo esc_html( "$created_string - $archived_string" ); ?></span>
+				<span style="width: 30%; display: inline-block;">
+					<?php echo esc_html( "$this->name ($region_display)" ); ?></span>
+				<span style="width: 15%; display: inline-block;">
+					<?php echo esc_html( "$this->num_emails emails sent!" ); ?></span>
+				<span style="width: 30%; display: inline-block;">
+					<?php echo esc_html( "$created_string - $archived_string" ); ?></span>
 				<form method="post" action="delete_archived_campaign" class="congress-campaign-delete-form">
 					<input type="hidden" name="id" value="<?php echo esc_attr( $this->id ); ?>">
 					<?php wp_nonce_field( "delete-archived-campaign_$this->id" ); ?>

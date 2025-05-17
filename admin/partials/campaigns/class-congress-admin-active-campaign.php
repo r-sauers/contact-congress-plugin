@@ -141,7 +141,7 @@ class Congress_Admin_Active_Campaign {
 		?>
 <div class="congress-card">
 	<div class="congress-card-header">
-		<span><?php echo esc_html( "$this->name (" . $region_display . ')' ); ?></span>
+		<span style="width: 50%;"><?php echo esc_html( "$this->name (" . $region_display . ')' ); ?></span>
 		<form method="post" action="archive_campaign" class="congress-campaign-archive-form">
 			<div class="congress-form-group">
 				<button class="congress-campaign-archive button">Archive</button>
@@ -152,7 +152,19 @@ class Congress_Admin_Active_Campaign {
 			wp_nonce_field( "archive-campaign_$this->string_id" );
 			?>
 		</form>
-		<button class="congress-campaign-toggle button button-primary"><?php echo esc_html( $editing ? 'Less ^' : 'More >' ); ?></button>
+		<button class="congress-campaign-toggle button button-primary">
+			<?php
+			if ( $editing ) {
+				?>
+				Less <span class="material-symbols-outlined">remove</span>
+				<?php
+			} else {
+				?>
+				More <span class="material-symbols-outlined">add</span>
+				<?php
+			}
+			?>
+		</button>
 	</div>
 	<div class="congress-card-body<?php echo esc_attr( $editing ? '' : ' congress-hidden' ); ?>">
 		<div class="congress-campaign-pages-container">

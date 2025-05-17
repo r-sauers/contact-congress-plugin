@@ -463,12 +463,14 @@
       if ( open ) {
         $toggle.append( document.createTextNode( "Less" ) );
         $( "<span>" )
-          .addClass( "congress-icon-minus" )
+          .addClass( "material-symbols-outlined" )
+          .text( "remove" )
           .appendTo( $toggle );
       } else {
         $toggle.append( document.createTextNode( "More" ) );
         $( "<span>" )
-          .addClass( "congress-icon-plus" )
+          .addClass( "material-symbols-outlined" )
+          .text( "add" )
           .appendTo( $toggle );
       }
     }
@@ -529,7 +531,7 @@
         $api.toggleClass( "congress-crossed", false );
         $status.toggleClass( "congress-deactivated", false );
         $status.toggleClass( "congress-activated", true );
-        $status.text( "Active!" );
+        $status.text( "Activated!" );
       } else {
         $stateSync.toggleClass( "congress-crossed", true );
         $federalSync.toggleClass( "congress-crossed", true );

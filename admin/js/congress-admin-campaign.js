@@ -1152,10 +1152,25 @@
       const isHidden = this._$campaignBody.hasClass( "congress-hidden" );
 
       if ( isHidden ) {
-        this._$expandToggle.text( "More >" );
+        this._$expandToggle
+          .empty()
+          .append( document.createTextNode( "More" ) );
+
+        $( "<span>" )
+          .addClass( "material-symbols-outlined" )
+          .text( "add" )
+          .appendTo( this._$expandToggle );
       } else {
-        this._$expandToggle.text( "Less ^" );
+        this._$expandToggle
+          .empty()
+          .append( document.createTextNode( "Less" ) );
+
+        $( "<span>" )
+          .addClass( "material-symbols-outlined" )
+          .text( "remove" )
+          .appendTo( this._$expandToggle );
       }
+
       const data = {
         campaign: this,
         func: this.toggleExpansion,
@@ -1315,9 +1330,23 @@
 
       this._$campaignBody.toggleClass( "congress-hidden", isHidden );
       if ( isHidden ) {
-        this._$expandToggle.text( "More >" );
+        this._$expandToggle
+          .empty()
+          .append( document.createTextNode( "More" ) );
+
+        $( "<span>" )
+          .addClass( "material-symbols-outlined" )
+          .text( "add" )
+          .appendTo( this._$expandToggle );
       } else {
-        this._$expandToggle.text( "Less ^" );
+        this._$expandToggle
+          .empty()
+          .append( document.createTextNode( "Less" ) );
+
+        $( "<span>" )
+          .addClass( "material-symbols-outlined" )
+          .text( "remove" )
+          .appendTo( this._$expandToggle );
       }
 
       this.scrollTo();

@@ -162,26 +162,6 @@
 		}
 	}
 
-	.congress-icon-plus {
-		margin-top: -1em;
-		transform: translateY(0.6em);
-		margin-right: -0.5em;
-		width: 2em;
-		height: 2em;
-		display: inline-block;
-		background-image: url(data:image/svg+xml;base64,PCEtLSBGcm9tIHd3dy5zdmdyZXBvLmNvbSAtLT4KPHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDEySDE4TTEyIDZWMTgiIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==);
-	}
-
-	.congress-icon-minus {
-		margin-top: -1em;
-		transform: translateY(0.6em);
-		margin-right: -0.5em;
-		width: 2em;
-		height: 2em;
-		display: inline-block;
-		background-image: url(data:image/svg+xml;base64,PCEtLSBGcm9tIHd3dy5zdmdyZXBvLmNvbSAtLT4KPHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDEyTDE4IDEyIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo=);
-	}
-
 	.congress-state-row-expansion {
 		display: none;
 

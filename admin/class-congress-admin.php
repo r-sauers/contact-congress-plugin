@@ -46,6 +46,20 @@ require_once plugin_dir_path( __DIR__ ) .
 class Congress_Admin {
 
 	/**
+	 * The name of the page for basic settings.
+	 *
+	 * @var {string}
+	 */
+	public static string $main_page_slug = 'congress';
+
+	/**
+	 * The name of the page for managing campaigns.
+	 *
+	 * @var {string}
+	 */
+	public static string $campaign_page_slug = 'congress_campaign';
+
+	/**
 	 * The name of the page for managing representatives.
 	 *
 	 * @var {string}
@@ -115,6 +129,14 @@ class Congress_Admin {
 			'all'
 		);
 
+		wp_enqueue_style(
+			$this->congress . '-google-icons',
+			'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=add,remove',
+			array(),
+			$this->version,
+			'all'
+		);
+
 		if ( isset( $_GET['page'] ) && self::$state_page_slug === $_GET['page'] ) { // phpcs:ignore
 			wp_enqueue_style(
 				$this->congress . '-state',
@@ -157,7 +179,7 @@ class Congress_Admin {
 				'congressSyncRepsNonce',
 				wp_create_nonce( 'sync-reps' ),
 			);
-		} elseif ( isset( $_GET['page'] ) && 'congress_campaign' === $_GET['page'] ) { // phpcs:ignore
+		} elseif ( isset( $_GET['page'] ) && self::$campaign_page_slug === $_GET['page'] ) { // phpcs:ignore
 			wp_enqueue_script(
 				$this->congress,
 				plugin_dir_url( __FILE__ ) . 'js/congress-admin-campaign.js',
@@ -198,7 +220,7 @@ class Congress_Admin {
 		register_setting( 'congress', 'congress_options' );
 		add_settings_section(
 			'congress_section_api_keys',
-			__( 'Contact Congress API keys', 'congress' ),
+			__( 'Contact Congress Keys & Secrets', 'congress' ),
 			array( $this, 'section_api_keys_callback' ),
 			'congress'
 		);
@@ -225,23 +247,23 @@ class Congress_Admin {
 		);
 
 		add_settings_field(
-			Congress_Captcha::$server_key_field_name,
-			__( "Server's Google Captcha Key", 'congress' ),
-			array( $this, 'congress_field_captcha_server_cb' ),
-			'congress',
-			'congress_section_api_keys',
-			array(
-				'label_for' => Congress_Captcha::$server_key_field_name,
-			)
-		);
-		add_settings_field(
 			Congress_Captcha::$client_key_field_name,
-			__( "Client's Google Captcha Key", 'congress' ),
+			__( 'Google reCAPTCHA Site Key', 'congress' ),
 			array( $this, 'congress_field_captcha_client_cb' ),
 			'congress',
 			'congress_section_api_keys',
 			array(
 				'label_for' => Congress_Captcha::$client_key_field_name,
+			)
+		);
+		add_settings_field(
+			Congress_Captcha::$server_key_field_name,
+			__( 'Google reCAPTCHA Secret Key', 'congress' ),
+			array( $this, 'congress_field_captcha_server_cb' ),
+			'congress',
+			'congress_section_api_keys',
+			array(
+				'label_for' => Congress_Captcha::$server_key_field_name,
 			)
 		);
 	}
@@ -251,6 +273,7 @@ class Congress_Admin {
 	 */
 	public function section_api_keys_callback(): void {
 		?>
+		<p>Please set up your keys and secrets below for the Contact Congress Plugin to work correctly.</p>
 		<?php
 	}
 
@@ -382,33 +405,13 @@ class Congress_Admin {
 				'Congress',
 				'Congress',
 				'manage_options',
-				'congress',
+				self::$main_page_slug,
 				array( $this, 'congress_options_page_html' )
-			);
-		}
-		if ( current_user_can( 'congress_manage_campaigns' ) ) {
-			add_submenu_page(
-				'congress',
-				'Campaigns',
-				'Campaigns',
-				'manage_options',
-				'congress_campaign',
-				array( $this, 'congress_campaign_page_html' )
-			);
-		}
-		if ( current_user_can( 'congress_manage_representatives' ) ) {
-			add_submenu_page(
-				'congress',
-				'Representatives',
-				'Representatives',
-				'manage_options',
-				self::$rep_page_slug,
-				array( $this, 'congress_rep_page_html' )
 			);
 		}
 		if ( current_user_can( 'congress_manage_states' ) ) {
 			add_submenu_page(
-				'congress',
+				self::$main_page_slug,
 				'States',
 				'States',
 				'manage_options',
@@ -416,35 +419,166 @@ class Congress_Admin {
 				array( $this, 'congress_state_page_html' )
 			);
 		}
+		if ( current_user_can( 'congress_manage_representatives' ) ) {
+			add_submenu_page(
+				self::$main_page_slug,
+				'Representatives',
+				'Representatives',
+				'manage_options',
+				self::$rep_page_slug,
+				array( $this, 'congress_rep_page_html' )
+			);
+		}
+		if ( current_user_can( 'congress_manage_campaigns' ) ) {
+			add_submenu_page(
+				self::$main_page_slug,
+				'Campaigns',
+				'Campaigns',
+				'manage_options',
+				self::$campaign_page_slug,
+				array( $this, 'congress_campaign_page_html' )
+			);
+		}
+	}
+
+	/**
+	 * Draws 'Next Steps' html on the main admin page if the plugin is not set up adequately.
+	 *
+	 * @return bool for whether or not the html was drawn.
+	 */
+	private function congress_next_steps_html(): bool {
+
+		$state_url    = admin_url( 'admin.php?page=' . self::$state_page_slug );
+		$rep_url      = admin_url( 'admin.php?page=' . self::$rep_page_slug );
+		$campaign_url = admin_url( 'admin.php?page=' . self::$campaign_page_slug );
+
+		$states_enabled = ( 0 !== count( Congress_State_Settings::get_active_states() ) );
+
+		global $wpdb;
+		$rep_t      = Congress_Table_Manager::get_table_name( 'representative' );
+		$res        = $wpdb->query( "SELECT * FROM $rep_t LIMIT 1" ); // phpcs:ignore
+		$reps_added = false;
+		if ( 1 === $res ) {
+			$reps_added = true;
+		}
+
+		$campaign_t      = Congress_Table_Manager::get_table_name( 'campaign' );
+		$res             = $wpdb->query( "SELECT * FROM $campaign_t LIMIT 1" ); // phpcs:ignore
+		$campaigns_added = false;
+		if ( 1 === $res ) {
+			$campaigns_added = true;
+		}
+
+		if ( $states_enabled && $reps_added && $campaigns_added ) {
+			return false;
+		}
+
+		?>
+		<h2>Next Steps:</h2>
+		<ol>
+		<?php
+		if ( current_user_can( 'congress_manage_states' ) ) {
+			?>
+			<li style="<?php echo $states_enabled ? 'text-decoration: line-through;' : ''; ?>">
+				<strong>Enable States:</strong>
+				Manage which states are supported throughout the plugin
+				<a href="<?php echo esc_attr( $state_url ); ?>">here</a>!
+			</li>
+			<?php
+		} else {
+			?>
+			<li style="<?php echo $states_enabled ? 'text-decoration: line-through;' : ''; ?>">
+				<strong>Enable States:</strong>
+				<em>Requires Administrator Role.</em>
+			</li>
+			<?php
+		}
+
+		if ( current_user_can( 'congress_manage_representatives' ) ) {
+			?>
+			<li style="<?php echo $reps_added ? 'text-decoration: line-through;' : ''; ?>">
+				<strong>Add Representatives</strong>
+				Add Representatives automatically (syncing) or manually 
+				<a href="<?php echo esc_attr( $rep_url ); ?>">here!</a>
+			</li>
+			<?php
+		} else {
+			?>
+			<li style="<?php echo $reps_added ? 'text-decoration: line-through;' : ''; ?>">
+				<strong>Add Representatives</strong>
+				<em>Requires Author, Editor, or Administrator Roles.</em>
+			</li>
+			<?php
+		}
+
+		if ( current_user_can( 'congress_manage_campaigns' ) ) {
+			?>
+			<li style="<?php echo $campaigns_added ? 'text-decoration: line-through;' : ''; ?>">
+				<strong>Add Campaigns</strong>
+				Add Campaigns for policy issues
+				<a href="<?php echo esc_attr( $campaign_url ); ?>">here!</a>
+			</li>
+			<?php
+		} else {
+			?>
+			<li style="<?php echo $campaigns_added ? 'text-decoration: line-through;' : ''; ?>">
+				<strong>Add Campaigns</strong>
+				<em>Requires Author, Editor, or Administrator Roles.</em>
+			</li>
+			<?php
+		}
+		?>
+		</ol>
+		<?php
+
+		return true;
 	}
 
 	/**
 	 * Top level menu callback function
 	 */
 	public function congress_options_page_html(): void {
+
 		// check user capabilities.
 		if ( ! current_user_can( 'congress_manage_keys' ) ) {
-			$form_url = admin_url( 'admin.php?page=' . self::$rep_page_slug );
+			$state_url    = admin_url( 'admin.php?page=' . self::$state_page_slug );
+			$rep_url      = admin_url( 'admin.php?page=' . self::$rep_page_slug );
+			$campaign_url = admin_url( 'admin.php?page=' . self::$campaign_page_slug );
 			?>
 			<h1>Contact Congress Admin Panel</h1>
+
 			<h2>Settings</h2>
 			<p>You do not have permissions to manage the settings for the Contact Congress Plugin. A website admin must give you one of the following roles:<p>
 			<ul style="list-style: disc; padding-left: 1.5em;">
 				<li>Administrator</li>
 			</ul>
+
 			<?php
+			if (
+				current_user_can( 'congress_manage_states' ) ||
+				current_user_can( 'congress_manage_representatives' ) ||
+				current_user_can( 'congress_manage_campaigns' )
+			) {
+				?>
+				<p>You have permission to manage the following:</p>
+				<?php
+			}
+			if ( current_user_can( 'congress_manage_states' ) ) {
+				?>
+				<h2>States</h2>
+				<p>You can manage which states are supported <a href="<?php echo esc_attr( $state_url ); ?>">here</a>!</p>
+				<?php
+			}
 			if ( current_user_can( 'congress_manage_representatives' ) ) {
 				?>
 				<h2>Representatives</h2>
-				<p>You can manage representatives <a href="<?php echo esc_attr( $form_url ); ?>">here</a>!</p>
+				<p>You can manage representatives <a href="<?php echo esc_attr( $rep_url ); ?>">here</a>!</p>
 				<?php
 			}
-			?>
-			<?php
 			if ( current_user_can( 'congress_manage_campaigns' ) ) {
 				?>
 				<h2>Campaigns</h2>
-				<p>You can manage campaigns <a href="./admin.php?page=congress_campaign">here</a>!</p>
+				<p>You can manage campaigns <a href="<?php echo esc_attr( $campaign_url ); ?>">here</a>!</p>
 				<?php
 			}
 			return;
@@ -476,6 +610,52 @@ class Congress_Admin {
 				submit_button( 'Save Settings' );
 				?>
 			</form>
+			<?php
+
+			if (
+				current_user_can( 'congress_manage_states' ) ||
+				current_user_can( 'congress_manage_representatives' ) ||
+				current_user_can( 'congress_manage_campaigns' )
+			) {
+
+				$state_url    = admin_url( 'admin.php?page=' . self::$state_page_slug );
+				$rep_url      = admin_url( 'admin.php?page=' . self::$rep_page_slug );
+				$campaign_url = admin_url( 'admin.php?page=' . self::$campaign_page_slug );
+
+				if ( ! $this->congress_next_steps_html() ) {
+					?>
+					<h2>Manage State, Representative and Campaign pages below!</h2>
+					<ul>
+					<?php
+					if ( current_user_can( 'congress_manage_states' ) ) {
+						?>
+						<li><strong>Enable States:</strong>
+							Manage which states are supported throughout the plugin
+							<a href="<?php echo esc_attr( $state_url ); ?>">here</a>!</li>
+						<?php
+					}
+
+					if ( current_user_can( 'congress_manage_representatives' ) ) {
+						?>
+						<li><strong>Add Representatives:</strong>
+							Add Representatives automatically (syncing) or manually 
+							<a href="<?php echo esc_attr( $rep_url ); ?>">here!</a></li>
+						<?php
+					}
+
+					if ( current_user_can( 'congress_manage_campaigns' ) ) {
+						?>
+						<li><strong>Add Campaigns:</strong>
+							Add Campaigns for policy issues
+							<a href="<?php echo esc_attr( $campaign_url ); ?>">here!</a></li>
+						<?php
+					}
+					?>
+					</ul>
+					<?php
+				}
+			}
+			?>
 		</div>
 		<?php
 	}

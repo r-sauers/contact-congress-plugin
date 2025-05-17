@@ -378,7 +378,7 @@ class Congress_Rep_Sync {
 				array_push(
 					$placeholders,
 					Congress_Level::Federal->to_db_string(),
-					$federal_level_states
+					...$federal_level_states
 				);
 			}
 			$first_clause = false;
@@ -403,7 +403,7 @@ class Congress_Rep_Sync {
 				array_push(
 					$placeholders,
 					Congress_Level::State->to_db_string(),
-					$state_level_states
+					...$state_level_states
 				);
 			}
 		}
@@ -423,7 +423,27 @@ class Congress_Rep_Sync {
 		// phpcs:enable
 
 		if ( null === $db_reps ) {
-			return new WP_Error( 'DB_FAILURE', 'Failed to get representatives from database.' );
+			// phpcs:disable
+			error_log(
+			 	'Contact Congress Failed Database Call: ' .
+				$wpdb->prepare(
+					'SELECT id, first_name, last_name, district, title, level, state ' .
+					"FROM $rep_t AS r " .
+					$where_clause .
+					'ORDER BY state, district, last_name, first_name',
+					$placeholders
+				)
+			);
+			// phpcs:enable
+			array_push(
+				$errors,
+				new WP_Error( 'DB_FAILURE', 'Failed to get representatives from database.' )
+			);
+			return array(
+				'errors'       => $errors,
+				'reps_added'   => array(),
+				'reps_removed' => array(),
+			);
 		}
 
 		$db_reps = array_map(

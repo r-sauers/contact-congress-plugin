@@ -119,9 +119,11 @@ class Congress_State_Settings {
 		$states = Congress_State::cases();
 
 		foreach ( $states as $state ) {
-			$state_settings = new Congress_Admin_State_Settings( $state );
+			$state_settings = new Congress_State_Settings( $state );
 			$state_settings->clean_options();
 		}
+
+		delete_option( self::OPT_NAME_DEFAULT_EMAIL );
 	}
 
 	/**

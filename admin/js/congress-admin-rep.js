@@ -520,6 +520,8 @@
       editForm.first_name.value = firstName;
       editForm.last_name.value = lastName;
       editForm.email.value = email;
+
+      editForm.email.focus();
     }
   }
 
@@ -676,6 +678,8 @@
         }
       }
 
+      this.$el.find( ".congress-staffer-count" ).text( staffers.length );
+
       const deleteForm = this.$el.find( ".congress-rep-delete-form" )[0];
       deleteForm._wpnonce.value = deleteNonce;
 
@@ -768,10 +772,11 @@
           function() {
 
             const form = I.getForm();
-            const districtText = ( "" === form.district.value ? "" : ` District${form.district.value}` );
-            I.$el.find( ".congress-official-readonly > span" )
+            const districtText = ( "" === form.district.value ? "" : ` District ${form.district.value}` );
+            I.$el.children( ".congress-official-readonly" )
+              .children( "span" )
               .text(
-`${form.level.value} ${form.title.value} ${form.first_name.value} ${form.last_name.value} \
+`${form.level.value.toProperCase()} ${form.title.value} ${form.first_name.value} ${form.last_name.value} \
 (${form.state.value}${districtText})`
               );
 
@@ -799,7 +804,18 @@
      */
     toggleStaffers( evt ) {
       evt.preventDefault();
-      evt.data.toggleClass( "congress-closed" );
+      const $container = evt.data;
+
+      const open = $container.hasClass( "congress-closed" );
+      const $toggleIcon = $container.find( ".congress-staffer-toggle > span.material-symbols-outlined" );
+
+      if ( open ) {
+        $toggleIcon.text( "remove" );
+      } else {
+        $toggleIcon.text( "add" );
+      }
+
+      $container.toggleClass( "congress-closed" );
     }
 
     /**
@@ -886,6 +902,10 @@
    * Initializes event handlers for the sync button.
    */
   function initSync() {
+
+    $( "#congress-sync-form" ).find( "select" ).on( "input", function( ) {
+      $( "#congress-sync-reps-hint" ).text( "" );
+    });
 
     $( "#congress-sync-form" ).on( "submit", function( evt ) {
 

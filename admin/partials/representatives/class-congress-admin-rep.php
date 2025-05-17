@@ -136,6 +136,14 @@ class Congress_Admin_Rep {
 	 * @param bool $editing toggles whether or not the representative is currently being edited.
 	 */
 	public function display( bool $editing = false ): void {
+
+		$staffers      = array();
+		$staffer_count = 0;
+		if ( '' !== $this->rep_id ) {
+			$staffers      = Congress_Admin_Staffer::get_staffers( $this->rep_id );
+			$staffer_count = count( $staffers );
+		}
+
 		?>
 		<div
 			id="<?php echo esc_attr( 'congress-rep-' . $this->rep_id ); ?>"
@@ -220,8 +228,12 @@ class Congress_Admin_Rep {
 				</div>
 			</form>
 			<div class="congress-official-readonly">
-				<span><?php echo esc_html( "$level_text $this->title $this->first_name $this->last_name ($this->state$district_text)" ); ?></span>
-				<button class="congress-staffer-toggle button">Staffers &gt;</button>
+				<span style="width: 50%;"><?php echo esc_html( "$level_text $this->title $this->first_name $this->last_name ($this->state$district_text)" ); ?></span>
+				<button class="congress-staffer-toggle button">
+					Emails 
+					(<span class="congress-staffer-count"><?php echo esc_html( $staffer_count ); ?></span>)
+					<span class="material-symbols-outlined">add</span>
+				</button>
 				<div>
 					<button class="congress-edit-button congress-icon-button"></button>
 					<form class="congress-official-delete-form congress-rep-delete-form">
@@ -235,11 +247,8 @@ class Congress_Admin_Rep {
 			<div class="congress-staffer-container">
 				<div class="congress-staffers-list">
 				<?php
-				if ( '' !== $this->rep_id ) {
-					$staffers = Congress_Admin_Staffer::get_staffers( $this->rep_id );
-					foreach ( $staffers as $staffer ) {
-						$staffer->display();
-					}
+				foreach ( $staffers as $staffer ) {
+					$staffer->display();
 				}
 				?>
 				</div>
@@ -254,7 +263,7 @@ class Congress_Admin_Rep {
 						<?php
 					}
 					?>
-				>Add Staffer</button>
+				>Add Staffer Email</button>
 			</div>
 		</div>
 		<?php

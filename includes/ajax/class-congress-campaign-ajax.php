@@ -542,7 +542,7 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 			$wpdb->prepare(
 				"SELECT $campaign.id, name, ifnull( state, 'FEDERAL' ) as region, email_count, archived_date, created_date FROM $archived_campaign " .
 				"INNER JOIN $campaign ON $archived_campaign.id = $campaign.id " .
-				"LEFT JOIN $campaign ON $campaign_state.campaign_id = $campaign.id",
+				"LEFT JOIN $campaign_state ON $campaign_state.campaign_id = $campaign.id",
 				"WHERE $campaign.id = %d",
 				array( $campaign_id )
 			),
