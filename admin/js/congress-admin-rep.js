@@ -802,7 +802,18 @@
      */
     toggleStaffers( evt ) {
       evt.preventDefault();
-      evt.data.toggleClass( "congress-closed" );
+      const $container = evt.data;
+
+      const open = $container.hasClass( "congress-closed" );
+      const $toggleIcon = $container.find( ".congress-staffer-toggle > span" );
+
+      if ( open ) {
+        $toggleIcon.text( "remove" );
+      } else {
+        $toggleIcon.text( "add" );
+      }
+
+      $container.toggleClass( "congress-closed" );
     }
 
     /**

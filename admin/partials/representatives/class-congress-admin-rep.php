@@ -221,7 +221,7 @@ class Congress_Admin_Rep {
 			</form>
 			<div class="congress-official-readonly">
 				<span><?php echo esc_html( "$level_text $this->title $this->first_name $this->last_name ($this->state$district_text)" ); ?></span>
-				<button class="congress-staffer-toggle button">Staffers &gt;</button>
+				<button class="congress-staffer-toggle button">Emails <span class="material-symbols-outlined">add</span></button>
 				<div>
 					<button class="congress-edit-button congress-icon-button"></button>
 					<form class="congress-official-delete-form congress-rep-delete-form">

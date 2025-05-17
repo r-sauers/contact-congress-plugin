@@ -463,12 +463,14 @@
       if ( open ) {
         $toggle.append( document.createTextNode( "Less" ) );
         $( "<span>" )
-          .addClass( "congress-icon-minus" )
+          .addClass( "material-symbols-outlined" )
+          .text( "remove" )
           .appendTo( $toggle );
       } else {
         $toggle.append( document.createTextNode( "More" ) );
         $( "<span>" )
-          .addClass( "congress-icon-plus" )
+          .addClass( "material-symbols-outlined" )
+          .text( "add" )
           .appendTo( $toggle );
       }
     }

@@ -129,6 +129,14 @@ class Congress_Admin {
 			'all'
 		);
 
+		wp_enqueue_style(
+			$this->congress . '-google-icons',
+			'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=add,remove',
+			array(),
+			$this->version,
+			'all'
+		);
+
 		if ( isset( $_GET['page'] ) && self::$state_page_slug === $_GET['page'] ) { // phpcs:ignore
 			wp_enqueue_style(
 				$this->congress . '-state',
