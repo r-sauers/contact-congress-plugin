@@ -520,6 +520,8 @@
       editForm.first_name.value = firstName;
       editForm.last_name.value = lastName;
       editForm.email.value = email;
+
+      editForm.email.focus();
     }
   }
 
