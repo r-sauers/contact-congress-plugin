@@ -34,6 +34,18 @@ require_once plugin_dir_path( __DIR__ ) .
 	'includes/class-congress-captcha.php';
 
 /**
+ * Imports Congress_State_Settings.
+ */
+require_once plugin_dir_path( __FILE__ ) .
+	'/partials/states/class-congress-state-settings.php';
+
+/**
+ * Imports Congress_Table_Manager.
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'includes/class-congress-table-manager.php';
+
+/**
  * The admin-specific functionality of the plugin.
  *
  * Defines the plugin name, version, and two examples hooks for how to
