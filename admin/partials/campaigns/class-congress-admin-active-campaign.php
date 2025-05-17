@@ -141,7 +141,10 @@ class Congress_Admin_Active_Campaign {
 		?>
 <div class="congress-card">
 	<div class="congress-card-header">
-		<span style="width: 50%;"><?php echo esc_html( "$this->name (" . $region_display . ')' ); ?></span>
+		<span class="congress-campaign-header" style="width: 40%;">
+			<?php echo esc_html( "$this->name (" . $region_display . ')' ); ?></span>
+		<span class="congress-campaign-email-count" style="width: 10%;">
+			<?php echo esc_html( $this->num_emails ); ?> Emails Sent!</span>
 		<form method="post" action="archive_campaign" class="congress-campaign-archive-form">
 			<div class="congress-form-group">
 				<button class="congress-campaign-archive button">Archive</button>
@@ -331,12 +334,15 @@ class Congress_Admin_Active_Campaign {
 		$campaign_t = Congress_Table_Manager::get_table_name( 'campaign' );
 		$active_t   = Congress_Table_Manager::get_table_name( 'active_campaign' );
 		$state_t    = Congress_Table_Manager::get_table_name( 'campaign_state' );
+		$email_t    = Congress_Table_Manager::get_table_name( 'email' );
 		// phpcs:disable
 		$result     = $wpdb->get_results(
-			"SELECT $active_t.id, name, state " .
+			"SELECT $active_t.id, name, state, COUNT( $active_t.id ) AS email_count " .
 			"FROM $active_t " .
 			"LEFT JOIN $campaign_t ON $active_t.id = $campaign_t.id " .
-			"LEFT JOIN $state_t ON $active_t.id = $state_t.campaign_id"
+			"LEFT JOIN $state_t ON $active_t.id = $state_t.campaign_id " .
+			"LEFT JOIN $email_t ON $active_t.id = $email_t.campaign_id " .
+			"GROUP BY $active_t.id"
 		);
 		// phpcs:enable
 
@@ -354,7 +360,7 @@ class Congress_Admin_Active_Campaign {
 					$campaign_result->id,
 					$campaign_result->name,
 					$region,
-					0,
+					$campaign_result->email_count,
 				),
 			);
 		}
