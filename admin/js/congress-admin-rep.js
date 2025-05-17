@@ -291,6 +291,13 @@
   class Staffer extends AbstractOfficial {
 
     /**
+     * The staffer's representative.
+     *
+     * @type {Rep}
+     */
+    rep;
+
+    /**
      * The id of the staffer's representative.
      */
     repID;
@@ -312,13 +319,14 @@
      * @param {jQueryElement} $repContainer is the container for the representative's staffers.
      * @param {string} createNonce is the nonce used to request the staffer be created.
      */
-    constructor({ repID, $repContainer, createNonce }) {
+    constructor({ repID, $repContainer, createNonce, rep }) {
       super();
       this.repID = repID;
       this.$container = $repContainer.find( ".congress-staffers-list" );
       this.$template = $( "#congress-staffer-template" );
       this.created = false;
       this.createNonce = createNonce;
+      this.rep = rep;
     }
 
     /**
@@ -343,8 +351,8 @@
      * @param {string} createNonce
      * @param {Object} json
      */
-    static fromJSON( repID, $repContainer, createNonce, json ) {
-      const staffer = new Staffer({ repID, $repContainer, createNonce });
+    static fromJSON( rep, repID, $repContainer, createNonce, json ) {
+      const staffer = new Staffer({ repID, $repContainer, createNonce, rep });
       staffer.drawTemplate();
       staffer.stafferID = parseInt( json.id );
       staffer.initHTML({
@@ -440,6 +448,8 @@
               deleteNonce: deleteNonce
             });
 
+            I.rep.addStaffer();
+
             resolve( id );
           }
         );
@@ -461,6 +471,7 @@
             "_wpnonce": formData.get( "_wpnonce" )
           },
           function() {
+            I.rep.removeStaffer();
             resolve();
           }
         );
@@ -536,6 +547,13 @@
     repID;
 
     /**
+     * The number of staffers/emails for the representative.
+     *
+     * @type {number}
+     */
+    stafferCount;
+
+    /**
      * Gets the container to store representatives in.
      *
      * @return {JQueryElement}
@@ -552,6 +570,7 @@
       this.$container = $( "#congress-reps-container" );
       this.$template = $( "#congress-rep-template" );
       this.created = false;
+      this.stafferCount = 0;
     }
 
     /**
@@ -564,6 +583,7 @@
       rep.$el = $el;
       rep.repID = parseInt( $el.find( "form" )[0].rep_id.value );
       rep.created = true;
+      rep.stafferCount = $el.find( ".congress-staffers-list" ).children().length;
       return rep;
     }
 
@@ -589,9 +609,26 @@
         createNonce: json.createNonce,
         staffers: json.staffers || null
       });
+      rep.stafferCount = json.staffers.length;
       rep.toggleEdit();
       rep.created = true;
       return rep;
+    }
+
+    /**
+     * Call this to let the representative know one of their staffers was removed.
+     */
+    removeStaffer() {
+      this.stafferCount -= 1;
+      this.$el.find( ".congress-staffer-count" ).text( this.stafferCount );
+    }
+
+    /**
+     * Call this to let the representative know a staffer was added.
+     */
+    addStaffer() {
+      this.stafferCount += 1;
+      this.$el.find( ".congress-staffer-count" ).text( this.stafferCount );
     }
 
     /**
@@ -661,7 +698,8 @@
         {
           repID: id,
           $repContainer: this.$el,
-          createNonce: createNonce
+          createNonce: createNonce,
+          rep: this
         },
         {
           title: title,
@@ -674,7 +712,7 @@
 
       if ( null !== staffers ) {
         for ( let staffer of staffers ) {
-          Staffer.fromJSON( id, this.$el, createNonce, staffer );
+          Staffer.fromJSON( this, id, this.$el, createNonce, staffer );
         }
       }
 
@@ -993,7 +1031,8 @@
         {
           repID: rep.getID(),
           $repContainer: $repContainer,
-          createNonce: $stafferContainer.find( ".congress-add-staffer-button" ).first().attr( "createNonce" )
+          createNonce: $stafferContainer.find( ".congress-add-staffer-button" ).first().attr( "createNonce" ),
+          rep: rep
         },
         {
           title: repEditForm.title.value,
@@ -1008,7 +1047,8 @@
       $staffersList.children().each( function() {
         const staffer = Staffer.fromHTML( $( this ), {
           repID: rep.getID(),
-          $repContainer: $repContainer
+          $repContainer: $repContainer,
+          rep: rep
         });
         staffer.addEditingEvents();
       });
