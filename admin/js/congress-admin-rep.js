@@ -678,6 +678,8 @@
         }
       }
 
+      this.$el.find( ".congress-staffer-count" ).text( staffers.length );
+
       const deleteForm = this.$el.find( ".congress-rep-delete-form" )[0];
       deleteForm._wpnonce.value = deleteNonce;
 
@@ -805,7 +807,7 @@
       const $container = evt.data;
 
       const open = $container.hasClass( "congress-closed" );
-      const $toggleIcon = $container.find( ".congress-staffer-toggle > span" );
+      const $toggleIcon = $container.find( ".congress-staffer-toggle > span.material-symbols-outlined" );
 
       if ( open ) {
         $toggleIcon.text( "remove" );
