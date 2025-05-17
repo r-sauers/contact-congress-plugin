@@ -33,21 +33,24 @@
 	display: none;
 }
 
+.congress-campaign-list > li {
+	margin: 0;
+}
 
 .congress-rep-container,
 .congress-card {
 	border: 1px solid var(--congress-border-color);
-	border-radius: 0.5rem;
-	margin-bottom: 1em;
+	border-radius: 0.1rem;
+	margin-bottom: -0.2em;
 
 	& > .congress-official-readonly,
 	& > .congress-official-editable,
 	& > .congress-card-header {
-		padding: 1em;
+		font-size: 1.1em;
+		padding: 0.3em 1em;
 		background-color: var(--congress-bg-color);
 		border-bottom: 1px solid var(--congress-border-color);
-		border-radius: 0.5rem;
-
+		border-radius: 0.1rem;
 	}
 }
 
@@ -395,6 +398,14 @@ li:not(:last-child) > .congress-campaign-email-container {
 	}
 }
 
+.congress-official-readonly > *:nth-child(1),
+.congress-card-header > *:nth-child(1) {
+	width: 35%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
 #congress-rep-actions-header {
 	display: flex;
 	max-width: 66em;
@@ -420,6 +431,10 @@ li:not(:last-child) > .congress-campaign-email-container {
 			text-align: center;
 		}
 	}
+}
+
+button.congress-campaign-toggle {
+	width: 6em;
 }
 
 #congress-campaign-add {

@@ -152,7 +152,19 @@ class Congress_Admin_Active_Campaign {
 			wp_nonce_field( "archive-campaign_$this->string_id" );
 			?>
 		</form>
-		<button class="congress-campaign-toggle button button-primary"><?php echo esc_html( $editing ? 'Less ^' : 'More >' ); ?></button>
+		<button class="congress-campaign-toggle button button-primary">
+			<?php
+			if ( $editing ) {
+				?>
+				Less <span class="material-symbols-outlined">remove</span>
+				<?php
+			} else {
+				?>
+				More <span class="material-symbols-outlined">add</span>
+				<?php
+			}
+			?>
+		</button>
 	</div>
 	<div class="congress-card-body<?php echo esc_attr( $editing ? '' : ' congress-hidden' ); ?>">
 		<div class="congress-campaign-pages-container">
