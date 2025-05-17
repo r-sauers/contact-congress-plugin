@@ -888,6 +888,10 @@
    */
   function initSync() {
 
+    $( "#congress-sync-form" ).find( "select" ).on( "input", function( ) {
+      $( "#congress-sync-reps-hint" ).text( "" );
+    });
+
     $( "#congress-sync-form" ).on( "submit", function( evt ) {
 
       evt.preventDefault();
