@@ -418,7 +418,8 @@ class Congress_Admin {
 				'Congress',
 				'manage_options',
 				self::$main_page_slug,
-				array( $this, 'congress_options_page_html' )
+				array( $this, 'congress_options_page_html' ),
+				'dashicons-bank'
 			);
 		}
 		if ( current_user_can( 'congress_manage_states' ) ) {
