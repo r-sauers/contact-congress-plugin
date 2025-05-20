@@ -1,8 +1,8 @@
 congress-volume
-thoughts.txt
 node_modules
 
 vendor
+bower_components
 
 ## Blocks ##
 # Logs

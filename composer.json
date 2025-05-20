@@ -9,10 +9,9 @@
         "wpreadme2markdown/wp2md": "*"
     },
     "scripts": {
-        "diff": "diff -r . ./congress-volume --exclude vendor --exclude docker --exclude .git --exclude .gitignore --exclude congress.zip --exclude node_modules --exclude build",
-        "cp-to-volume": "sudo rsync -av --progress --chown=www-data:www-data ./* ./congress-volume/ --exclude node_modules --exclude congress-volume --exclude vendor --exclude docker --exclude .git --exclude .gitignore --exclude congress.zip; sudo setfacl -R -m \"u:$(whoami):rwx\" ./congress-volume/;",
-        "cp-from-volume": "rsync -av --progress ./congress-volume/* . --exclude node_modules --exclude vendor --exclude .git --exclude .gitignore",
-        "format": "prettier --write .",
+        "diff": "diff -r . ./congress-volume --exclude vendor --exclude bower_components --exclude docker --exclude .git --exclude .gitignore --exclude congress.zip --exclude node_modules --exclude build",
+        "cp-to-volume": "sudo rsync -av --progress --chown=www-data:www-data ./* ./congress-volume/ --exclude node_modules --exclude congress-volume --exclude vendor --exclude bower_components --exclude docker --exclude .git --exclude .gitignore --exclude congress.zip; sudo setfacl -R -m \"u:$(whoami):rwx\" ./congress-volume/;",
+        "cp-from-volume": "rsync -av --progress ./congress-volume/* . --exclude node_modules --exclude vendor --exclude bower_components --exclude .git --exclude .gitignore",
         "lint:php": "vendor/bin/phpcs .",
         "fix:php": "vendor/bin/phpcbf .",
         "lint:js": "npx eslint \"./admin/js/*.js\" \"./public/js/*.js\" \"./blocks/src/*/*.jsx\"",
@@ -21,9 +20,9 @@
         "fix:css": "npx stylelint --fix \"./admin/css/*.css\" \"./public/css/*.css\" \"./blocks/src/*/*.css\"",
         "lint": ["@lint:php", "@lint:js", "@lint:css"],
         "fix": ["@fix:php", "@fix:js", "@fix:css"],
-        "dev": "npx wp-scripts start --webpack-copy-php --source-path=./blocks/src --output-path=./blocks/build",
-        "build": "npx wp-scripts build --webpack-copy-php --source-path=./blocks/src --output-path=./blocks/build; npx wp-scripts plugin-zip",
-        "packages-update": "npx wp-scripts packages-update",
+        "dev": "cp bower_components/select2/dist/js/select2.min.js public/js/select2.min.js; cp bower_components/select2/dist/js/select2.min.css public/css/select2.min.css; npx wp-scripts start --webpack-copy-php --source-path=./blocks/src --output-path=./blocks/build",
+        "build": "cp bower_components/select2/dist/js/select2.min.js public/js/select2.min.js; cp bower_components/select2/dist/js/select2.min.css public/css/select2.min.css; npx wp-scripts build --webpack-copy-php --source-path=./blocks/src --output-path=./blocks/build; npx wp-scripts plugin-zip",
+        "packages-update": "npx wp-scripts packages-update; composer update; npm update; bower update",
         "update-readme.md": "wp2md -i readme.txt -o README.md"
     },
     "require": {

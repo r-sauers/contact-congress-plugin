@@ -1,0 +1,26 @@
+{
+  "name": "congress",
+  "description": "A wordpress plugin to contact members of congress",
+  "main": "congress.php",
+  "authors": [
+    "Ryan Sauers"
+  ],
+  "license": "GPL-2.0-or-later",
+  "keywords": [
+    "congress",
+    "legislature"
+  ],
+  "homepage": "https://github.com/r-sauers/contact-congress-plugin",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "vendor",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "select2": "^4.0.13"
+  }
+}

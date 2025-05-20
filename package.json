@@ -20,7 +20,6 @@
         "dev": "composer run dev",
         "build": "composer run build",
         "packages-update": "composer run packages-update"
-
     },
     "dependencies": {
         "prop-types": "^15.8.1",
