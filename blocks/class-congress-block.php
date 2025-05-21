@@ -63,7 +63,7 @@ class Congress_Block {
 	public function enqueue_styles(): void {
 		wp_register_style(
 			'congress-select2',
-			plugins_url( 'public/css/select2.min.css', __FILE__ ),
+			plugins_url( 'public/css/select2.min.css', __DIR__ ),
 			array(),
 			$this->version,
 			'all'
@@ -85,7 +85,7 @@ class Congress_Block {
 		);
 		wp_register_script(
 			'congress-select2',
-			plugins_url( 'public/js/select2.min.js', __FILE__ ),
+			plugins_url( 'public/js/select2.min.js', __DIR__ ),
 			array( 'jquery' ),
 			$this->version,
 			true

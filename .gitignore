@@ -1,8 +1,13 @@
 congress-volume
-node_modules
 
+# Packages
+node_modules
 vendor
 bower_components
+
+# Libraries loaded via 'composer run build'
+public/css/select2.min.css
+public/js/select2.min.js
 
 ## Blocks ##
 # Logs

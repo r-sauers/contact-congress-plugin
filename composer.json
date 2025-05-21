@@ -20,8 +20,8 @@
         "fix:css": "npx stylelint --fix \"./admin/css/*.css\" \"./public/css/*.css\" \"./blocks/src/*/*.css\"",
         "lint": ["@lint:php", "@lint:js", "@lint:css"],
         "fix": ["@fix:php", "@fix:js", "@fix:css"],
-        "dev": "cp bower_components/select2/dist/js/select2.min.js public/js/select2.min.js; cp bower_components/select2/dist/js/select2.min.css public/css/select2.min.css; npx wp-scripts start --webpack-copy-php --source-path=./blocks/src --output-path=./blocks/build",
-        "build": "cp bower_components/select2/dist/js/select2.min.js public/js/select2.min.js; cp bower_components/select2/dist/js/select2.min.css public/css/select2.min.css; npx wp-scripts build --webpack-copy-php --source-path=./blocks/src --output-path=./blocks/build; npx wp-scripts plugin-zip",
+        "dev": "cp bower_components/select2/dist/js/select2.min.js public/js/select2.min.js; cp bower_components/select2/dist/css/select2.min.css public/css/select2.min.css; npx wp-scripts start --webpack-copy-php --source-path=./blocks/src --output-path=./blocks/build",
+        "build": "cp bower_components/select2/dist/js/select2.min.js public/js/select2.min.js; cp bower_components/select2/dist/css/select2.min.css public/css/select2.min.css; npx wp-scripts build --webpack-copy-php --source-path=./blocks/src --output-path=./blocks/build; npx wp-scripts plugin-zip",
         "packages-update": "npx wp-scripts packages-update; composer update; npm update; bower update",
         "update-readme.md": "wp2md -i readme.txt -o README.md"
     },
