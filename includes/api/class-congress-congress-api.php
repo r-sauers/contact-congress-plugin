@@ -156,11 +156,17 @@ class Congress_Congress_API {
 			$name_split = explode( ' ', $name_split[1] );
 			$first_name = $name_split[0];
 
+			$img = null;
+
+			if ( isset( $member['depiction'] ) && isset( $member['depiction']['imageUrl'] ) ) {
+				$img = $member['depiction']['imageUrl'];
+			}
+
 			if ( isset( $member['district'] ) ) {
 				$rep = new Congress_Rep_Interface(
 					first_name: $first_name,
 					last_name: $last_name,
-					img: $member['depiction']['imageUrl'],
+					img: $img,
 					district: $member['district'],
 					title: $title,
 					level: Congress_Level::Federal,
@@ -170,7 +176,7 @@ class Congress_Congress_API {
 				$rep = new Congress_Rep_Interface(
 					first_name: $first_name,
 					last_name: $last_name,
-					img: $member['depiction']['imageUrl'],
+					img: $img,
 					title: $title,
 					level: Congress_Level::Federal,
 					state: $state,
