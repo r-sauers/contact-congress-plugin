@@ -15,11 +15,18 @@ const compat = new FlatCompat({
 
 export default [
     {
-        files: [ "**/*.jsx" ],
+        files: [ "**/*.jsx", "**/*.js" ],
         plugins: {react}
     },
     {
-        ignores: [ "**/vendor/", "**/node_modules/" ]
+        ignores: [
+            "**/vendor/",
+            "**/node_modules/",
+            "**/bower_components/",
+            "**/congress-volume/",
+            "**/blocks/build/",
+            "**/*.min.js"
+        ]
     },
     ...compat.extends( "plugin:react/recommended", "wordpress" ),
     {

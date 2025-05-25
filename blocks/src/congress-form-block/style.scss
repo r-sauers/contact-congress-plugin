@@ -8,199 +8,201 @@ $block: "wp-block-congress-form-block";
 $pre: $block + "__";
 
 @mixin expand-when-small {
-  @media (max-width: 700px) {
-      width: 100%;
-      margin-left: 0;
-      margin-right: 0;
-  }
+
+	@media (max-width: 700px) {
+		width: 100%;
+		margin-left: 0;
+		margin-right: 0;
+	}
 }
 
 .select2-container {
-    font-size: 0.75em;
+	font-size: 0.75em;
 }
 
 .#{$block} {
-  padding: 2px;
+	padding: 2px;
 
-  h4 {
-      margin-bottom: 1.0em;
-      margin-top: 1.0em;
-  }
+	h4 {
+		margin-bottom: 1em;
+		margin-top: 1em;
+		font-size: 1em;
+	}
 
-  form {
+	form {
 
-      & > .#{$pre}form-group {
-          margin: 0.5em;
-      }
+		& > .#{$pre}form-group {
+			margin: 0.5em;
+		}
 
-      .#{$pre}form-group {
-          display: flex;
-          flex-wrap: wrap;
+		.#{$pre}form-group {
+			display: flex;
+			flex-wrap: wrap;
 
-          label {
-              width: 25%;
-              @include expand-when-small;
-          }
+			label {
+				width: 25%;
 
-          .#{$pre}form-control {
-              width: 75%;
-              @include expand-when-small;
-              .#{$pre}form-info {   
-                  font-size: 0.7em;
-                  color: gray;
-              }
+				@include expand-when-small;
+			}
 
-              input {
-                  font-size: 1em;
-                  width: calc(100% - 0.5em);
-              }
+			.#{$pre}form-control {
+				width: 75%;
 
-              select {
-                  font-size: 1em;
-                  width: calc(100% - 0.5em);
-                  @include expand-when-small;
-              }
-          }
-      }
+				@include expand-when-small;
+				.#{$pre}form-info {
+					font-size: 0.7em;
+					color: #888;
+				}
 
-      textarea {
-          width: 100%;
-          height: 15em;
-          font-size: 0.7em;
-          resize: none;
-          text-wrap: wrap !important;
-      }
-  }
+				input {
+					font-size: 1em;
+					width: calc(100% - 0.5em);
+				}
 
-  button {
-      border: none;
-      border-radius: 0.2em;
-      padding-top: 0.3em;
-      padding-bottom: 0.3em;
+				select {
+					font-size: 1em;
+					width: calc(100% - 0.5em);
 
-      &.#{$pre}wide {
-          margin-top: 0.3em;
-          margin-bottom: 0.3em;
-          width: 50%;
-          margin-right: 25%;
-          margin-left: 25%;
-          @include expand-when-small;
-      }
+					@include expand-when-small;
+				}
+			}
+		}
 
-      &:disabled,
-      &[disabled]{
-          filter: contrast(50%);
-          cursor: not-allowed;
-      }
-  }
+		textarea {
+			width: 100%;
+			height: 15em;
+			font-size: 0.7em;
+			resize: none;
+			text-wrap: wrap !important;
+		}
+	}
 
-  h4 {
-      font-size: 1em;
-  }
+	button {
+		border: none;
+		border-radius: 0.2em;
+		padding-top: 0.3em;
+		padding-bottom: 0.3em;
 
-  h3 {
-      font-size: 1.2em;
-  }
+		&.#{$pre}wide {
+			margin-top: 0.3em;
+			margin-bottom: 0.3em;
+			width: 50%;
+			margin-right: 25%;
+			margin-left: 25%;
 
-  .#{$pre}rep-form {
-      display: flex;
-      justify-content: space-between;
-      border: 1px solid #CCCCCC;
-      padding: 0.2em 1em;
-      padding-left: 0.2em;
-      border-radius: 0.2em;
-      margin-top: 1em;
-      margin-bottom: 1em;
-      align-items: center;
-      background-color: #F5F5F5;
-      gap: 0.5em;
+			@include expand-when-small;
+		}
 
-      & .#{$pre}pfp, & img {
+		&:disabled,
+		&[disabled] {
+			filter: contrast(50%);
+			cursor: not-allowed;
+		}
+	}
 
-          width: 3em;
-          height: 3em;
-          border-radius: 1.5em;
-          object-fit: cover;
-          object-position: top;
-      }
+	h3 {
+		font-size: 1.2em;
+	}
 
-      .#{$pre}rep-details {
-          display: flex;
-          justify-content: start;
-          column-gap: 0.5em;
-          row-gap: 0.1em;
-          flex-wrap: wrap;
-          flex-grow: 1;
-          align-items: center;
+	.#{$pre}rep-form {
+		display: flex;
+		justify-content: space-between;
+		border: 1px solid #ccc;
+		padding: 0.2em 1em;
+		padding-left: 0.2em;
+		border-radius: 0.2em;
+		margin-top: 1em;
+		margin-bottom: 1em;
+		align-items: center;
+		background-color: #f5f5f5;
+		gap: 0.5em;
 
-          div:nth-child(2) {
-              font-size: 0.8em;
-          }
+		& .#{$pre}pfp, & img {
 
-          @media (max-width: 700px) {
+			width: 3em;
+			height: 3em;
+			border-radius: 1.5em;
+			object-fit: cover;
+			object-position: top;
+		}
 
-              div:nth-child(1) {
-                  width: 100%;
-                  font-size: 0.8em;
-              }
+		.#{$pre}rep-details {
+			display: flex;
+			justify-content: start;
+			column-gap: 0.5em;
+			row-gap: 0.1em;
+			flex-wrap: wrap;
+			flex-grow: 1;
+			align-items: center;
 
-              div:nth-child(2) {
-                  font-size: 0.7em;
-              }
+			div:nth-child(2) {
+				font-size: 0.8em;
+			}
 
-          }
+			@media (max-width: 700px) {
 
-      }
+				div:nth-child(1) {
+					width: 100%;
+					font-size: 0.8em;
+				}
 
-      .#{$pre}rep-title::after {
-          content: " ";
-      }
+				div:nth-child(2) {
+					font-size: 0.7em;
+				}
 
-      .#{$pre}rep-first::after {
-          content: " ";
-      }
+			}
 
-      .#{$pre}rep-state::after {
-          content: " ";
-      }
+		}
 
-      .#{$pre}rep-district:empty {
-          margin-right: -0.2em;
-      }
+		.#{$pre}rep-title::after {
+			content: " ";
+		}
 
-  }
+		.#{$pre}rep-first::after {
+			content: " ";
+		}
 
-  .#{$pre}form-hint {
+		.#{$pre}rep-state::after {
+			content: " ";
+		}
 
-      margin-top: 0.3em;
-      display: block;
-      font-size: 0.9em;
-      width: 100%;
-      text-align: center;
+		.#{$pre}rep-district:empty {
+			margin-right: -0.2em;
+		}
 
-      &.#{$pre}form-success {
-          color: #198754;
-      }
+	}
 
-      &.#{$pre}form-danger {
-          color: var(--wp--preset--color--vivid-red);
-      }
-  }
+	.#{$pre}form-hint {
 
-  .#{$pre}preview-toggle {
-      display: block;
-      font-size: 0.7em;
-      margin-top: -0.1em;
-      margin-bottom: 0.3em;
-      cursor: pointer;
-  }
+		margin-top: 0.3em;
+		display: block;
+		font-size: 0.9em;
+		width: 100%;
+		text-align: center;
 
-  .#{$pre}loading {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='xMidYMid' style='shape-rendering: auto; display: block; background: rgb(255, 255, 255);' width='100' height='100' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Cg%3E%3Cg transform='rotate(0 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='-0.8888888888888888s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg transform='rotate(40 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='-0.7777777777777778s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg transform='rotate(80 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='-0.6666666666666666s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg transform='rotate(120 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='-0.5555555555555556s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg transform='rotate(160 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='-0.4444444444444444s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg transform='rotate(200 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='-0.3333333333333333s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg transform='rotate(240 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='-0.2222222222222222s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg transform='rotate(280 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='-0.1111111111111111s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg transform='rotate(320 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='0s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg%3E%3C/g%3E%3C/g%3E%3C!-- %5Bldio%5D generated by https://loading.io --%3E%3C/svg%3E%0A");
-      width: 3em;
-      height: 3em;
-      margin-left: auto;
-      margin-right: auto;
-      background-position: center;
-  }
+		&.#{$pre}form-success {
+			color: #198754;
+		}
+
+		&.#{$pre}form-danger {
+			color: var(--wp--preset--color--vivid-red);
+		}
+	}
+
+	.#{$pre}preview-toggle {
+		display: block;
+		font-size: 0.7em;
+		margin-top: -0.1em;
+		margin-bottom: 0.3em;
+		cursor: pointer;
+	}
+
+	.#{$pre}loading {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='xMidYMid' style='shape-rendering: auto; display: block; background: rgb(255, 255, 255);' width='100' height='100' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Cg%3E%3Cg transform='rotate(0 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='-0.8888888888888888s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg transform='rotate(40 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='-0.7777777777777778s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg transform='rotate(80 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='-0.6666666666666666s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg transform='rotate(120 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='-0.5555555555555556s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg transform='rotate(160 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='-0.4444444444444444s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg transform='rotate(200 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='-0.3333333333333333s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg transform='rotate(240 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='-0.2222222222222222s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg transform='rotate(280 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='-0.1111111111111111s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg transform='rotate(320 50 50)'%3E%3Crect fill='%23ff9900' height='12' width='4' ry='2.04' rx='2' y='29' x='48'%3E%3Canimate repeatCount='indefinite' begin='0s' dur='1s' keyTimes='0;1' values='1;0' attributeName='opacity'%3E%3C/animate%3E%3C/rect%3E%3C/g%3E%3Cg%3E%3C/g%3E%3C/g%3E%3C!-- %5Bldio%5D generated by https://loading.io --%3E%3C/svg%3E%0A"); /* stylelint-disable-line function-url-quotes*/
+		width: 3em;
+		height: 3em;
+		margin-left: auto;
+		margin-right: auto;
+		background-position: center;
+	}
 }
