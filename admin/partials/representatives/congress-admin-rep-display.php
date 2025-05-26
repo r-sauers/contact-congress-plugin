@@ -30,7 +30,7 @@ require_once plugin_dir_path( __DIR__ ) . 'states/class-congress-state-settings.
 
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
 <div>
-	<div style="display: flex; align-items: flex-end; gap: 2em; padding-top: 1em;">
+	<div style="padding-top: 1em;">
 		<h1>Representatives</h1>
 		<form id="congress-filter-form" action="get_representatives" method="get" style="display: flex; align-items: flex-end;">
 			<div class="congress-inline-form-group">
