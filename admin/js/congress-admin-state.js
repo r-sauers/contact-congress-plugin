@@ -463,14 +463,12 @@
       if ( open ) {
         $toggle.append( document.createTextNode( "Less" ) );
         $( "<span>" )
-          .addClass( "material-symbols-outlined" )
-          .text( "remove" )
+          .addClass( "congress-inline-dashicon dashicons-minus" )
           .appendTo( $toggle );
       } else {
         $toggle.append( document.createTextNode( "More" ) );
         $( "<span>" )
-          .addClass( "material-symbols-outlined" )
-          .text( "add" )
+          .addClass( "congress-inline-dashicon dashicons-plus-alt2" )
           .appendTo( $toggle );
       }
     }

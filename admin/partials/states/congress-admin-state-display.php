@@ -125,7 +125,7 @@ function congress_draw_state_row( Congress_State $state ) {
 
 		<td style="text-align: center;">
 			<button class="button button-primary congress-state-row-expand">More
-				<span class="material-symbols-outlined">add</span>
+				<span class="congress-inline-dashicon dashicons-plus-alt2"></span>
 			</button>
 		</td>
 	</tr>

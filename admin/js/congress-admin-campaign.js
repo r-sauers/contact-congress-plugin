@@ -1157,8 +1157,7 @@
           .append( document.createTextNode( "More" ) );
 
         $( "<span>" )
-          .addClass( "material-symbols-outlined" )
-          .text( "add" )
+          .addClass( "congress-inline-dashicon dashicons-plus-alt2" )
           .appendTo( this._$expandToggle );
       } else {
         this._$expandToggle
@@ -1166,8 +1165,7 @@
           .append( document.createTextNode( "Less" ) );
 
         $( "<span>" )
-          .addClass( "material-symbols-outlined" )
-          .text( "remove" )
+          .addClass( "congress-inline-dashicon dashicons-minus" )
           .appendTo( this._$expandToggle );
       }
 
@@ -1335,8 +1333,7 @@
           .append( document.createTextNode( "More" ) );
 
         $( "<span>" )
-          .addClass( "material-symbols-outlined" )
-          .text( "add" )
+          .addClass( "congress-inline-dashicon dashicons-plus-alt2" )
           .appendTo( this._$expandToggle );
       } else {
         this._$expandToggle
@@ -1344,8 +1341,7 @@
           .append( document.createTextNode( "Less" ) );
 
         $( "<span>" )
-          .addClass( "material-symbols-outlined" )
-          .text( "remove" )
+          .addClass( "congress-inline-dashicon dashicons-minus" )
           .appendTo( this._$expandToggle );
       }
 

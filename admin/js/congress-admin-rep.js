@@ -198,7 +198,7 @@
 
       // enable editing toggling
       $readonlyContainer
-        .find( ".congress-edit-button" )
+        .find( ".dashicons-edit" )
         .first()
         .on( "click", null, {funcName: "toggleEdit", this: this}, this._eventListenerHelper );
 
@@ -845,12 +845,14 @@
       const $container = evt.data;
 
       const open = $container.hasClass( "congress-closed" );
-      const $toggleIcon = $container.find( ".congress-staffer-toggle > span.material-symbols-outlined" );
+      const $toggleIcon = $container.find( ".congress-staffer-toggle > span.congress-inline-dashicon" );
 
       if ( open ) {
-        $toggleIcon.text( "remove" );
+        $toggleIcon.toggleClass( "dashicons-minus", true );
+        $toggleIcon.toggleClass( "dashicons-plus-alt2", false );
       } else {
-        $toggleIcon.text( "add" );
+        $toggleIcon.toggleClass( "dashicons-minus", false );
+        $toggleIcon.toggleClass( "dashicons-plus-alt2", true );
       }
 
       $container.toggleClass( "congress-closed" );

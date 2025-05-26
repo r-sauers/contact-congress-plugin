@@ -223,8 +223,16 @@ class Congress_Admin_Rep {
 				?>
 				<input type="hidden" name="rep_id" value="<?php echo esc_attr( $this->rep_id ); ?>"/>
 				<div style="flex-shrink: 0;">
-					<button type="submit" value="confirm" class="congress-confirm-button congress-icon-button"></button>
-					<button type="submit" value="cancel" class="congress-cancel-button congress-icon-button"></button>
+					<button
+						type="submit"
+						value="confirm"
+						class="congress-icon-button congress-inline-dashicon dashicons-yes congress-success"
+					></button>
+					<button
+						type="submit"
+						value="cancel"
+						class="congress-icon-button congress-inline-dashicon dashicons-no congress-danger"
+					></button>
 				</div>
 			</form>
 			<div class="congress-official-readonly">
@@ -232,12 +240,12 @@ class Congress_Admin_Rep {
 				<button class="congress-staffer-toggle button">
 					Emails 
 					(<span class="congress-staffer-count"><?php echo esc_html( $staffer_count ); ?></span>)
-					<span class="material-symbols-outlined">add</span>
+					<span class="congress-inline-dashicon dashicons-plus-alt2"></span>
 				</button>
 				<div>
-					<button class="congress-edit-button congress-icon-button"></button>
+					<button class="congress-icon-button congress-inline-dashicon dashicons-edit"></button>
 					<form class="congress-official-delete-form congress-rep-delete-form">
-						<button class="congress-delete-button congress-icon-button"></button>
+						<button class="congress-icon-button congress-inline-dashicon dashicons-trash congress-danger"></button>
 						<?php
 						wp_nonce_field( 'delete-rep_' . $this->rep_id );
 						?>
