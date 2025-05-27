@@ -282,7 +282,8 @@
 
       const sender = {
         firstName: "John",
-        lastName: "Doe"
+        lastName: "Doe",
+        address: "101 Fake St, Minneapolis MN"
       };
 
       const $template = $( this._$form[0].template );
@@ -294,6 +295,7 @@
       template = template.replaceAll( /\[\[REP_TITLE\]\]/ig, rep.title );
       template = template.replaceAll( /\[\[SENDER_FIRST\]\]/ig, sender.firstName );
       template = template.replaceAll( /\[\[SENDER_LAST\]\]/ig, sender.lastName );
+      template = template.replaceAll( /\[\[ADDRESS\]\]/ig, sender.address );
 
       $preview.val( template );
 
