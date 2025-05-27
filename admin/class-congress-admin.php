@@ -229,7 +229,34 @@ class Congress_Admin {
 	 */
 	public function init_settings(): void {
 
-		register_setting( 'congress', 'congress_options' );
+		register_setting(
+			'congress',
+			'congress_options',
+			array(
+				'sanitize_callback' => function ( $option ) {
+
+					$field_names = array(
+						Congress_Google_Places_API::$field_name,
+						Congress_Congress_API::$field_name,
+						Congress_Captcha::$server_key_field_name,
+						Congress_Captcha::$client_key_options_name,
+					);
+
+					foreach ( $field_names as $field_name ) {
+						if ( ! isset( $option[ $field_name ] ) ) {
+							$option[ $field_name ] = '';
+						} else {
+							$option[ $field_name ] = sanitize_text_field(
+								$option[ $field_name ]
+							);
+						}
+					}
+
+					return $option;
+				},
+			)
+		);
+
 		add_settings_section(
 			'congress_section_api_keys',
 			__( 'Contact Congress Keys & Secrets', 'congress' ),
