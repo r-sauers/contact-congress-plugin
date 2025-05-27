@@ -714,9 +714,10 @@
         for ( let staffer of staffers ) {
           Staffer.fromJSON( this, id, this.$el, createNonce, staffer );
         }
+        this.$el.find( ".congress-staffer-count" ).text( staffers.length );
+      } else {
+        this.$el.find( ".congress-staffer-count" ).text( 0 );
       }
-
-      this.$el.find( ".congress-staffer-count" ).text( staffers.length );
 
       const deleteForm = this.$el.find( ".congress-rep-delete-form" )[0];
       deleteForm._wpnonce.value = deleteNonce;
