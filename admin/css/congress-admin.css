@@ -15,9 +15,9 @@
 }
 
 .congress-inline-dashicon::before {
-	font-family: "dashicons";
+	font-family: dashicons, sans-serif;
 	font-size: 1.5em;
-	line-height: 1em;
+	line-height: 1;
 	vertical-align: middle;
 	top: -0.01em;
 	position: relative;
