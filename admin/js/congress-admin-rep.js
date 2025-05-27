@@ -609,7 +609,7 @@
         createNonce: json.createNonce,
         staffers: json.staffers || null
       });
-      rep.stafferCount = json.staffers.length;
+      rep.stafferCount = json.staffers ? json.staffers.length : 0;
       rep.toggleEdit();
       rep.created = true;
       return rep;
