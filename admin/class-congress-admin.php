@@ -235,14 +235,14 @@ class Congress_Admin {
 
 		add_settings_section(
 			'congress_section_api_keys',
-			__( 'Contact Congress Keys & Secrets', 'congress' ),
+			__( 'Contact Congress Keys & Secrets', 'contact-congress' ),
 			array( $this, 'section_api_keys_callback' ),
 			'congress'
 		);
 
 		add_settings_field(
 			Congress_Google_Places_API::$field_name,
-			__( 'Google API Key', 'congress' ),
+			__( 'Google API Key', 'contact-congress' ),
 			array( $this, 'congress_field_google_cb' ),
 			'congress',
 			'congress_section_api_keys',
@@ -252,7 +252,7 @@ class Congress_Admin {
 		);
 		add_settings_field(
 			Congress_Congress_API::$field_name,
-			__( 'Congress.gov API Key', 'congress' ),
+			__( 'Congress.gov API Key', 'contact-congress' ),
 			array( $this, 'congress_field_congress_cb' ),
 			'congress',
 			'congress_section_api_keys',
@@ -263,7 +263,7 @@ class Congress_Admin {
 
 		add_settings_field(
 			Congress_Captcha::$client_key_field_name,
-			__( 'Google reCAPTCHA Site Key', 'congress' ),
+			__( 'Google reCAPTCHA Site Key', 'contact-congress' ),
 			array( $this, 'congress_field_captcha_client_cb' ),
 			'congress',
 			'congress_section_api_keys',
@@ -273,7 +273,7 @@ class Congress_Admin {
 		);
 		add_settings_field(
 			Congress_Captcha::$server_key_field_name,
-			__( 'Google reCAPTCHA Secret Key', 'congress' ),
+			__( 'Google reCAPTCHA Secret Key', 'contact-congress' ),
 			array( $this, 'congress_field_captcha_server_cb' ),
 			'congress',
 			'congress_section_api_keys',
@@ -606,7 +606,7 @@ class Congress_Admin {
 		// WordPress will add the "settings-updated" $_GET parameter to the url.
 		if ( isset( $_GET['settings-updated'] ) ) { // phpcs:ignore
 			// add settings saved message with the class of "updated".
-			add_settings_error( 'congress_messages', 'congress_message', __( 'Settings Saved', 'congress' ), 'updated' );
+			add_settings_error( 'congress_messages', 'congress_message', __( 'Settings Saved', 'contact-congress' ), 'updated' );
 		}
 
 		// show error/update messages.

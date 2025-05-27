@@ -94,7 +94,7 @@ export default function Edit({ attributes, setAttributes }) {
   return (
     <>
       <InspectorControls>
-        <PanelBody title={__( "Settings", "copyright-date-block" )}>
+        <PanelBody title={__( "Settings", "congress-form-block" )}>
           <CustomSelectControl
             __nextHasNoMarginBottom
             __next40pxDefaultSize
