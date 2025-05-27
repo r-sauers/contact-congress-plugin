@@ -663,7 +663,7 @@
       level = level.toProperCase();
 
       this.$el[0].id = `congress-rep-${id}`;
-      const districtText = ( "" === district ? "" : ` District ${district}` );
+      const districtText = ( "" === district || null === district ? "" : ` District ${district}` );
       this.$el.find( ".congress-official-readonly > span" )
         .text( `${level} ${title} ${firstName} ${lastName} (${state}${districtText})` );
 

@@ -15,7 +15,7 @@ import PropTypes from "prop-types";
  * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
  */
 import { useBlockProps, InspectorControls } from "@wordpress/block-editor";
-import { PanelBody, TextControl, ToggleControl, FormFileUpload, CustomSelectControl } from "@wordpress/components";
+import { PanelBody, CustomSelectControl } from "@wordpress/components";
 
 /**
  * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.

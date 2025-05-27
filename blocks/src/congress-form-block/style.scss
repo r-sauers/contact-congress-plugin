@@ -23,6 +23,11 @@ $pre: $block + "__";
 .#{$block} {
 	padding: 2px;
 
+	.wp-element-button {
+		background-color: #2271b1;
+		color: #fff;
+	}
+
 	h4 {
 		margin-bottom: 1em;
 		margin-top: 1em;
