@@ -2,8 +2,10 @@
 Contributors: rsauers
 Donate link: https://www.paypal.com/donate/?business=QZKCZCYZCEU22&no_recurring=0&item_name=Thank+you+for+supporting+my+goal+to+develop+free+applications+to+create+positive+change%21&currency_code=USD
 Tags: congress
+Requires at least: 6.8
 Tested up to: 6.8
 Stable tag: 1.0.0
+Requires PHP: 8.1
 Recommended: PHP 8.1+
 Required Extensions: zip, xml, gid, mbstring
 License: GPLv2 or later
@@ -134,3 +136,7 @@ Yes! Please go to [Contributing.md](https://github.com/r-sauers/contact-congress
 * Implemented campaign email templates with placeholders (rep_last, rep_first, rep_title, sender_first, sender_last, address).
 
 * Created "Contact Congress Block" for sending emails.
+
+== Upgrade Notice ==
+
+No notices.
