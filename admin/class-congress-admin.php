@@ -53,7 +53,7 @@ require_once plugin_dir_path( __DIR__ ) .
  *
  * @package    Congress
  * @subpackage Congress/admin
- * @author     Your Name <email@example.com>
+ * @author     Ryan Sauers <ryan.sauers@exploreveg.org>
  */
 class Congress_Admin {
 
@@ -121,18 +121,6 @@ class Congress_Admin {
 	 * @since    1.0.0
 	 */
 	public function enqueue_styles(): void {
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Congress_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Congress_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-
 		wp_enqueue_style(
 			$this->congress,
 			plugin_dir_url( __FILE__ ) . 'css/congress-admin.css',
@@ -166,18 +154,6 @@ class Congress_Admin {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts(): void {
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Congress_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Congress_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-
 		if ( isset( $_GET['page'] ) && self::$rep_page_slug === $_GET['page'] ) { // phpcs:ignore
 			wp_enqueue_script(
 				$this->congress,

@@ -24,7 +24,7 @@
  * @since      1.0.0
  * @package    Congress
  * @subpackage Congress/includes
- * @author     Your Name <email@example.com>
+ * @author     Ryan Sauers <ryan.sauers@exploreveg.org>
  */
 class Congress {
 
