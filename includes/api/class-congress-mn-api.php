@@ -166,7 +166,7 @@ class Congress_MN_API implements Congress_State_API_Interface {
 	public function get_reps( float $latitude, float $longitude ): array|false {
 
 		$results = wp_remote_get(
-			'https://www.gis.lcc.mn.gov/iMaps/districts/php/getPointData.php',
+			'https://gis.lcc.mn.gov/api/',
 			array(
 				'body' => array(
 					'lat' => $latitude,

@@ -1,4 +1,14 @@
 {
-    "extends": "stylelint-config-wordpress",
-    "ignoreFiles": ["**/vendor/**", "**/node_modules/**"]
+    "extends": [
+        "stylelint-config-wordpress",
+        "stylelint-config-recommended-scss"
+    ],
+    "ignoreFiles": [
+        "**/vendor/**",
+        "**/node_modules/**",
+        "**/bower_components/**",
+        "**/blocks/build/**",
+        "**/congress-volume/**",
+        "**/*.min.css"
+    ]
 }

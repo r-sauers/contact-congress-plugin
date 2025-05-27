@@ -145,16 +145,22 @@ class Congress_Admin_Staffer {
 				<input type="hidden" name="rep_id" value="<?php echo esc_attr( $this->rep_id ); ?>"/>
 				<input type="hidden" name="staffer_id" value="<?php echo esc_attr( $this->staffer_id ); ?>"/>
 				<div style="flex-shrink: 0;">
-					<button value="confirm" class="congress-confirm-button congress-icon-button"></button>
-					<button value="cancel" class="congress-cancel-button congress-icon-button"></button>
+					<button
+						value="confirm"
+						class="congress-icon-button congress-inline-dashicon dashicons-yes congress-success"
+					></button>
+					<button
+						value="cancel"
+						class="congress-icon-button congress-inline-dashicon dashicons-no congress-danger"
+					></button>
 				</div>
 			</form>
 			<div class="congress-official-readonly">
 				<span><?php echo esc_html( "$this->title $this->first_name $this->last_name ($this->email)" ); ?></span>
 				<div style="float: right;">
-					<button class="congress-edit-button congress-icon-button"></button>
+					<button class="congress-icon-button congress-inline-dashicon dashicons-edit"></button>
 					<form class="congress-official-delete-form congress-staffer-delete-form">
-						<button class="congress-delete-button congress-icon-button"></button>
+						<button class="congress-icon-button congress-inline-dashicon dashicons-trash congress-danger"></button>
 						<?php
 						wp_nonce_field( 'delete-staffer_' . $this->rep_id . '-' . $this->staffer_id );
 						?>

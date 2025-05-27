@@ -2,31 +2,7 @@
   "use strict";
 
   /**
-   * All of the code for your admin-facing JavaScript source
-   * should reside in this file.
-   *
-   * Note: It has been assumed you will write jQuery code here, so the
-   * $ function reference has been prepared for usage within the scope
-   * of this function.
-   *
-   * This enables you to define handlers, for when the DOM is ready:
-   *
-   * $(function() {
-   *
-   * });
-   *
-   * When the window is loaded:
-   *
-   * $( window ).load(function() {
-   *
-   * });
-   *
-   * ...and/or other possibilities.
-   *
-   * Ideally, it is not considered best practise to attach more than a
-   * single DOM-ready or window-load handler for a particular page.
-   * Although scripts in the WordPress core, Plugins and Themes may be
-   * practising this, we should strive to set a better example in our own work.
+   * This file contains all of the JavaScript code for the representatives page on the admin dashboard.
    */
 
   /**
@@ -198,7 +174,7 @@
 
       // enable editing toggling
       $readonlyContainer
-        .find( ".congress-edit-button" )
+        .find( ".dashicons-edit" )
         .first()
         .on( "click", null, {funcName: "toggleEdit", this: this}, this._eventListenerHelper );
 
@@ -609,7 +585,7 @@
         createNonce: json.createNonce,
         staffers: json.staffers || null
       });
-      rep.stafferCount = json.staffers.length;
+      rep.stafferCount = json.staffers ? json.staffers.length : 0;
       rep.toggleEdit();
       rep.created = true;
       return rep;
@@ -687,7 +663,7 @@
       level = level.toProperCase();
 
       this.$el[0].id = `congress-rep-${id}`;
-      const districtText = ( "" === district ? "" : ` District ${district}` );
+      const districtText = ( "" === district || null === district ? "" : ` District ${district}` );
       this.$el.find( ".congress-official-readonly > span" )
         .text( `${level} ${title} ${firstName} ${lastName} (${state}${districtText})` );
 
@@ -714,9 +690,10 @@
         for ( let staffer of staffers ) {
           Staffer.fromJSON( this, id, this.$el, createNonce, staffer );
         }
+        this.$el.find( ".congress-staffer-count" ).text( staffers.length );
+      } else {
+        this.$el.find( ".congress-staffer-count" ).text( 0 );
       }
-
-      this.$el.find( ".congress-staffer-count" ).text( staffers.length );
 
       const deleteForm = this.$el.find( ".congress-rep-delete-form" )[0];
       deleteForm._wpnonce.value = deleteNonce;
@@ -845,12 +822,14 @@
       const $container = evt.data;
 
       const open = $container.hasClass( "congress-closed" );
-      const $toggleIcon = $container.find( ".congress-staffer-toggle > span.material-symbols-outlined" );
+      const $toggleIcon = $container.find( ".congress-staffer-toggle > span.congress-inline-dashicon" );
 
       if ( open ) {
-        $toggleIcon.text( "remove" );
+        $toggleIcon.toggleClass( "dashicons-minus", true );
+        $toggleIcon.toggleClass( "dashicons-plus-alt2", false );
       } else {
-        $toggleIcon.text( "add" );
+        $toggleIcon.toggleClass( "dashicons-minus", false );
+        $toggleIcon.toggleClass( "dashicons-plus-alt2", true );
       }
 
       $container.toggleClass( "congress-closed" );

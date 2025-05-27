@@ -159,11 +159,11 @@ class Congress_Admin_Active_Campaign {
 			<?php
 			if ( $editing ) {
 				?>
-				Less <span class="material-symbols-outlined">remove</span>
+				Less <span class="congress-inline-dashicon dashicons-minus"></span>
 				<?php
 			} else {
 				?>
-				More <span class="material-symbols-outlined">add</span>
+				More <span class="congress-inline-dashicon dashicons-plus-alt2"></span>
 				<?php
 			}
 			?>
