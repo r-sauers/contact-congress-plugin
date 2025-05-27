@@ -12,7 +12,7 @@
  * @package           Congress
  *
  * @wordpress-plugin
- * Plugin Name:       Congress Contact
+ * Plugin Name:       Contact Congress
  * Plugin URI:        https://github.com/r-sauers/contact-congress-plugin
  * Description:       A plugin for visitors of your site to contact members of congress with pre-filled emails.
  * Version:           1.0.0
