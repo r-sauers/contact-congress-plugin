@@ -134,7 +134,6 @@
           this._displayedRows.push( row );
           row.show();
         } else {
-          row.deselect();
           row.hide();
         }
       }
