@@ -611,7 +611,7 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 		if ( 0 !== $_FILES['csv']['error'] ) { // phpcs:ignore
 			wp_send_json(
 				array(
-					'error' => $err_messages[ $_FILES['csv']['error'] ], // phpcs:ignore
+					'error' => 'Failed to process file!',
 				),
 				400
 			);
