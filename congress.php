@@ -34,13 +34,13 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'CONTACTCONGRESS', '1.0.0' );
+define( 'CONGRESS_VERSION', '1.0.0' );
 
 /**
  * The code that runs during plugin activation.
  * This action is documented in includes/class-congress-activator.php
  */
-function activate_congress() {
+function congress_activate() {
 	require_once plugin_dir_path( __FILE__ ) .
 		'includes/class-congress-activator.php';
 	Congress_Activator::activate();
@@ -50,14 +50,14 @@ function activate_congress() {
  * The code that runs during plugin deactivation.
  * This action is documented in includes/class-congress-deactivator.php
  */
-function deactivate_congress() {
+function congress_deactivate() {
 	require_once plugin_dir_path( __FILE__ ) .
 		'includes/class-congress-deactivator.php';
 	Congress_Deactivator::deactivate();
 }
 
-register_activation_hook( __FILE__, 'activate_congress' );
-register_deactivation_hook( __FILE__, 'deactivate_congress' );
+register_activation_hook( __FILE__, 'congress_activate' );
+register_deactivation_hook( __FILE__, 'congress_deactivate' );
 
 /**
  * The core plugin class that is used to define internationalization,
@@ -81,8 +81,8 @@ if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
  *
  * @since    1.0.0
  */
-function run_congress() {
+function congress_run() {
 	$plugin = new Congress();
 	$plugin->run();
 }
-run_congress();
+congress_run();
