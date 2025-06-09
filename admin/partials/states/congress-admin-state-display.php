@@ -11,6 +11,11 @@
  * @subpackage Congress/admin/partials
  */
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * A component for stacked inputs in forms.
  */

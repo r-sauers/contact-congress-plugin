@@ -9,6 +9,11 @@
  * @subpackage Congress/includes
  */
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * An enum to model US states consistently.
  *

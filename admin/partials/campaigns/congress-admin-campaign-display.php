@@ -11,6 +11,11 @@
  * @subpackage Congress/admin/partials
  */
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * The class used to display archived campaigns.
  */

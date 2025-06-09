@@ -9,6 +9,11 @@
  * @subpackage Congress/includes
  */
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Imports Congress_State_Settings to manage state settings.
  */

@@ -9,6 +9,11 @@
  * @subpackage Congress/blocks
  */
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Imports Table Manager for getting table names;
  */

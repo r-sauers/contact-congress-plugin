@@ -9,6 +9,11 @@
  * @subpackage Congress/includes
  */
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * A simple class to represent an Ajax handler.
  *

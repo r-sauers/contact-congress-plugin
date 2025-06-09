@@ -9,6 +9,11 @@
  * @subpackage Congress/admin
  */
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * The active campaign class to get campaign ids to generate nonces.
  */

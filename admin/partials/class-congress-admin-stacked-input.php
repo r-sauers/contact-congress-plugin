@@ -9,6 +9,11 @@
  * @subpackage Congress/admin/partials
  */
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Imports Congress_State_Settings
  */

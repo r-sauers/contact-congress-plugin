@@ -9,6 +9,11 @@
  * @subpackage Congress/admin/partials
  */
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Utils for displaying some flat field inputs.
  */

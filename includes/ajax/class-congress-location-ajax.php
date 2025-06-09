@@ -10,6 +10,11 @@
  * @subpackage Congress/includes
  */
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Imports Congress_AJAX_Collection interface.
  */

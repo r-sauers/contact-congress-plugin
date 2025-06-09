@@ -9,6 +9,11 @@
  * @subpackage Congress/blocks
  */
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Get Captcha information.
  */

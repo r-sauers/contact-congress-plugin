@@ -9,6 +9,11 @@
  * @subpackage Congress/includes
  */
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * The class that defines Captcha handling and attributes.
  *
