@@ -56,11 +56,11 @@ class Congress_Form_Block_Utils {
 		$this->prefix     = $block_name . '__';
 	}
 
-	// phpcs:disable
+	// phpcs:disable Squiz.Commenting.FunctionComment.ParamNameNoMatch, Squiz.Commenting.FunctionComment.MissingParamTag
 	/**
 	 * Draws the class attribute on the page with the correct prefix. e.g. 'class="foo bar"'.
 	 *
-	 * @param array<string> $class_names is the list of class names. // phpcs:enable
+	 * @param array<string> $class_names is the list of class names.
 	 */
 	public function class_name( ...$class_names ): void {
 		$class_string = '';
@@ -71,12 +71,13 @@ class Congress_Form_Block_Utils {
 
 		echo 'class="' . esc_attr( $class_string ) . '"';
 	}
+	// phpcs:enable
 
-	// phpcs:disable
+	// phpcs:disable Squiz.Commenting.FunctionComment.ParamNameNoMatch, Squiz.Commenting.FunctionComment.MissingParamTag
 	/**
 	 * Outputs $class_names as a ' ' separated list with the correct prefix added to each class.
 	 *
-	 * @param array<string> $class_names is the list of class names. // phpcs:enable
+	 * @param array<string> $class_names is the list of class names.
 	 */
 	public function inline_class( ...$class_names ): void {
 		$class_string = ' ';
@@ -87,6 +88,7 @@ class Congress_Form_Block_Utils {
 
 		echo esc_attr( $class_string );
 	}
+	// phpcs:enable
 
 	/**
 	 * Outputs the id attribute with the correct prefix. e.g. 'id="foo"'
@@ -139,19 +141,24 @@ class Congress_Form_Block_Utils {
 		$state_t    = Congress_Table_Manager::get_table_name( 'campaign_state' );
 
 		$results = false;
-		$results = $wpdb->get_results( // phpcs:ignore
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$results = $wpdb->get_results(
 			$wpdb->prepare(
 				'SELECT ' .
-					"$campaign_t.id as campaign_id, " .
-					"$template_t.id as template_id, " .
+					'camp.id as campaign_id, ' .
+					'temp.id as template_id, ' .
 					'name, created_date, template, subject, ' .
 					"ifnull( state, 'FEDERAL' ) as region " .
-				"FROM $campaign_t " .
-				"LEFT JOIN $template_t ON $campaign_t.id = $template_t.campaign_id " . // phpcs:ignore
-				"LEFT JOIN $state_t ON $campaign_t.id = $state_t.campaign_id " . // phpcs:ignore
-				"WHERE $campaign_t.id = %d " . // phpcs:ignore
+				'FROM %i AS camp' .
+				'LEFT JOIN %i AS temp ON camp.id = temp.campaign_id ' .
+				'LEFT JOIN %i AS state ON camp.id = state.campaign_id ' .
+				'WHERE camp.id = %d ' .
 				'ORDER BY RAND() LIMIT 1',
 				array(
+					$campaign_t,
+					$template_t,
+					$state_t,
 					$campaign_id,
 				)
 			)

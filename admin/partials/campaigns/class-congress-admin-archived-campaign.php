@@ -179,14 +179,21 @@ class Congress_Admin_Archived_Campaign {
 		$campaign_t = Congress_Table_Manager::get_table_name( 'campaign' );
 		$archived_t = Congress_Table_Manager::get_table_name( 'archived_campaign' );
 		$state_t    = Congress_Table_Manager::get_table_name( 'campaign_state' );
-		// phpcs:disable;
-		$result     = $wpdb->get_results(  // phpcs:ignore
-			"SELECT $archived_t.id, email_count, name, state, UNIX_TIMESTAMP(created_date) AS created_date, UNIX_TIMESTAMP(archived_date) AS archived_date " .
-			"FROM $archived_t " . 
-			"LEFT JOIN $campaign_t ON $archived_t.id = $campaign_t.id " .
-			"LEFT JOIN $state_t ON $archived_t.id = $state_t.campaign_id"
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT arch.id, email_count, name, state, UNIX_TIMESTAMP(created_date) AS created_date, UNIX_TIMESTAMP(archived_date) AS archived_date ' .
+				'FROM %i AS arch' .
+				'LEFT JOIN %i AS camp  ON arch.id = camp.id ' .
+				'LEFT JOIN %i AS state ON arch.id = state.campaign_id',
+				array(
+					$archived_t,
+					$campaign_t,
+					$state_t,
+				)
+			)
 		);
-		// phpcs:enable
 
 		$campaigns = array();
 		foreach ( $result as $campaign_result ) {

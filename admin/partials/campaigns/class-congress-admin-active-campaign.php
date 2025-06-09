@@ -335,16 +335,24 @@ class Congress_Admin_Active_Campaign {
 		$active_t   = Congress_Table_Manager::get_table_name( 'active_campaign' );
 		$state_t    = Congress_Table_Manager::get_table_name( 'campaign_state' );
 		$email_t    = Congress_Table_Manager::get_table_name( 'email' );
-		// phpcs:disable
-		$result     = $wpdb->get_results(
-			"SELECT $active_t.id, name, state, COUNT( $active_t.id ) AS email_count " .
-			"FROM $active_t " .
-			"LEFT JOIN $campaign_t ON $active_t.id = $campaign_t.id " .
-			"LEFT JOIN $state_t ON $active_t.id = $state_t.campaign_id " .
-			"LEFT JOIN $email_t ON $active_t.id = $email_t.campaign_id " .
-			"GROUP BY $active_t.id"
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT active.id, name, state, COUNT( active.id ) AS email_count ' .
+				'FROM %i AS active' .
+				'LEFT JOIN %i AS camp ON active.id = camp.id ' .
+				'LEFT JOIN %i AS state ON active.id = state.campaign_id ' .
+				'LEFT JOIN %i AS email ON active.id = email.campaign_id ' .
+				'GROUP BY active.id',
+				array(
+					$active_t,
+					$campaign_t,
+					$state_t,
+					$email_t,
+				)
+			)
 		);
-		// phpcs:enable
 
 		$campaigns = array();
 		foreach ( $result as $campaign_result ) {

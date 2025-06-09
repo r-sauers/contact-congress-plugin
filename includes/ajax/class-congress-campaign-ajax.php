@@ -100,7 +100,19 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		$active_t   = Congress_Table_Manager::get_table_name( 'active_campaign' );
 
 		global $wpdb;
-		$results = $wpdb->get_results( "SELECT $campaign_t.id, name FROM $active_t LEFT JOIN $campaign_t ON $active_t.id = $campaign_t.id" ); // phpcs:ignore
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT camp.id, name ' .
+				'FROM %i AS active ' .
+				'LEFT JOIN %i AS camp ON active.id = camp.id',
+				array(
+					$active_t,
+					$campaign_t,
+				)
+			)
+		);
 
 		if ( false === $results ) {
 			wp_send_json(
@@ -175,10 +187,12 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 
 		global $wpdb;
 
-		$wpdb->query( 'START TRANSACTION' ); // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( 'START TRANSACTION' );
 
 		$campaign_table = Congress_Table_Manager::get_table_name( 'campaign' );
-		// phpcs:ignore
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$main_result = $wpdb->insert(
 			$campaign_table,
 			array(
@@ -187,7 +201,9 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		);
 
 		if ( false === $main_result ) {
-			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->query( 'ROLLBACK' );
 			wp_send_json(
 				array(
 					'error' => $wpdb->last_error,
@@ -197,7 +213,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		}
 
 		if ( 0 === $main_result ) {
-			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->query( 'ROLLBACK' );
 			wp_send_json(
 				array(
 					'error' => 'Malformed request.',
@@ -211,7 +228,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		if ( Congress_Level::Federal !== $region ) {
 			$campaign_state_t = Congress_Table_Manager::get_table_name( 'campaign_state' );
 
-			$state_res = $wpdb->insert( // phpcs:ignore
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+			$state_res = $wpdb->insert(
 				$campaign_state_t,
 				array(
 					'campaign_id' => $campaign_id,
@@ -220,7 +238,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 			);
 
 			if ( false === $state_res ) {
-				$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				$wpdb->query( 'ROLLBACK' );
 				wp_send_json(
 					array(
 						'error' => $wpdb->last_error,
@@ -230,7 +249,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 			}
 
 			if ( 0 === $state_res ) {
-				$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				$wpdb->query( 'ROLLBACK' );
 				wp_send_json(
 					array(
 						'error' => 'Malformed request.',
@@ -242,7 +262,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 
 		$active_campaign_table = Congress_Table_Manager::get_table_name( 'active_campaign' );
 
-		$active_result = $wpdb->insert( // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$active_result = $wpdb->insert(
 			$active_campaign_table,
 			array(
 				'id' => $campaign_id,
@@ -250,7 +271,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		);
 
 		if ( false === $active_result ) {
-			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->query( 'ROLLBACK' );
 			wp_send_json(
 				array(
 					'error' => $wpdb->last_error,
@@ -260,7 +282,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		}
 
 		if ( 0 === $active_result ) {
-			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->query( 'ROLLBACK' );
 			wp_send_json(
 				array(
 					'error' => 'Malformed request.',
@@ -269,7 +292,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
-		$wpdb->query( 'COMMIT' ); // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( 'COMMIT' );
 
 		wp_send_json(
 			array(
@@ -339,11 +363,12 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 
 		global $wpdb;
 
-		$wpdb->query( 'START TRANSACTION' ); // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( 'START TRANSACTION' );
 
 		$tablename = Congress_Table_Manager::get_table_name( 'campaign' );
-		// phpcs:ignore
-		$result    = $wpdb->update(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->update(
 			$tablename,
 			array(
 				'name' => $name,
@@ -354,7 +379,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		);
 
 		if ( false === $result ) {
-			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->query( 'ROLLBACK' );
 			wp_send_json(
 				array(
 					'error' => $wpdb->last_error,
@@ -366,12 +392,14 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		$campaign_state_t = Congress_Table_Manager::get_table_name( 'campaign_state' );
 		if ( Congress_Level::Federal !== $region ) {
 
-			$state_res = $wpdb->query( // phpcs:ignore
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$state_res = $wpdb->query(
 				$wpdb->prepare(
-					"INSERT INTO $campaign_state_t (campaign_id, state) " . // phpcs:ignore
+					'INSERT INTO %i AS state (campaign_id, state) ' .
 					'VALUES (%d, %s) ' .
 					'ON DUPLICATE KEY UPDATE campaign_id=%d',
 					array(
+						$campaign_state_t,
 						$campaign_id,
 						$region->to_db_string(),
 						$campaign_id,
@@ -380,7 +408,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 			);
 
 			if ( false === $state_res ) {
-				$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				$wpdb->query( 'ROLLBACK' );
 				wp_send_json(
 					array(
 						'error' => $wpdb->last_error,
@@ -389,7 +418,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 				);
 			}
 		} else {
-			$delete_res = $wpdb->delete( // phpcs:ignore
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$delete_res = $wpdb->delete(
 				$campaign_state_t,
 				array(
 					'campaign_id' => $campaign_id,
@@ -397,7 +427,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 			);
 
 			if ( false === $delete_res ) {
-				$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				$wpdb->query( 'ROLLBACK' );
 				wp_send_json(
 					array(
 						'error' => $wpdb->last_error,
@@ -407,7 +438,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 			}
 		}
 
-		$wpdb->query( 'COMMIT' ); // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( 'COMMIT' );
 
 		wp_send_json(
 			array(
@@ -468,23 +500,28 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		$archived_campaign = Congress_Table_Manager::get_table_name( 'archived_campaign' );
 		$campaign_state    = Congress_Table_Manager::get_table_name( 'campaign_state' );
 
-		$wpdb->query( 'START TRANSACTION' ); // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( 'START TRANSACTION' );
 
-		// phpcs:ignore
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->query(
 			$wpdb->prepare(
-				"INSERT INTO $archived_campaign (id, email_count) " . // phpcs:ignore
-				"SELECT $campaign.id, COUNT($email.campaign_id) FROM $campaign " . // phpcs:ignore
-				"LEFT JOIN $email ON $email.campaign_id = $campaign.id " . // phpcs:ignore
-				"WHERE $campaign.id = %d", // phpcs:ignore
+				'INSERT INTO %i AS arch (id, email_count) ' .
+				'SELECT camp.id, COUNT(email.campaign_id) FROM %i AS camp ' .
+				'LEFT JOIN %i AS email ON email.campaign_id = camp.id ' .
+				'WHERE camp.id = %d',
 				array(
+					$archived_campaign,
+					$campaign,
+					$email,
 					$campaign_id,
 				),
 			)
 		);
 
 		if ( false === $result ) {
-			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->query( 'ROLLBACK' );
 			wp_send_json(
 				array(
 					'error' => $wpdb->last_error,
@@ -495,7 +532,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		}
 
 		if ( 0 === $result ) {
-			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->query( 'ROLLBACK' );
 			wp_send_json(
 				array(
 					'error' => 'No Change',
@@ -505,7 +543,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 			return;
 		}
 
-		$result = $wpdb->delete( // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->delete(
 			$active_campaign,
 			array(
 				'id' => $campaign_id,
@@ -514,7 +553,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		);
 
 		if ( false === $result ) {
-			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->query( 'ROLLBACK' );
 			wp_send_json(
 				array(
 					'error' => $wpdb->last_error,
@@ -525,7 +565,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		}
 
 		if ( 0 === $result ) {
-			$wpdb->query( 'ROLLBACK' ); // phpcs:ignore
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->query( 'ROLLBACK' );
 			wp_send_json(
 				array(
 					'error' => 'No Change',
@@ -535,19 +576,25 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 			return;
 		}
 
-		$wpdb->query( 'COMMIT' ); // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( 'COMMIT' );
 
-		//phpcs:disable
-		$results = $wpdb->get_results( // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$results = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT $campaign.id, name, ifnull( state, 'FEDERAL' ) as region, email_count, archived_date, created_date FROM $archived_campaign " .
-				"INNER JOIN $campaign ON $archived_campaign.id = $campaign.id " .
-				"LEFT JOIN $campaign_state ON $campaign_state.campaign_id = $campaign.id",
-				"WHERE $campaign.id = %d",
-				array( $campaign_id )
+				"SELECT camp.id, name, ifnull( state, 'FEDERAL' ) as region, email_count, archived_date, created_date " .
+				'FROM %i AS arch' .
+				'INNER JOIN %i AS camp ON arch.id = camp.id ' .
+				'LEFT JOIN %i AS state ON state.campaign_id = camp.id' .
+				'WHERE camp.id = %d',
+				array(
+					$archived_campaign,
+					$campaign,
+					$campaign_state,
+					$campaign_id,
+				)
 			),
 		);
-		// phpcs:enable
 
 		if ( false === $results ) {
 			wp_send_json(
@@ -629,7 +676,8 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 
 		$campaign = Congress_Table_Manager::get_table_name( 'campaign' );
 
-		$result = $wpdb->delete( // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->delete(
 			$campaign,
 			array(
 				'id' => $campaign_id,

@@ -131,11 +131,12 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 
 		$email_template = Congress_Table_Manager::get_table_name( 'email_template' );
 
-		// phpcs:disable
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$results = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT * FROM $email_template WHERE campaign_id = %d",
+				'SELECT * FROM %i WHERE campaign_id = %d',
 				array(
+					$email_template,
 					$campaign_id,
 				)
 			)
@@ -232,7 +233,7 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 
 		$email_template = Congress_Table_Manager::get_table_name( 'email_template' );
 
-		// phpcs:disable
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$result = $wpdb->insert(
 			$email_template,
 			array(
@@ -242,7 +243,6 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 				'favorable'   => $favorable,
 			),
 		);
-		// phpcs:enable
 
 		if ( false === $result ) {
 			wp_send_json(
@@ -321,17 +321,16 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 
 		$email_template = Congress_Table_Manager::get_table_name( 'email_template' );
 
-		// phpcs:disable
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->delete(
 			$email_template,
 			array(
 				'campaign_id' => $campaign_id,
 			),
 			array(
-				'%d'
+				'%d',
 			)
 		);
-		// phpcs:enable
 
 		if ( false === $result ) {
 			wp_send_json(
@@ -399,16 +398,15 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 
 		$email_template = Congress_Table_Manager::get_table_name( 'email_template' );
 
-		// phpcs:disable
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->delete(
 			$email_template,
 			array(
 				'campaign_id' => $campaign_id,
-				'id' => $email_id,
+				'id'          => $email_id,
 			),
 			array( '%d', '%d' )
 		);
-		// phpcs:enable
 
 		if ( false === $result ) {
 			wp_send_json(
@@ -509,7 +507,7 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 			array_push( $update_type_array, '%s' );
 		}
 
-		// phpcs:disable
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->update(
 			$email_template,
 			$update_array,
@@ -520,7 +518,6 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 			$update_type_array,
 			array( '%d', '%d' ),
 		);
-		// phpcs:enable
 
 		if ( false === $result ) {
 			wp_send_json(
@@ -608,7 +605,7 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 
 		global $wpdb;
 
-		if ( 0 !== $_FILES['csv']['error'] ) { // phpcs:ignore
+		if ( isset( $_FILES['csv']['error'] ) && 0 !== $_FILES['csv']['error'] ) {
 			wp_send_json(
 				array(
 					'error' => 'Failed to process file!',
@@ -618,7 +615,7 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 			return;
 
 		}
-		if ( 'text/csv' !== $_FILES['csv']['type'] ) { // phpcs:ignore
+		if ( isset( $_FILES['csv']['type'] ) && 'text/csv' !== $_FILES['csv']['type'] ) {
 			wp_send_json(
 				array(
 					'error' => 'Incorrect file type!',
@@ -627,7 +624,7 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 			);
 			return;
 		}
-		if ( 1024 * 2024 < $_FILES['csv']['size'] ) { // phpcs:ignore
+		if ( isset( $_FILES['csv']['size'] ) && 1024 * 2024 < $_FILES['csv']['size'] ) {
 			wp_send_json(
 				array(
 					'error'   => 'Upload Failed',
@@ -638,23 +635,35 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 			return;
 		}
 
-		$csv_handle = fopen( $_FILES['csv']['tmp_name'], 'r' ); // phpcs:ignore
-		if ( false === $csv_handle ) {
+		if ( ! isset( $_FILES['csv']['tmp_name'] ) ) {
 			wp_send_json(
 				array(
-					'error' => 'Upload Failed!',
-				),
-				400
+					'error' => 'Upload Failed',
+				)
 			);
-			return;
 		}
+
+		global $wp_filesystem;
+		WP_Filesystem();
+
+		$filename = sanitize_file_name( $_FILES['csv']['tmp_name'] );
+		if ( ! $wp_filesystem->exists( $filename ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Upload Failed',
+				)
+			);
+		}
+		$file_contents = $wp_filesystem->get_contents( $filename );
+		$file_contents = explode( "\n", $file_contents );
 
 		$csv_data        = array();
 		$col_ind         = null;
 		$max_col_ind     = 0;
 		$csv_parse_error = '';
 		$row_count       = 0;
-		while ( false !== ( $row = fgetcsv( $csv_handle ) ) ) { // phpcs:ignore
+		foreach ( $file_contents as $row ) {
+			$row       = explode( ',', $row );
 			$col_count = count( $row );
 
 			// parse headers.
@@ -750,7 +759,9 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 		$template_count = count( $csv_data );
 		for ( $i = 0; $i < $template_count; $i++ ) {
 			$csv_datum = $csv_data[ $i ];
-			$result    = $wpdb->insert( // phpcs:ignore
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$result = $wpdb->insert(
 				$email_template,
 				$csv_datum
 			);

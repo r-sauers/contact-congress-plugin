@@ -104,7 +104,9 @@ class Congress_Block {
 			);
 		} else {
 			$url = admin_url( 'admin.php?page=' . Congress_Admin::$main_page_slug );
-			error_log( // phpcs:ignore
+
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
 				"Error: Please set the client google recaptcha key for Contact Congress plugin at $url"
 			);
 			wp_register_script(

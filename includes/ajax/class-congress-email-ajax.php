@@ -196,10 +196,12 @@ class Congress_Email_AJAX implements Congress_AJAX_Collection {
 		$referer_t = Congress_Table_Manager::get_table_name( 'referer' );
 		$email_t   = Congress_Table_Manager::get_table_name( 'email' );
 
-		$result = $wpdb->get_row( // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT id FROM $referer_t WHERE url_name = %s AND campaign_id = %s", // phpcs:ignore
+				'SELECT id FROM %i AS referer WHERE url_name = %s AND campaign_id = %s',
 				array(
+					$referer_t,
 					$referer_url,
 					$campaign_id,
 				)
@@ -210,7 +212,8 @@ class Congress_Email_AJAX implements Congress_AJAX_Collection {
 			return false;
 		}
 
-		$result = $wpdb->insert( // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$result = $wpdb->insert(
 			$email_t,
 			array(
 				'campaign_id' => $campaign_id,
@@ -233,7 +236,8 @@ class Congress_Email_AJAX implements Congress_AJAX_Collection {
 
 		$email_t = Congress_Table_Manager::get_table_name( 'email' );
 
-		$result = $wpdb->insert( // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$result = $wpdb->insert(
 			$email_t,
 			array(
 				'campaign_id' => $campaign_id,

@@ -104,8 +104,10 @@ class Congress_Activator {
 			)
 		);
 
-		$wpdb->query( "ALTER TABLE $referer ADD FOREIGN KEY (campaign_id) REFERENCES $active_campaign(id) ON DELETE CASCADE;" ); // phpcs:ignore
-		$wpdb->query( "ALTER TABLE $email ADD FOREIGN KEY (campaign_id) REFERENCES $active_campaign(id) ON DELETE CASCADE;" ); // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( "ALTER TABLE $referer ADD FOREIGN KEY (campaign_id) REFERENCES $active_campaign(id) ON DELETE CASCADE;" );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( "ALTER TABLE $email ADD FOREIGN KEY (campaign_id) REFERENCES $active_campaign(id) ON DELETE CASCADE;" );
 
 		$archived_campaign = Congress_Table_Manager::create_table(
 			'archived_campaign',

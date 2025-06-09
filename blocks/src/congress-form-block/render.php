@@ -26,7 +26,8 @@ $utils = new Congress_Form_Block_Utils();
 $campaign_template = $utils->get_campaign_template( $attributes );
 
 if ( false === $campaign_template ) {
-	if ( ! isset( $_GET['action'] ) || 'edit' !== $_GET['action'] ) { // phpcs:ignore
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( ! isset( $_GET['action'] ) || 'edit' !== $_GET['action'] ) {
 		wp_die( 'There has been an error with the Contact Congress Form Block! Please contact the admin of the site to resolve this issue.' );
 	}
 } else {
@@ -41,7 +42,7 @@ if ( false === $campaign_template ) {
 		$region = Congress_State::from_string( $campaign_template->region );
 	}
 	?>
-	<div <?php echo get_block_wrapper_attributes(); // phpcs:ignore ?>>
+	<div <?php echo wp_kses_data( get_block_wrapper_attributes() ); ?>>
 		<h3 class="wp-block-heading">Contact Your <?php echo esc_html( $region->to_display_string() ); ?> Representatives</h3>
 		<h4><strong>Step 1:</strong> Find Your Representatives 
 			<?php

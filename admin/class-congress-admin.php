@@ -137,7 +137,8 @@ class Congress_Admin {
 			'all'
 		);
 
-		if ( isset( $_GET['page'] ) && self::$state_page_slug === $_GET['page'] ) { // phpcs:ignore
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( isset( $_GET['page'] ) && self::$state_page_slug === $_GET['page'] ) {
 			wp_enqueue_style(
 				$this->congress . '-state',
 				plugin_dir_url( __FILE__ ) . 'css/congress-admin-state.css',
@@ -154,7 +155,8 @@ class Congress_Admin {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts(): void {
-		if ( isset( $_GET['page'] ) && self::$rep_page_slug === $_GET['page'] ) { // phpcs:ignore
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( isset( $_GET['page'] ) && self::$rep_page_slug === $_GET['page'] ) {
 			wp_enqueue_script(
 				$this->congress,
 				plugin_dir_url( __FILE__ ) . 'js/congress-admin-rep.js',
@@ -167,7 +169,8 @@ class Congress_Admin {
 				'congressSyncRepsNonce',
 				wp_create_nonce( 'sync-reps' ),
 			);
-		} elseif ( isset( $_GET['page'] ) && self::$campaign_page_slug === $_GET['page'] ) { // phpcs:ignore
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		} elseif ( isset( $_GET['page'] ) && self::$campaign_page_slug === $_GET['page'] ) {
 			wp_enqueue_script(
 				$this->congress,
 				plugin_dir_url( __FILE__ ) . 'js/congress-admin-campaign.js',
@@ -187,7 +190,8 @@ class Congress_Admin {
 					'loadTemplateNonce' => $load_template_nonces,
 				),
 			);
-		} elseif ( isset( $_GET['page'] ) && self::$state_page_slug === $_GET['page'] ) { // phpcs:ignore
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		} elseif ( isset( $_GET['page'] ) && self::$state_page_slug === $_GET['page'] ) {
 			wp_enqueue_script(
 				$this->congress,
 				plugin_dir_url( __FILE__ ) . 'js/congress-admin-state.js',
@@ -471,15 +475,35 @@ class Congress_Admin {
 		$states_enabled = ( 0 !== count( Congress_State_Settings::get_active_states() ) );
 
 		global $wpdb;
-		$rep_t      = Congress_Table_Manager::get_table_name( 'representative' );
-		$res        = $wpdb->query( "SELECT * FROM $rep_t LIMIT 1" ); // phpcs:ignore
+		$rep_t = Congress_Table_Manager::get_table_name( 'representative' );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$res = $wpdb->query(
+			$wpdb->prepare(
+				'SELECT * FROM %i LIMIT 1',
+				array(
+					$rep_t,
+				)
+			)
+		);
+
 		$reps_added = false;
 		if ( 1 === $res ) {
 			$reps_added = true;
 		}
 
-		$campaign_t      = Congress_Table_Manager::get_table_name( 'campaign' );
-		$res             = $wpdb->query( "SELECT * FROM $campaign_t LIMIT 1" ); // phpcs:ignore
+		$campaign_t = Congress_Table_Manager::get_table_name( 'campaign' );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$res = $wpdb->query(
+			$wpdb->prepare(
+				'SELECT * FROM %i LIMIT 1',
+				array(
+					$campaign_t,
+				)
+			)
+		);
+
 		$campaigns_added = false;
 		if ( 1 === $res ) {
 			$campaigns_added = true;
@@ -604,7 +628,8 @@ class Congress_Admin {
 
 		// check if the user have submitted the settings.
 		// WordPress will add the "settings-updated" $_GET parameter to the url.
-		if ( isset( $_GET['settings-updated'] ) ) { // phpcs:ignore
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( isset( $_GET['settings-updated'] ) ) {
 			// add settings saved message with the class of "updated".
 			add_settings_error( 'congress_messages', 'congress_message', __( 'Settings Saved', 'contact-congress' ), 'updated' );
 		}

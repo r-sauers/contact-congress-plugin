@@ -467,7 +467,8 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 
 		$reps = array();
 
-		$results = $wpdb->get_results( // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$results = $wpdb->get_results(
 			$wpdb->prepare(
 				'SELECT ' .
 				'	r.id AS rep_id, ' .
@@ -481,8 +482,8 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 				'	s.last_name AS staffer_last_name, ' .
 				'	s.email AS staffer_email, ' .
 				'	s.title AS staffer_title ' .
-				"FROM $rep_t AS r JOIN $staffer_t AS s ON s.representative = r.id " . // phpcs:ignore
-				$where_clause . ' ', // phpcs:ignore
+				"FROM $rep_t AS r JOIN $staffer_t AS s ON s.representative = r.id " .
+				$where_clause . ' ',
 				$where_vars,
 			),
 			ARRAY_A

@@ -219,8 +219,9 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 			array_push( $query_args, $title->to_db_string() );
 		}
 
-		$result = $wpdb->get_results( // phpcs:ignore
-			$wpdb->prepare( $query, $query_args ) // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->get_results(
+			$wpdb->prepare( $query, $query_args )
 		);
 
 		if ( null === $result ) {
@@ -326,8 +327,8 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 		}
 
 		$tablename = Congress_Table_Manager::get_table_name( 'representative' );
-		// phpcs:ignore
-		$result    = $wpdb->insert(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$result = $wpdb->insert(
 			$tablename,
 			array(
 				'title'      => sanitize_text_field(
@@ -416,7 +417,7 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 		global $wpdb;
 
 		$tablename = Congress_Table_Manager::get_table_name( 'representative' );
-		// phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->delete(
 			$tablename,
 			array(
@@ -491,8 +492,8 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 		global $wpdb;
 
 		$tablename = Congress_Table_Manager::get_table_name( 'representative' );
-		// phpcs:ignore
-		$result    = $wpdb->update(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->update(
 			$tablename,
 			array(
 				'title'      => sanitize_text_field(

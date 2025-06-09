@@ -119,7 +119,8 @@ class Congress_Cron {
 		foreach ( $added as &$rep ) {
 			$state_data = &self::ensure_state( $states, $rep->state );
 			if ( is_wp_error( $state_data ) ) {
-				error_log( $state_data ); // phpcs:ignore
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( $state_data );
 				continue;
 			}
 			array_push( $state_data['reps_added'], $rep );
@@ -127,7 +128,8 @@ class Congress_Cron {
 		foreach ( $errors as &$error ) {
 			$state_data = self::ensure_state( $states, $rep->state );
 			if ( is_wp_error( $state_data ) ) {
-				error_log( $state_data ); // phpcs:ignore
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( $state_data );
 				continue;
 			}
 			array_push( $state_data['reps_removed'], $rep );
@@ -236,7 +238,8 @@ class Congress_Cron {
 
 			$email = Congress_State_Settings::get_default_sync_email();
 			if ( is_wp_error( $email ) || '' === $email ) {
-				error_log( // phpcs:ignore
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log(
 					new WP_Error(
 						'INVALID_EMAIL',
 						'The Default email for Contact Congress representative syncing is invalid.',

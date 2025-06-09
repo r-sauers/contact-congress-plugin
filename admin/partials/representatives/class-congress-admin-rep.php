@@ -339,8 +339,9 @@ class Congress_Admin_Rep {
 			array_push( $query_args, $title->to_db_string() );
 		}
 
-		$result = $wpdb->get_results( // phpcs:ignore
-			$wpdb->prepare( $query, $query_args ) // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->get_results(
+			$wpdb->prepare( $query, $query_args )
 		);
 
 		if ( null === $result ) {

@@ -65,7 +65,8 @@ class Congress_Table_Manager {
 
 		foreach ( $foreign_statements as $statement ) {
 			$sql = "ALTER TABLE $table_name ADD $statement;";
-			$wpdb->query( $sql ); // phpcs:ignore
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->query( $sql );
 		}
 
 		return $table_name;
@@ -80,6 +81,16 @@ class Congress_Table_Manager {
 	public static function delete_table( string $name ): void {
 		global $wpdb;
 		$table_name = self::get_table_name( $name );
-		$wpdb->query( "DROP TABLE IF EXISTS $table_name;" ); // phpcs:ignore
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
+				'DROP TABLE IF EXISTS %i',
+				array(
+					$table_name,
+				)
+			)
+		);
 	}
 }

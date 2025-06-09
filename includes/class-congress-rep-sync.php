@@ -113,7 +113,8 @@ class Congress_Rep_Sync {
 				continue;
 			}
 
-			$res = $wpdb->delete( // phpcs:ignore
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$res = $wpdb->delete(
 				$rep_t,
 				array(
 					'id' => $rep->get_id(),
@@ -148,7 +149,9 @@ class Congress_Rep_Sync {
 				$values['district'] = $rep->get_district();
 				array_push( $types, '%s' );
 			}
-			$res = $wpdb->insert( // phpcs:ignore
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+			$res = $wpdb->insert(
 				$rep_t,
 				$values,
 				$types
@@ -162,7 +165,9 @@ class Congress_Rep_Sync {
 
 			$staffers = &$rep->get_staffers();
 			foreach ( $staffers as &$staffer ) {
-				$wpdb->insert( // phpcs:ignore
+
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+				$wpdb->insert(
 					$staffer_t,
 					array(
 						'first_name'     => $staffer->first_name,
@@ -410,7 +415,7 @@ class Congress_Rep_Sync {
 
 		$rep_t = Congress_Table_Manager::get_table_name( 'representative' );
 
-		// phpcs:disable
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$db_reps = $wpdb->get_results(
 			$wpdb->prepare(
 				'SELECT id, first_name, last_name, district, title, level, state ' .
@@ -420,12 +425,11 @@ class Congress_Rep_Sync {
 				$placeholders
 			)
 		);
-		// phpcs:enable
 
 		if ( null === $db_reps ) {
-			// phpcs:disable
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log(
-			 	'Contact Congress Failed Database Call: ' .
+				'Contact Congress Failed Database Call: ' .
 				$wpdb->prepare(
 					'SELECT id, first_name, last_name, district, title, level, state ' .
 					"FROM $rep_t AS r " .
@@ -434,7 +438,6 @@ class Congress_Rep_Sync {
 					$placeholders
 				)
 			);
-			// phpcs:enable
 			array_push(
 				$errors,
 				new WP_Error( 'DB_FAILURE', 'Failed to get representatives from database.' )

@@ -188,10 +188,13 @@ class Congress_Admin_Staffer {
 	public static function get_staffers( int $rep_id ): array {
 		global $wpdb;
 		$tablename = Congress_Table_Manager::get_table_name( 'staffer' );
-		$result    = $wpdb->get_results( // phpcs:ignore
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT * FROM $tablename WHERE representative=%d", // phpcs:ignore
+				'SELECT * FROM %i WHERE representative=%d',
 				array(
+					$tablename,
 					$rep_id,
 				)
 			)

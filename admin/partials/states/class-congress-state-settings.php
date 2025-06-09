@@ -140,7 +140,8 @@ class Congress_State_Settings {
 		);
 
 		if ( false === $res ) {
-			error_log( new Error( 'Could not set option: ' . self::OPT_NAME_DEFAULT_EMAIL ) ); // phpcs:ignore
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( new Error( 'Could not set option: ' . self::OPT_NAME_DEFAULT_EMAIL ) );
 			return new WP_Error( 'OPTIONS_FAILURE', 'Error setting value!' );
 		}
 
@@ -238,7 +239,8 @@ class Congress_State_Settings {
 
 		$state_options = get_option( $this->options_name );
 		if ( false === $state_options ) {
-			error_log( new Error( $this->options_name . ' option does not exist, it was deleted.' ) ); // phpcs:ignore
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( new Error( $this->options_name . ' option does not exist, it was deleted.' ) );
 			return new WP_Error( 'OPTIONS_FAILURE', 'Error getting value!' );
 		}
 		if ( null !== $cache ) {
@@ -277,7 +279,8 @@ class Congress_State_Settings {
 
 		$state_options = get_option( $this->options_name );
 		if ( false === $state_options ) {
-			error_log( new Error( $this->options_name . ' option does not exist, it was deleted.' ) ); // phpcs:ignore
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( new Error( $this->options_name . ' option does not exist, it was deleted.' ) );
 			return new WP_Error( 'OPTIONS_FAILURE', 'Error getting value!' );
 		}
 
@@ -286,7 +289,8 @@ class Congress_State_Settings {
 		$res = update_option( $this->options_name, $state_options );
 
 		if ( false === $res ) {
-			error_log( new Error( 'Could not set option: ' . $this->options_name ) ); // phpcs:ignore
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( new Error( 'Could not set option: ' . $this->options_name ) );
 			return new WP_Error( 'OPTIONS_FAILURE', 'Error setting value!' );
 		}
 

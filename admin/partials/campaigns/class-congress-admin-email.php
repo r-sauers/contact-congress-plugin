@@ -206,16 +206,17 @@ class Congress_Admin_Email {
 
 		global $wpdb;
 		$email_t = Congress_Table_Manager::get_table_name( 'email' );
-		// phpcs:disable;
-		$result  = $wpdb->get_results(
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT * FROM $email_t WHERE campaign_id = %d",
+				'SELECT * FROM %i WHERE campaign_id = %d',
 				array(
+					$email_t,
 					$campaign_id,
 				)
 			)
 		);
-		// phpcs:enable
 
 		$campaigns = array();
 		foreach ( $result as $email_result ) {

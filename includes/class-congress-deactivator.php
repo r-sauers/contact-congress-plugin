@@ -63,7 +63,8 @@ class Congress_Deactivator {
 	private static function clean_tables(): void {
 		global $wpdb;
 
-		$wpdb->query( 'START TRANSACTION' ); // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( 'START TRANSACTION' );
 
 		Congress_Table_Manager::delete_table( 'email' );
 		Congress_Table_Manager::delete_table( 'referer' );
@@ -76,7 +77,8 @@ class Congress_Deactivator {
 		Congress_Table_Manager::delete_table( 'staffer' );
 		Congress_Table_Manager::delete_table( 'representative' );
 
-		$wpdb->query( 'COMMIT' ); // phpcs:ignore
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( 'COMMIT' );
 	}
 
 	/**
