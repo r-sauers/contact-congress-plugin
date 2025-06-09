@@ -7,6 +7,11 @@
  * @package Congress
  */
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Imports utils for html helper functions and retrieving block attributes and table information.
  */
