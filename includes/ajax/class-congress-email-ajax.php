@@ -83,6 +83,15 @@ class Congress_Email_AJAX implements Congress_AJAX_Collection {
 	 */
 	public function register_email(): void {
 
+		if ( ! check_ajax_referer( 'register-email', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+		}
+
 		if (
 			! isset( $_POST['g-recaptcha-response'] ) ||
 			! isset( $_POST['campaignID'] )
@@ -101,15 +110,6 @@ class Congress_Email_AJAX implements Congress_AJAX_Collection {
 		$campaign_id = sanitize_text_field(
 			wp_unslash( $_POST['campaignID'] )
 		);
-
-		if ( ! check_ajax_referer( "register-email_$campaign_id", false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
-			);
-		}
 
 		$captcha = new Congress_Captcha();
 		if ( ! $captcha->has_server_key() ) {

@@ -200,6 +200,17 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 	 * Uses Google Places API.
 	 */
 	public function autocomplete(): void {
+
+		if ( ! check_ajax_referer( 'autocomplete', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+			return;
+		}
+
 		if (
 			! isset( $_POST['g-recaptcha-response'] ) ||
 			! isset( $_POST['address'] )
@@ -209,16 +220,6 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 					'error' => 'Missing Parameters',
 				),
 				400
-			);
-			return;
-		}
-
-		if ( ! check_ajax_referer( 'autocomplete', false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
 			);
 			return;
 		}
@@ -313,6 +314,16 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 	 */
 	public function get_reps(): void {
 
+		if ( ! check_ajax_referer( 'get-reps', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+			return;
+		}
+
 		if (
 			! isset( $_POST['placeId'] ) ||
 			! isset( $_POST['campaignRegion'] ) ||
@@ -330,16 +341,6 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 		$campaign_id = sanitize_text_field(
 			wp_unslash( $_POST['campaignID'] )
 		);
-
-		if ( ! check_ajax_referer( "get-reps_$campaign_id", false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
-			);
-			return;
-		}
 
 		try {
 			$campaign_region = sanitize_text_field(

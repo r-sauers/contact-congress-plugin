@@ -95,19 +95,19 @@ class Congress_Staffer_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
-		$rep_id = 'all';
-		if ( isset( $_GET['rep_id'] ) ) {
-			$rep_id = sanitize_text_field(
-				wp_unslash( $_GET['rep_id'] )
-			);
-		}
-
-		if ( ! check_ajax_referer( "get-staffers_$rep_id", false, false ) ) {
+		if ( ! check_ajax_referer( 'get-staffers', false, false ) ) {
 			wp_send_json(
 				array(
 					'error' => 'Incorrect Nonce',
 				),
 				403
+			);
+		}
+
+		$rep_id = 'all';
+		if ( isset( $_GET['rep_id'] ) ) {
+			$rep_id = sanitize_text_field(
+				wp_unslash( $_GET['rep_id'] )
 			);
 		}
 
@@ -169,6 +169,15 @@ class Congress_Staffer_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
+		if ( ! check_ajax_referer( 'create-staffer', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+		}
+
 		if (
 			! isset( $_POST['rep_id'] ) ||
 			! isset( $_POST['title'] ) ||
@@ -187,15 +196,6 @@ class Congress_Staffer_AJAX implements Congress_AJAX_Collection {
 		$rep_id = sanitize_text_field(
 			wp_unslash( $_POST['rep_id'] ),
 		);
-
-		if ( ! check_ajax_referer( "create-staffer_$rep_id", false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
-			);
-		}
 
 		global $wpdb;
 
@@ -263,6 +263,15 @@ class Congress_Staffer_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
+		if ( ! check_ajax_referer( 'delete-staffer', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+		}
+
 		if (
 			! isset( $_POST['rep_id'] ) ||
 			! isset( $_POST['staffer_id'] )
@@ -281,15 +290,6 @@ class Congress_Staffer_AJAX implements Congress_AJAX_Collection {
 		$staffer_id = sanitize_text_field(
 			wp_unslash( $_POST['staffer_id'] )
 		);
-
-		if ( ! check_ajax_referer( "delete-staffer_$rep_id-$staffer_id", false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
-			);
-		}
 
 		global $wpdb;
 
@@ -329,6 +329,15 @@ class Congress_Staffer_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
+		if ( ! check_ajax_referer( 'edit-staffer', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+		}
+
 		if (
 			! isset( $_POST['staffer_id'] ) ||
 			! isset( $_POST['rep_id'] ) ||
@@ -351,15 +360,6 @@ class Congress_Staffer_AJAX implements Congress_AJAX_Collection {
 		$staffer_id = sanitize_text_field(
 			wp_unslash( $_POST['staffer_id'] )
 		);
-
-		if ( ! check_ajax_referer( "edit-staffer_$rep_id-$staffer_id", false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
-			);
-		}
 
 		global $wpdb;
 

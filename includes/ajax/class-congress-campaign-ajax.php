@@ -147,6 +147,15 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
+		if ( ! check_ajax_referer( 'create-campaign', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+		}
+
 		if (
 			! isset( $_POST['name'] ) ||
 			! isset( $_POST['region'] )
@@ -156,15 +165,6 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 					'error' => 'Missing parameters',
 				),
 				400
-			);
-		}
-
-		if ( ! check_ajax_referer( 'create-campaign', false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
 			);
 		}
 
@@ -319,6 +319,24 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 	 */
 	public function update_campaign(): void {
 
+		if ( ! current_user_can( 'congress_manage_campaigns' ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Insufficient Permissions.',
+				),
+				403
+			);
+		}
+
+		if ( ! check_ajax_referer( 'update-campaign', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+		}
+
 		if (
 			! isset( $_POST['id'] ) ||
 			! isset( $_POST['name'] ) ||
@@ -355,15 +373,6 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 					400
 				);
 			}
-		}
-
-		if ( ! check_ajax_referer( "update-campaign_$campaign_id", false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
-			);
 		}
 
 		global $wpdb;
@@ -471,6 +480,16 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
+		if ( ! check_ajax_referer( 'archive-campaign', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+			return;
+		}
+
 		if (
 			! isset( $_POST['id'] )
 		) {
@@ -486,16 +505,6 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		$campaign_id = sanitize_text_field(
 			wp_unslash( $_POST['id'] )
 		);
-
-		if ( ! check_ajax_referer( "archive-campaign_$campaign_id", false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
-			);
-			return;
-		}
 
 		global $wpdb;
 
@@ -651,6 +660,16 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
+		if ( ! check_ajax_referer( 'delete-archived-campaign', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+			return;
+		}
+
 		if (
 			! isset( $_POST['id'] )
 		) {
@@ -666,16 +685,6 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 		$campaign_id = sanitize_text_field(
 			wp_unslash( $_POST['id'] )
 		);
-
-		if ( ! check_ajax_referer( "delete-archived-campaign_$campaign_id", false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
-			);
-			return;
-		}
 
 		global $wpdb;
 

@@ -145,6 +145,15 @@ class Congress_State_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
+		if ( ! check_ajax_referer( 'states-bulk-operation', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+		}
+
 		if (
 			! isset( $_POST['states'] )
 		) {
@@ -153,15 +162,6 @@ class Congress_State_AJAX implements Congress_AJAX_Collection {
 					'error' => 'Missing parameters',
 				),
 				400
-			);
-		}
-
-		if ( ! check_ajax_referer( 'states-bulk-operation', false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
 			);
 		}
 
@@ -392,6 +392,15 @@ class Congress_State_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
+		if ( ! check_ajax_referer( 'states-set-sync-email', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+		}
+
 		if (
 			! isset( $_POST['state'] ) ||
 			! isset( $_POST['email'] )
@@ -401,15 +410,6 @@ class Congress_State_AJAX implements Congress_AJAX_Collection {
 					'error' => 'Missing parameters',
 				),
 				400
-			);
-		}
-
-		if ( ! check_ajax_referer( 'states-set-sync-email', false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
 			);
 		}
 
@@ -469,6 +469,15 @@ class Congress_State_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
+		if ( ! check_ajax_referer( 'states-set-default-sync-email', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+		}
+
 		if (
 			! isset( $_POST['email'] )
 		) {
@@ -477,15 +486,6 @@ class Congress_State_AJAX implements Congress_AJAX_Collection {
 					'error' => 'Missing parameters',
 				),
 				400
-			);
-		}
-
-		if ( ! check_ajax_referer( 'states-set-default-sync-email', false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
 			);
 		}
 

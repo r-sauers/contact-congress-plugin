@@ -106,6 +106,16 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
+		if ( ! check_ajax_referer( 'load-templates', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+			return;
+		}
+
 		if (
 			! isset( $_POST['campaign_id'] )
 		) {
@@ -121,16 +131,6 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 		$campaign_id = sanitize_text_field(
 			wp_unslash( $_POST['campaign_id'] )
 		);
-
-		if ( ! check_ajax_referer( "load-templates_$campaign_id", false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
-			);
-			return;
-		}
 
 		global $wpdb;
 
@@ -202,6 +202,16 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
+		if ( ! check_ajax_referer( 'create-email', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+			return;
+		}
+
 		if (
 			! isset( $_POST['campaign_id'] ) ||
 			! isset( $_POST['subject'] )
@@ -223,16 +233,6 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 		);
 		$template    = "DEAR [[REP_TITLE]] [[REP_FIRST]] [[REP_LAST]],\n\nPlease support...\n\nSincerely,\n[[SENDER_FIRST]] [[SENDER_LAST]]\n[[ADDRESS]]";
 		$favorable   = false;
-
-		if ( ! check_ajax_referer( "create-email_$campaign_id", false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
-			);
-			return;
-		}
 
 		global $wpdb;
 
@@ -296,6 +296,16 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
+		if ( ! check_ajax_referer( 'delete-all-emails', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+			return;
+		}
+
 		if (
 			! isset( $_POST['campaign_id'] )
 		) {
@@ -311,16 +321,6 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 		$campaign_id = sanitize_text_field(
 			wp_unslash( $_POST['campaign_id'] )
 		);
-
-		if ( ! check_ajax_referer( "delete-all-emails_$campaign_id", false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
-			);
-			return;
-		}
 
 		global $wpdb;
 
@@ -369,6 +369,16 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
+		if ( ! check_ajax_referer( 'edit-email-template', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+			return;
+		}
+
 		if (
 			! isset( $_POST['campaign_id'] ) ||
 			! isset( $_POST['id'] )
@@ -388,16 +398,6 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 		$campaign_id = sanitize_text_field(
 			wp_unslash( $_POST['campaign_id'] )
 		);
-
-		if ( ! check_ajax_referer( "edit-email-template_$campaign_id-$email_id", false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
-			);
-			return;
-		}
 
 		global $wpdb;
 
@@ -456,6 +456,16 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
+		if ( ! check_ajax_referer( 'edit-email-template', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+			return;
+		}
+
 		if (
 			! isset( $_POST['id'] ) ||
 			! isset( $_POST['campaign_id'] )
@@ -475,16 +485,6 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 		$campaign_id = sanitize_text_field(
 			wp_unslash( $_POST['campaign_id'] )
 		);
-
-		if ( ! check_ajax_referer( "edit-email-template_$campaign_id-$email_id", false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
-			);
-			return;
-		}
 
 		global $wpdb;
 
@@ -580,6 +580,16 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 			UPLOAD_ERR_EXTENSION  => 'File is not allowed to upload to this server',
 		);
 
+		if ( ! check_ajax_referer( 'upload-csv-emails', false, false ) ) {
+			wp_send_json(
+				array(
+					'error' => 'Incorrect Nonce',
+				),
+				403
+			);
+			return;
+		}
+
 		if (
 			! isset( $_POST['campaign_id'] ) ||
 			! isset( $_FILES['csv'] )
@@ -597,16 +607,6 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 			wp_unslash( $_POST['campaign_id'] )
 		);
 		$default_favorable = false;
-
-		if ( ! check_ajax_referer( "upload-csv-emails_$campaign_id", false, false ) ) {
-			wp_send_json(
-				array(
-					'error' => 'Incorrect Nonce',
-				),
-				403
-			);
-			return;
-		}
 
 		global $wpdb;
 
