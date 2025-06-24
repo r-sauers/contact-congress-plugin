@@ -5,6 +5,9 @@ node_modules
 vendor
 bower_components
 
+# Scripting artifacts
+valid-dependency-extensions.tmp.json
+
 # Libraries loaded via 'composer run build'
 public/css/select2.min.css
 public/js/select2.min.js

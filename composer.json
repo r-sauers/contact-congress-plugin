@@ -9,9 +9,9 @@
         "wpreadme2markdown/wp2md": "*"
     },
     "scripts": {
-        "diff": "diff -r . ./congress-volume --exclude vendor --exclude bower_components --exclude docker --exclude .git --exclude .gitignore --exclude congress.zip --exclude node_modules --exclude build",
-        "cp-to-volume": "sudo rsync -av --progress --chown=www-data:www-data ./* ./congress-volume/ --exclude node_modules --exclude congress-volume --exclude vendor --exclude bower_components --exclude docker --exclude .git --exclude .gitignore --exclude congress.zip; sudo setfacl -R -m \"u:$(whoami):rwx\" ./congress-volume/;",
-        "cp-from-volume": "rsync -av --progress ./congress-volume/* . --exclude node_modules --exclude vendor --exclude bower_components --exclude .git --exclude .gitignore",
+        "diff": "bash ./scripts/diff.sh",
+        "cp-to-volume": "bash ./scripts/copy-to-volume.sh",
+        "cp-from-volume": "bash ./scripts/copy-from-volume.sh",
         "lint:php": "vendor/bin/phpcs .",
         "fix:php": "vendor/bin/phpcbf .",
         "lint:js": "npx eslint",
@@ -20,9 +20,9 @@
         "fix:css": "npx stylelint --fix '**/*.scss' '**/*.css'",
         "lint": ["@lint:php", "@lint:js", "@lint:css"],
         "fix": ["@fix:php", "@fix:js", "@fix:css"],
-        "dev": "cp bower_components/select2/dist/js/select2.min.js public/js/select2.min.js; cp bower_components/select2/dist/css/select2.min.css public/css/select2.min.css; npx wp-scripts start --webpack-copy-php --source-path=./blocks/src --output-path=./blocks/build",
-        "build": "cp bower_components/select2/dist/js/select2.min.js public/js/select2.min.js; cp bower_components/select2/dist/css/select2.min.css public/css/select2.min.css; npx wp-scripts build --webpack-copy-php --source-path=./blocks/src --output-path=./blocks/build; npx wp-scripts plugin-zip",
-        "packages-update": "npx wp-scripts packages-update; composer update; mv './vendor/phpoffice/phpspreadsheet/src/PhpSpreadsheet/Chart/Renderer/PHP Charting Libraries.txt' './vendor/phpoffice/phpspreadsheet/src/PhpSpreadsheet/Chart/Renderer/PHP_Charting_Libraries.txt'; npm update; bower update",
+        "dev": "bash ./scripts/dev.sh",
+        "build": "bash ./scripts/build.sh",
+        "packages-update": "bash ./scripts/packages-update.sh",
         "update-readme.md": "wp2md -i readme.txt -o README.md"
     },
     "require": {
