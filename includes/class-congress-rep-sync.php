@@ -368,66 +368,42 @@ class Congress_Rep_Sync {
 
 		usort( $api_reps, 'Congress_Rep_Interface::cmp_by_position_and_name' );
 
+		// generate sql placeholder/args for federal-enabled states.
+		$query_federal_reps   = Congress_Level::State !== $level;
+		$federal_placeholders = '%s';
+		$federal_args         = array( '' );
+		if ( $query_federal_reps && 0 !== count( $federal_level_states ) ) {
+			$federal_placeholders = join( ', ', array_fill( 0, count( $federal_level_states ), '%s', ) );
+			$federal_args         = $federal_level_states;
+		}
+
+		// generate sql placeholder/args for state-enabled states.
+		$query_state_reps   = Congress_Level::Federal !== $level;
+		$state_placeholders = '%s';
+		$state_args         = array( '' );
+		if ( $query_state_reps && 0 !== count( $state_level_states ) ) {
+			$state_placeholders = join( ', ', array_fill( 0, count( $state_level_states ), '%s', ) );
+			$state_args         = $state_level_states;
+		}
+
 		global $wpdb;
-
-		$where_clause = 'WHERE ';
-		$placeholders = array();
-		$first_clause = true;
-
-		if ( null === $level || Congress_Level::Federal === $level ) {
-			if ( 1 === count( $federal_level_states ) ) {
-				$where_clause .= '(r.level = %s AND r.state = %s) ';
-				array_push(
-					$placeholders,
-					Congress_Level::Federal->to_db_string(),
-					$federal_level_states[0]
-				);
-			} else {
-				$state_placeholders = join( ', ', array_fill( 0, count( $federal_level_states ), '%s', ) );
-				$where_clause      .= "(r.level = %s AND r.state IN ($state_placeholders)) ";
-				array_push(
-					$placeholders,
-					Congress_Level::Federal->to_db_string(),
-					...$federal_level_states
-				);
-			}
-			$first_clause = false;
-		}
-
-		if ( null === $level || Congress_Level::State === $level ) {
-
-			if ( ! $first_clause ) {
-				$where_clause .= 'OR ';
-			}
-
-			if ( 1 === count( $state_level_states ) ) {
-				$where_clause .= '(r.level = %s AND r.state = %s) ';
-				array_push(
-					$placeholders,
-					Congress_Level::State->to_db_string(),
-					$state_level_states[0]
-				);
-			} else {
-				$state_placeholders = join( ', ', array_fill( 0, count( $state_level_states ), '%s', ) );
-				$where_clause      .= "(r.level = %s AND r.state IN ($state_placeholders)) ";
-				array_push(
-					$placeholders,
-					Congress_Level::State->to_db_string(),
-					...$state_level_states
-				);
-			}
-		}
-
-		$rep_t = Congress_Table_Manager::get_table_name( 'representative' );
-
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$db_reps = $wpdb->get_results(
-			$wpdb->prepare(
+			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 				'SELECT id, first_name, last_name, district, title, level, state ' .
-				"FROM $rep_t AS r " .
-				$where_clause .
+				'FROM %i AS r ' .
+				'WHERE ' .
+				"	(r.level = %s AND r.state IN ($state_placeholders)) OR " . // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"	(r.level = %s AND r.state IN ($federal_placeholders)) " . // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
 				'ORDER BY state, district, last_name, first_name',
-				$placeholders
+				array(
+					Congress_Table_Manager::get_table_name( 'representative' ),
+					$query_state_reps ? Congress_Level::State->to_db_string() : '',
+					...state_args,
+					$query_federal_reps ? Congress_Level::Federal->to_db_string() : '',
+					...federal_args,
+				)
 			)
 		);
 
@@ -435,13 +411,7 @@ class Congress_Rep_Sync {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log(
 				'Contact Congress Failed Database Call: ' .
-				$wpdb->prepare(
-					'SELECT id, first_name, last_name, district, title, level, state ' .
-					"FROM $rep_t AS r " .
-					$where_clause .
-					'ORDER BY state, district, last_name, first_name',
-					$placeholders
-				)
+				$wpdb->last_query
 			);
 			array_push(
 				$errors,
