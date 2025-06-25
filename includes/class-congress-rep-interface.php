@@ -110,27 +110,64 @@ class Congress_Rep_Interface {
 	/**
 	 * A helper function for creating a representative from database results.
 	 *
-	 * @param array $db_result is the results of a database call with the fields:
+	 * @param array $db_result is the results of a database call with the columns:
 	 * first_name, last_name, state, level, title, and district.
+	 * @param bool  $include_staffers will add staffers to the interface.
+	 * The db results should have the above columns prefixed with "rep_",
+	 * and the staffer columns (id, first_name, last_name, title, email) should be prefixed with "staffer_".
 	 */
-	public static function from_db_result( $db_result ): Congress_Rep_Interface {
-		$rep = new Congress_Rep_Interface(
-			first_name: $db_result->first_name,
-			last_name: $db_result->last_name,
-			state: Congress_State::from_string( $db_result->state ),
-			level: Congress_Level::from_string( $db_result->level ),
-			title: Congress_Title::from_string( $db_result->title )
-		);
+	public static function from_db_result( $db_result, $include_staffers = false ): Congress_Rep_Interface {
 
-		if ( isset( $db_result->district ) ) {
-			$rep->set_district( $db_result->district );
+		if ( ! $include_staffers ) {
+
+			$rep = new Congress_Rep_Interface(
+				first_name: $db_result->first_name,
+				last_name: $db_result->last_name,
+				state: Congress_State::from_string( $db_result->state ),
+				level: Congress_Level::from_string( $db_result->level ),
+				title: Congress_Title::from_string( $db_result->title )
+			);
+
+			if ( isset( $db_result->district ) ) {
+				$rep->set_district( $db_result->district );
+			}
+
+			if ( isset( $db_result->id ) ) {
+				$rep->set_id( $db_result->id );
+			}
+
+			return $rep;
+		} else {
+
+			$reps = array();
+
+			foreach ( $db_result as $rep_staffer ) {
+				if ( ! isset( $reps[ $rep_staffer->rep_id ] ) ) {
+					$reps[ $rep_staffer->rep_id ] = new Congress_Rep_Interface(
+						id:         $rep_staffer->rep_id,
+						first_name: $rep_staffer->rep_first_name,
+						last_name:  $rep_staffer->rep_last_name,
+						state:      $rep_staffer->rep_state,
+						level:      $rep_staffer->rep_level,
+						district:   $rep_staffer->rep_district,
+						title:      $rep_staffer->rep_title,
+					);
+				}
+
+				$rep = &$reps[ $rep_staffer->rep_id ];
+				$rep->add_staffer(
+					staffer: new Congress_Staffer_Interface(
+						id:         $rep_staffer->staffer_id,
+						first_name: $rep_staffer->staffer_first_name,
+						last_name:  $rep_staffer->staffer_last_name,
+						title:      $rep_staffer->staffer_title,
+						email:      $rep_staffer->staffer_email,
+					)
+				);
+			}
+
+			return $reps;
 		}
-
-		if ( isset( $db_result->id ) ) {
-			$rep->set_id( $db_result->id );
-		}
-
-		return $rep;
 	}
 
 	/**

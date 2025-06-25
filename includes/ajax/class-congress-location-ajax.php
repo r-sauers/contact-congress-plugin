@@ -457,79 +457,6 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 	}
 
 	/**
-	 * Gets an associative array of reps from the database, indexed by rep id.
-	 *
-	 * @param string        $where_clause is the SQL where clause with 'r' as an alias for the representatives table
-	 * and 's' as an alias for the staffers table.
-	 * @param array<string> $where_vars are the variables to fill the where clause.
-	 *
-	 * @return array|false The associative array of representatives or false on error.
-	 */
-	private function get_reps_from_db( string $where_clause, array $where_vars ): array|false {
-		global $wpdb;
-
-		$rep_t     = Congress_Table_Manager::get_table_name( 'representative' );
-		$staffer_t = Congress_Table_Manager::get_table_name( 'staffer' );
-
-		$reps = array();
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$results = $wpdb->get_results(
-			$wpdb->prepare(
-				'SELECT ' .
-				'	r.id AS rep_id, ' .
-				'	r.first_name AS rep_first_name, ' .
-				'	r.last_name AS rep_last_name, ' .
-				'	r.title AS rep_title, ' .
-				'	r.state, ' .
-				'	r.district, ' .
-				'	r.level, ' .
-				'	s.first_name AS staffer_first_name, ' .
-				'	s.last_name AS staffer_last_name, ' .
-				'	s.email AS staffer_email, ' .
-				'	s.title AS staffer_title ' .
-				"FROM $rep_t AS r JOIN $staffer_t AS s ON s.representative = r.id " .
-				$where_clause . ' ',
-				$where_vars,
-			),
-			ARRAY_A
-		);
-
-		if ( null === $results ) {
-			return false;
-		}
-
-		foreach ( $results as $rep_staffer ) {
-			if ( ! isset( $reps[ $rep_staffer['rep_id'] ] ) ) {
-				$reps[ $rep_staffer['rep_id'] ] = array(
-					'id'         => $rep_staffer['rep_id'],
-					'first_name' => $rep_staffer['rep_first_name'],
-					'last_name'  => $rep_staffer['rep_last_name'],
-					'state'      => $rep_staffer['state'],
-					'level'      => $rep_staffer['level'],
-					'district'   => $rep_staffer['district'],
-					'title'      => $rep_staffer['rep_title'],
-					'staffers'   => array(),
-				);
-			}
-
-			$rep = &$reps[ $rep_staffer['rep_id'] ];
-
-			array_push(
-				$rep['staffers'],
-				array(
-					'first_name' => $rep_staffer['staffer_first_name'],
-					'last_name'  => $rep_staffer['staffer_last_name'],
-					'title'      => $rep_staffer['staffer_title'],
-					'email'      => $rep_staffer['staffer_email'],
-				)
-			);
-		}
-
-		return $reps;
-	}
-
-	/**
 	 * Sends a JSON response with state level reps for the given location.
 	 *
 	 * @param Congress_State $state_code is the state.
@@ -555,10 +482,15 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 		}
 
 		global $wpdb;
-		$reps = null;
+
+		/**
+		 * The representatives to send.
+		 *
+		 * @var Congress_Rep_Interface[] $reps
+		 */
+		$reps = array();
 
 		if ( $success ) {
-			$reps = array();
 
 			/**
 			 * The representative from the API.
@@ -566,42 +498,79 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 			 * @var Congress_Rep_Interface $api_rep
 			 */
 			foreach ( $api_reps as $api_rep ) {
-				$db_reps = $this->get_reps_from_db(
-					'WHERE r.state=%s AND r.district=%s AND r.level=%s AND r.first_name=%s AND r.last_name=%s',
-					array(
-						$api_rep->state->to_db_string(),
-						$api_rep->get_district(),
-						$api_rep->level->to_db_string(),
-						$api_rep->first_name,
-						$api_rep->last_name,
-					),
+
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				$results = $wpdb->get_results(
+					$wpdb->prepare(
+						'SELECT ' .
+						'	r.id         AS rep_id, ' .
+						'	r.first_name AS rep_first_name, ' .
+						'	r.last_name  AS rep_last_name, ' .
+						'	r.title      AS rep_title, ' .
+						'	r.state      AS rep_state,' .
+						'	r.district   AS rep_district,' .
+						'	r.level      AS rep_level,' .
+						'	s.id         AS staffer_id, ' .
+						'	s.first_name AS staffer_first_name, ' .
+						'	s.last_name  AS staffer_last_name, ' .
+						'	s.email      AS staffer_email, ' .
+						'	s.title      AS staffer_title ' .
+						'FROM %i AS r JOIN %i AS s ON s.representative = r.id ' .
+						'WHERE r.state=%s AND r.district=%s AND r.level=%s AND r.first_name=%s AND r.last_name=%s',
+						array(
+							Congress_Table_Manager::get_table_name( 'representative' ),
+							Congress_Table_Manager::get_table_name( 'staffer' ),
+							$api_rep->state->to_db_string(),
+							$api_rep->get_district(),
+							$api_rep->level->to_db_string(),
+							$api_rep->first_name,
+							$api_rep->last_name,
+						),
+					)
 				);
+
+				$db_reps = null === $results ? false : Congress_Rep_Interface::from_db_result( $results, true );
 
 				if ( false === $db_reps || count( $db_reps ) === 0 ) {
 					$success = false;
 					break;
 				}
 
-				$rep_id = array_key_first( $db_reps );
-				$rep    = $db_reps[ $rep_id ];
+				$db_reps[0]->set_img( $api_rep->get_img() );
 
-				$rep['img'] = $api_rep->get_img();
-
-				array_push( $reps, $rep );
+				array_push( $reps, $db_reps[0] );
 			}
 		}
 
 		if ( ! $success ) {
-			$reps = array();
 
-			$db_reps = $this->get_reps_from_db(
-				"WHERE r.state=%s AND r.level='state'",
-				array(
-					$state_code->to_db_string(),
-				),
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$results = $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT ' .
+					'	r.id         AS rep_id, ' .
+					'	r.first_name AS rep_first_name, ' .
+					'	r.last_name  AS rep_last_name, ' .
+					'	r.title      AS rep_title, ' .
+					'	r.state      AS rep_state,' .
+					'	r.district   AS rep_district,' .
+					'	r.level      AS rep_level,' .
+					'	s.id         AS staffer_id, ' .
+					'	s.first_name AS staffer_first_name, ' .
+					'	s.last_name  AS staffer_last_name, ' .
+					'	s.email      AS staffer_email, ' .
+					'	s.title      AS staffer_title ' .
+					'FROM %i AS r JOIN %i AS s ON s.representative = r.id ' .
+					"WHERE r.state=%s AND r.level='state'",
+					array(
+						Congress_Table_Manager::get_table_name( 'representative' ),
+						Congress_Table_Manager::get_table_name( 'staffer' ),
+						$state_code->to_db_string(),
+					),
+				)
 			);
 
-			if ( false === $db_reps ) {
+			if ( false === $results ) {
 				wp_send_json(
 					array(
 						'error' => 'Failed to get reps',
@@ -611,14 +580,15 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 				return;
 			}
 
-			$rep_ids = array_keys( $db_reps );
-			foreach ( $rep_ids as $rep_id ) {
-				array_push(
-					$reps,
-					$db_reps[ $rep_id ],
-				);
-			}
+			$reps = Congress_Rep_Interface::from_db_result( $results, true );
 		}
+
+		$send_reps = array_map(
+			function ( $rep ) {
+				return $rep->to_json();
+			},
+			$reps
+		);
 
 		$final_response = array_merge(
 			$response,
@@ -626,7 +596,7 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 				'level'           => Congress_Level::State->to_db_string(),
 				'stateCode'       => $state_code->to_state_code(),
 				'success'         => $success,
-				'representatives' => $reps,
+				'representatives' => $send_reps,
 			)
 		);
 
@@ -662,68 +632,112 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 			}
 		}
 
-		$house_reps = null;
+		global $wpdb;
+
+		/**
+		 * The house representatives to send.
+		 *
+		 * @var Congress_Rep_Interface[] $house_reps
+		 */
+		$house_reps = array();
 
 		// Reconcile api with db.
 		if ( $house_success ) {
 
-			$house_reps = array();
-
 			foreach ( $api_reps as &$api_rep ) {
 
-				$db_reps = $this->get_reps_from_db(
-					'WHERE r.state=%s AND r.district=%s AND r.level=%s AND r.first_name=%s AND r.last_name=%s',
-					array(
-						$api_rep->state->to_db_string(),
-						$api_rep->get_district(),
-						$api_rep->level->to_db_string(),
-						$api_rep->first_name,
-						$api_rep->last_name,
-					),
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				$results = $wpdb->get_results(
+					$wpdb->prepare(
+						'SELECT ' .
+						'	r.id         AS rep_id, ' .
+						'	r.first_name AS rep_first_name, ' .
+						'	r.last_name  AS rep_last_name, ' .
+						'	r.title      AS rep_title, ' .
+						'	r.state      AS rep_state,' .
+						'	r.district   AS rep_district,' .
+						'	r.level      AS rep_level,' .
+						'	s.id         AS staffer_id, ' .
+						'	s.first_name AS staffer_first_name, ' .
+						'	s.last_name  AS staffer_last_name, ' .
+						'	s.email      AS staffer_email, ' .
+						'	s.title      AS staffer_title ' .
+						'FROM %i AS r JOIN %i AS s ON s.representative = r.id ' .
+						'WHERE r.state=%s AND r.district=%s AND r.level=%s AND r.first_name=%s AND r.last_name=%s',
+						array(
+							Congress_Table_Manager::get_table_name( 'representative' ),
+							Congress_Table_Manager::get_table_name( 'staffer' ),
+							$api_rep->state->to_db_string(),
+							$api_rep->get_district(),
+							$api_rep->level->to_db_string(),
+							$api_rep->first_name,
+							$api_rep->last_name,
+						),
+					)
 				);
+
+				$db_reps = null === $results ? false : Congress_Rep_Interface::from_db_result( $results, true );
 
 				if ( false === $db_reps || count( $db_reps ) === 0 ) {
 					$house_success = false;
 					break;
 				}
 
-				$rep_id = array_key_first( $db_reps );
-				$rep    = $db_reps[ $rep_id ];
+				$db_reps[0]->set_img( $api_rep->get_img() );
 
-				$rep['img'] = $api_rep->get_img();
-
-				array_push( $house_reps, $rep );
+				array_push( $house_reps, $db_reps[0] );
 			}
 		}
 
 		// Recover senators using database.
 		if ( ! $house_success ) {
+
 			$house_reps = array();
 
-			$db_reps = $this->get_reps_from_db(
-				'WHERE r.state=%s AND r.level=%s AND r.district IS NOT NULL',
-				array(
-					$state_code->to_db_string(),
-					Congress_Level::Federal->to_db_string(),
-				),
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$results = $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT ' .
+					'	r.id         AS rep_id, ' .
+					'	r.first_name AS rep_first_name, ' .
+					'	r.last_name  AS rep_last_name, ' .
+					'	r.title      AS rep_title, ' .
+					'	r.state      AS rep_state,' .
+					'	r.district   AS rep_district,' .
+					'	r.level      AS rep_level,' .
+					'	s.id         AS staffer_id, ' .
+					'	s.first_name AS staffer_first_name, ' .
+					'	s.last_name  AS staffer_last_name, ' .
+					'	s.email      AS staffer_email, ' .
+					'	s.title      AS staffer_title ' .
+					'FROM %i AS r JOIN %i AS s ON s.representative = r.id ' .
+					'WHERE r.state=%s AND r.level=%s AND r.district IS NOT NULL',
+					array(
+						Congress_Table_Manager::get_table_name( 'representative' ),
+						Congress_Table_Manager::get_table_name( 'staffer' ),
+						$state_code->to_db_string(),
+						Congress_Level::Federal->to_db_string(),
+					),
+				)
 			);
 
-			if ( false === $db_reps ) {
+			if ( false === $results ) {
 				return false;
 			}
 
-			$rep_ids = array_keys( $db_reps );
-			foreach ( $rep_ids as $rep_id ) {
-				array_push(
-					$house_reps,
-					$db_reps[ $rep_id ],
-				);
-			}
+			$house_reps = Congress_Rep_Interface::from_db_result( $results );
 		}
+
+		$send_house_reps = array_map(
+			function ( $rep ) {
+				return $rep->to_json();
+			},
+			$house_reps
+		);
 
 		return array(
 			'houseSuccess' => $house_success,
-			'houseMembers' => $house_reps,
+			'houseMembers' => $send_house_reps,
 		);
 	}
 
@@ -753,41 +767,68 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 			}
 		}
 
+		global $wpdb;
+
+		/**
+		 * The representatives to send.
+		 *
+		 * @var Congress_Rep_Interface[] $senate_reps
+		 */
+		$senate_reps = array();
+
 		// Reconcile api with db.
 		if ( $senator_success ) {
-			$senate_reps = array();
+
 			foreach ( $api_senators as &$api_rep ) {
 
 				if ( Congress_Title::Senator !== $api_rep->title ) {
 					continue;
 				}
 
-				$where_clause = 'WHERE ' .
-					'r.state=%s AND ' .
-					'r.level=%s AND ' .
-					'r.first_name=%s AND ' .
-					'r.last_name=%s AND ' .
-					'r.district IS NULL';
-				$where_vars   = array(
-					$state_code->to_db_string(),
-					Congress_Level::Federal->to_db_string(),
-					$api_rep->first_name,
-					$api_rep->last_name,
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				$results = $wpdb->get_results(
+					$wpdb->prepare(
+						'SELECT ' .
+						'	r.id         AS rep_id, ' .
+						'	r.first_name AS rep_first_name, ' .
+						'	r.last_name  AS rep_last_name, ' .
+						'	r.title      AS rep_title, ' .
+						'	r.state      AS rep_state,' .
+						'	r.district   AS rep_district,' .
+						'	r.level      AS rep_level,' .
+						'	s.id         AS staffer_id, ' .
+						'	s.first_name AS staffer_first_name, ' .
+						'	s.last_name  AS staffer_last_name, ' .
+						'	s.email      AS staffer_email, ' .
+						'	s.title      AS staffer_title ' .
+						'FROM %i AS r JOIN %i AS s ON s.representative = r.id ' .
+						'WHERE ',
+						'   r.state=%s AND ' .
+						'   r.level=%s AND ' .
+						'   r.first_name=%s AND ' .
+						'   r.last_name=%s AND ' .
+						'   r.district IS NULL',
+						array(
+							Congress_Table_Manager::get_table_name( 'representative' ),
+							Congress_Table_Manager::get_table_name( 'staffer' ),
+							$state_code->to_db_string(),
+							Congress_Level::Federal->to_db_string(),
+							$api_rep->first_name,
+							$api_rep->last_name,
+						),
+					)
 				);
 
-				$db_reps = $this->get_reps_from_db( $where_clause, $where_vars );
+				$db_reps = null === $results ? false : Congress_Rep_Interface::from_db_result( $results, true );
 
 				if ( false === $db_reps || count( $db_reps ) === 0 ) {
 					$senator_success = false;
 					break;
 				}
 
-				$rep_id = array_key_first( $db_reps );
-				$rep    = $db_reps[ $rep_id ];
+				$db_reps[0]->set_img( $api_rep->get_img() );
 
-				$rep['img'] = $api_rep->get_img();
-
-				array_push( $senate_reps, $rep );
+				array_push( $senate_reps, $db_reps[0] );
 			}
 		}
 
@@ -796,30 +837,50 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 
 			$senate_reps = array();
 
-			$db_reps = $this->get_reps_from_db(
-				'WHERE r.state=%s AND r.level=%s AND r.district IS NULL',
-				array(
-					$state_code->to_db_string(),
-					Congress_Level::Federal->to_db_string(),
-				),
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$results = $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT ' .
+					'	r.id         AS rep_id, ' .
+					'	r.first_name AS rep_first_name, ' .
+					'	r.last_name  AS rep_last_name, ' .
+					'	r.title      AS rep_title, ' .
+					'	r.state      AS rep_state,' .
+					'	r.district   AS rep_district,' .
+					'	r.level      AS rep_level,' .
+					'	s.id         AS staffer_id, ' .
+					'	s.first_name AS staffer_first_name, ' .
+					'	s.last_name  AS staffer_last_name, ' .
+					'	s.email      AS staffer_email, ' .
+					'	s.title      AS staffer_title ' .
+					'FROM %i AS r JOIN %i AS s ON s.representative = r.id ' .
+					'WHERE r.state=%s AND r.level=%s AND r.district IS NULL',
+					array(
+						Congress_Table_Manager::get_table_name( 'representative' ),
+						Congress_Table_Manager::get_table_name( 'staffer' ),
+						$state_code->to_db_string(),
+						Congress_Level::Federal->to_db_string(),
+					),
+				)
 			);
 
-			if ( false === $db_reps ) {
+			if ( false === $results ) {
 				return false;
 			}
 
-			$rep_ids = array_keys( $db_reps );
-			foreach ( $rep_ids as $rep_id ) {
-				array_push(
-					$senate_reps,
-					$db_reps[ $rep_id ],
-				);
-			}
+			$senate_reps = Congress_Rep_Interface::from_db_result( $results, true );
 		}
+
+		$send_senate_reps = array_map(
+			function ( $rep ) {
+				return $rep->to_json();
+			},
+			$senate_reps
+		);
 
 		return array(
 			'senateSuccess' => $senator_success,
-			'senators'      => $senate_reps,
+			'senators'      => $send_senate_reps,
 		);
 	}
 
