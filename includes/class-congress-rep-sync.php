@@ -395,7 +395,6 @@ class Congress_Rep_Sync {
 				'WHERE ' .
 				"	(r.level = %s AND r.state IN ($state_placeholders)) OR " . // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				"	(r.level = %s AND r.state IN ($federal_placeholders)) " . // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-
 				'ORDER BY state, district, last_name, first_name',
 				array(
 					Congress_Table_Manager::get_table_name( 'representative' ),

@@ -179,63 +179,39 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 
 		global $wpdb;
 
-		$rep_t     = Congress_Table_Manager::get_table_name( 'representative' );
-		$staffer_t = Congress_Table_Manager::get_table_name( 'staffer' );
-
-		$query =
-			'SELECT ' .
-				'r.id as rep_id, ' .
-				'r.title as rep_title, ' .
-				'r.first_name as rep_first, ' .
-				'r.last_name as rep_last, ' .
-				'r.state, r.district, r.level, ' .
-				's.id as staffer_id, ' .
-				's.title as staffer_title, ' .
-				's.first_name as staffer_first, ' .
-				's.last_name as staffer_last, ' .
-				's.email ' .
-			"FROM $rep_t AS r " .
-			"LEFT JOIN $staffer_t AS s ON r.id = s.representative";
-
-		$query_args = array();
-		$first_arg  = true;
-
-		if ( null !== $state ) {
-			if ( $first_arg ) {
-				$query    .= ' WHERE';
-				$first_arg = false;
-			} else {
-				$query .= ' AND';
-			}
-			$query .= ' r.state=%s';
-			array_push( $query_args, $state->to_db_string() );
-		}
-
-		if ( null !== $level ) {
-			if ( $first_arg ) {
-				$query    .= ' WHERE';
-				$first_arg = false;
-			} else {
-				$query .= ' AND';
-			}
-			$query .= ' r.level=%s';
-			array_push( $query_args, $level->to_db_string() );
-		}
-
-		if ( null !== $title ) {
-			if ( $first_arg ) {
-				$query    .= ' WHERE';
-				$first_arg = false;
-			} else {
-				$query .= ' AND';
-			}
-			$query .= ' r.title=%s';
-			array_push( $query_args, $title->to_db_string() );
-		}
-
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->get_results(
-			$wpdb->prepare( $query, $query_args )
+			$wpdb->prepare(
+				'SELECT ' .
+					'r.id         AS rep_id, ' .
+					'r.title      AS rep_title, ' .
+					'r.first_name AS rep_first, ' .
+					'r.last_name  AS rep_last, ' .
+					'r.state      AS rep_state, ' .
+					'r.district   AS rep_district, ' .
+					'r.level,     AS rep_level' .
+					's.id         AS staffer_id, ' .
+					's.title      AS staffer_title, ' .
+					's.first_name AS staffer_first, ' .
+					's.last_name  AS staffer_last, ' .
+					's.email      AS staffer_email' .
+				'FROM %i AS r' .
+				'LEFT JOIN %i AS s ON r.id = s.representative ' .
+				'WHERE ' .
+					'(0=%d OR r.state=%s) AND ' .
+					'(0=%d OR r.level=%s) AND ' .
+					'(0=%d OR r.title=%s)',
+				array(
+					Congress_Table_Manager::get_table_name( 'representative' ),
+					Congress_Table_Manager::get_table_name( 'staffer' ),
+					$state ? 1 : 0,
+					$state || '',
+					$level ? 1 : 0,
+					$level || '',
+					$title ? 1 : 0,
+					$title || '',
+				)
+			)
 		);
 
 		if ( null === $result ) {
@@ -247,47 +223,27 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
-		$reps = array();
-
-		foreach ( $result as &$rep_staffer ) {
-
-			if ( ! isset( $reps[ $rep_staffer->rep_id ] ) ) {
-				$reps[ $rep_staffer->rep_id ] = array(
-					'id'          => $rep_staffer->rep_id,
-					'level'       => $rep_staffer->level,
-					'title'       => $rep_staffer->rep_title,
-					'state'       => $rep_staffer->state,
-					'district'    => $rep_staffer->district,
-					'firstName'   => $rep_staffer->rep_first,
-					'lastName'    => $rep_staffer->rep_last,
-					'editNonce'   => wp_create_nonce( 'edit-rep_' . $rep_staffer->rep_id ),
-					'deleteNonce' => wp_create_nonce( 'delete-rep_' . $rep_staffer->rep_id ),
-					'createNonce' => wp_create_nonce( 'create-staffer_' . $rep_staffer->rep_id ),
-					'staffers'    => array(),
+		$reps = Congress_Rep_Interface::from_db_result( $result, true );
+		$json = $reps->to_json();
+		$json = array_map(
+			function ( $rep ) {
+				$rep['editNonce']   = wp_create_nonce( 'edit-rep_' . $rep['id'] );
+				$rep['deleteNonce'] = wp_create_nonce( 'delete-rep_' . $rep['id'] );
+				$rep['createNonce'] = wp_create_nonce( 'create-staffer_' . $rep['id'] );
+				$rep['staffers']    = array_map(
+					function ( $staffer ) use ( $rep ) {
+						$staffer['editNonce']   = wp_create_nonce( 'edit-staffer_' . $rep['id'] . '-' . $staffer['id'] );
+						$staffer['deleteNonce'] = wp_create_nonce( 'create-staffer_' . $rep['id'] . '-' . $staffer['id'] );
+						return $staffer;
+					},
+					rep['staffers']
 				);
-			}
+				return $rep;
+			},
+			$json
+		);
 
-			if ( isset( $rep_staffer->staffer_id ) ) {
-				$rep        = &$reps[ $rep_staffer->rep_id ];
-				$rep_id     = $rep['id'];
-				$staffer_id = $rep_staffer->staffer_id;
-				array_push(
-					$rep['staffers'],
-					array(
-						'repID'       => $rep_staffer->rep_id,
-						'id'          => $rep_staffer->staffer_id,
-						'title'       => $rep_staffer->staffer_title,
-						'firstName'   => $rep_staffer->staffer_first,
-						'lastName'    => $rep_staffer->staffer_last,
-						'email'       => $rep_staffer->email,
-						'editNonce'   => wp_create_nonce( "edit-staffer_$rep_id-$staffer_id" ),
-						'deleteNonce' => wp_create_nonce( "delete-staffer_$rep_id-$staffer_id" ),
-					)
-				);
-			}
-		}
-
-		wp_send_json( $reps );
+		wp_send_json( $json );
 	}
 
 	/**
