@@ -163,7 +163,7 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 		foreach ( $results as $result ) {
 			$campaign_id = $result->campaign_id;
 			$email_id    = $result->id;
-			$edit_nonce  = wp_create_nonce( "edit-email-template_$campaign_id-$email_id" );
+			$edit_nonce  = wp_create_nonce( 'edit-email-template' );
 			array_push(
 				$return_results,
 				array(
@@ -179,9 +179,9 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 
 		wp_send_json(
 			array(
-				'createNonce'    => wp_create_nonce( "create-email_$campaign_id" ),
-				'csvNonce'       => wp_create_nonce( "upload-csv-emails_$campaign_id" ),
-				'deleteAllNonce' => wp_create_nonce( "delete-all-emails_$campaign_id" ),
+				'createNonce'    => wp_create_nonce( 'create-email' ),
+				'csvNonce'       => wp_create_nonce( 'upload-csv-emails' ),
+				'deleteAllNonce' => wp_create_nonce( 'delete-all-emails' ),
 				'templates'      => $return_results,
 			)
 		);
@@ -276,7 +276,7 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 				'subject'    => $subject,
 				'template'   => $template,
 				'favorable'  => $favorable,
-				'editNonce'  => wp_create_nonce( "edit-email-template_$campaign_id-$wpdb->insert_id" ),
+				'editNonce'  => wp_create_nonce( 'edit-email-template' ),
 			)
 		);
 	}
@@ -779,7 +779,7 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 			$csv_data[ $i ]['id'] = $template_id;
 			unset( $csv_data[ $i ]['campaign_id'] );
 			$csv_data[ $i ]['campaignID'] = $campaign_id;
-			$csv_data[ $i ]['editNonce']  = wp_create_nonce( "edit-email-template_$campaign_id-$template_id" );
+			$csv_data[ $i ]['editNonce']  = wp_create_nonce( 'edit-email-template' );
 		}
 
 		if ( 0 < count( $errors ) ) {

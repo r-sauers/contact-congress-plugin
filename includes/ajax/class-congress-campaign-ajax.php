@@ -306,9 +306,9 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 				'name'              => $name,
 				'region'            => $region->to_db_string(),
 				'regionDisplay'     => $region->to_display_string(),
-				'editNonce'         => wp_create_nonce( "update-campaign_$campaign_id" ),
-				'archiveNonce'      => wp_create_nonce( "archive-campaign_$campaign_id" ),
-				'templateLoadNonce' => wp_create_nonce( "load-templates_$campaign_id" ),
+				'editNonce'         => wp_create_nonce( 'update-campaign' ),
+				'archiveNonce'      => wp_create_nonce( 'archive-campaign' ),
+				'templateLoadNonce' => wp_create_nonce( 'load-templates' ),
 			)
 		);
 	}
@@ -640,7 +640,7 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 				'emailCount'   => $result->email_count,
 				'archivedDate' => $result->archived_date,
 				'createdDate'  => $result->created_date,
-				'deleteNonce'  => wp_create_nonce( "delete-archived-campaign_$campaign_id" ),
+				'deleteNonce'  => wp_create_nonce( 'delete-archived-campaign' ),
 			),
 		);
 	}

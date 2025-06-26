@@ -145,7 +145,7 @@ class Congress_Admin_Archived_Campaign {
 					<?php echo esc_html( "$created_string - $archived_string" ); ?></span>
 				<form method="post" action="delete_archived_campaign" class="congress-campaign-delete-form">
 					<input type="hidden" name="id" value="<?php echo esc_attr( $this->id ); ?>">
-					<?php wp_nonce_field( "delete-archived-campaign_$this->id" ); ?>
+					<?php wp_nonce_field( 'delete-archived-campaign' ); ?>
 					<div class="congress-form-group">
 						<button type="submit" class="button congress-button-danger">Delete</button>
 						<span class="congress-form-error"></span>

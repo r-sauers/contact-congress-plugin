@@ -227,13 +227,13 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 		$json = $reps->to_json();
 		$json = array_map(
 			function ( $rep ) {
-				$rep['editNonce']   = wp_create_nonce( 'edit-rep_' . $rep['id'] );
-				$rep['deleteNonce'] = wp_create_nonce( 'delete-rep_' . $rep['id'] );
-				$rep['createNonce'] = wp_create_nonce( 'create-staffer_' . $rep['id'] );
+				$rep['editNonce']   = wp_create_nonce( 'edit-rep' );
+				$rep['deleteNonce'] = wp_create_nonce( 'delete-rep' );
+				$rep['createNonce'] = wp_create_nonce( 'create-staffer' );
 				$rep['staffers']    = array_map(
 					function ( $staffer ) use ( $rep ) {
-						$staffer['editNonce']   = wp_create_nonce( 'edit-staffer_' . $rep['id'] . '-' . $staffer['id'] );
-						$staffer['deleteNonce'] = wp_create_nonce( 'create-staffer_' . $rep['id'] . '-' . $staffer['id'] );
+						$staffer['editNonce']   = wp_create_nonce( 'edit-staffer' );
+						$staffer['deleteNonce'] = wp_create_nonce( 'create-staffer' );
 						return $staffer;
 					},
 					rep['staffers']
@@ -341,9 +341,9 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 		wp_send_json(
 			array(
 				'rawID'       => $wpdb->insert_id,
-				'editNonce'   => wp_create_nonce( 'edit-rep_' . $wpdb->insert_id ),
-				'deleteNonce' => wp_create_nonce( 'delete-rep_' . $wpdb->insert_id ),
-				'createNonce' => wp_create_nonce( 'create-staffer_' . $wpdb->insert_id ),
+				'editNonce'   => wp_create_nonce( 'edit-rep' ),
+				'deleteNonce' => wp_create_nonce( 'delete-rep' ),
+				'createNonce' => wp_create_nonce( 'create-staffer' ),
 			)
 		);
 	}
@@ -606,16 +606,16 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 			function ( Congress_Rep_Interface $rep ) {
 				$rep_json = $rep->to_json();
 
-				$rep_json['createNonce'] = wp_create_nonce( 'create-staffer_' . $rep_json['id'] );
-				$rep_json['editNonce']   = wp_create_nonce( 'edit-rep_' . $rep_json['id'] );
-				$rep_json['deleteNonce'] = wp_create_nonce( 'delete-rep_' . $rep_json['id'] );
+				$rep_json['createNonce'] = wp_create_nonce( 'create-staffer' );
+				$rep_json['editNonce']   = wp_create_nonce( 'edit-rep' );
+				$rep_json['deleteNonce'] = wp_create_nonce( 'delete-rep' );
 
 				if ( isset( $rep_json['staffers'] ) ) {
 					foreach ( $rep_json['staffers'] as &$staffer ) {
 						$rep_id                 = $rep_json['id'];
 						$staffer_id             = $staffer['id'];
-						$staffer['editNonce']   = wp_create_nonce( "edit-staffer_$rep_id-$staffer_id" );
-						$staffer['deleteNonce'] = wp_create_nonce( "delete-staffer_$rep_id-$staffer_id" );
+						$staffer['editNonce']   = wp_create_nonce( 'edit-staffer' );
+						$staffer['deleteNonce'] = wp_create_nonce( 'delete-staffer' );
 					}
 				}
 

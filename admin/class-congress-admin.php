@@ -186,7 +186,7 @@ class Congress_Admin {
 			$load_template_nonces = array();
 			$campaigns            = Congress_Admin_Active_Campaign::get_from_db();
 			foreach ( $campaigns as $campaign ) {
-				$load_template_nonces[ $campaign->get_id() ] = wp_create_nonce( 'load-templates_' . $campaign->get_id() );
+				$load_template_nonces[ $campaign->get_id() ] = wp_create_nonce( 'load-templates' );
 			}
 			wp_localize_script(
 				$this->congress,

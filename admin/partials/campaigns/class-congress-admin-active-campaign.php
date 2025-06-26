@@ -157,7 +157,7 @@ class Congress_Admin_Active_Campaign {
 			</div>
 			<input type="hidden" name="id" value="<?php echo esc_attr( $this->id ); ?>">
 			<?php
-			wp_nonce_field( "archive-campaign_$this->string_id" );
+			wp_nonce_field( 'archive-campaign' );
 			?>
 		</form>
 		<button class="congress-campaign-toggle button button-primary">
@@ -249,7 +249,7 @@ class Congress_Admin_Active_Campaign {
 					</div>
 					<input type="hidden" name="id" value="<?php echo esc_attr( $this->id ); ?>"/>
 					<?php
-						wp_nonce_field( "update-campaign_$this->id" );
+						wp_nonce_field( 'update-campaign' );
 					?>
 				</form>
 			</div>
@@ -272,7 +272,7 @@ class Congress_Admin_Active_Campaign {
 						class="congress-campaign-email-create-form"
 						style="display: flex; align-items: flex-start; flex-direction: column;"
 					>
-						<?php wp_nonce_field( 'create-email_campaign-id' ); ?>
+						<?php wp_nonce_field( 'create-email' ); ?>
 						<input type="hidden" name="campaign_id" />
 						<div>
 							<input type="text" placeholder="Subject" aria-label="Subject" name="subject"/>
@@ -286,7 +286,7 @@ class Congress_Admin_Active_Campaign {
 						class="congress-campaign-email-upload-csv-form"
 						style="display: flex; align-items: center; flex-direction: column;"
 					>
-						<?php wp_nonce_field( 'upload-csv-emails_campaign-id' ); ?>
+						<?php wp_nonce_field( 'upload-csv-emails' ); ?>
 						<input type="hidden" name="campaign_id" />
 						<input type="file" name="csv" accept="text/csv" hidden/>
 						<button class="button button-primary">Add Templates From CSV</button>
@@ -298,7 +298,7 @@ class Congress_Admin_Active_Campaign {
 						class="congress-campaign-email-delete-all-form"
 						style="display: flex; align-items: center; flex-direction: column;"
 					>
-						<?php wp_nonce_field( 'delete-all-emails_campaign-id' ); ?>
+						<?php wp_nonce_field( 'delete-all-emails' ); ?>
 						<input type="hidden" name="campaign_id" />
 						<button class="button congress-button-danger">Delete All Templates</button>
 						<span class="congress-form-error"></span>

@@ -79,7 +79,7 @@ if ( false === $campaign_template ) {
 			<input type="hidden" name="campaignID" value="<?php echo esc_attr( $campaign_id ); ?>"/>
 			<input type="hidden" name="placeId" value=""/>
 			<?php
-			wp_nonce_field( "get-reps_$campaign_id" );
+			wp_nonce_field( 'get-reps' );
 			?>
 			<button type="submit" class="wp-element-button <?php $utils->inline_class( 'wide' ); ?>">Find</button>
 			<span <?php $utils->class_name( 'form-hint' ); ?>></span>

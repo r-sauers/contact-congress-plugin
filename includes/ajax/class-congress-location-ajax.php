@@ -446,7 +446,7 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 		}
 
 		$response = array(
-			'registerEmailNonce' => wp_create_nonce( "register-email_$campaign_id" ),
+			'registerEmailNonce' => wp_create_nonce( 'register-email' ),
 		);
 
 		if ( Congress_Level::State === $campaign_level ) {

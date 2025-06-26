@@ -141,9 +141,9 @@ class Congress_Admin_Staffer {
 				);
 
 				if ( '' === $this->staffer_id ) {
-					wp_nonce_field( 'create-staffer_' . $this->rep_id );
+					wp_nonce_field( 'create-staffer' );
 				} else {
-					wp_nonce_field( 'edit-staffer_' . $this->rep_id . '-' . $this->staffer_id );
+					wp_nonce_field( 'edit-staffer' );
 				}
 
 				?>
@@ -167,7 +167,7 @@ class Congress_Admin_Staffer {
 					<form class="congress-official-delete-form congress-staffer-delete-form">
 						<button class="congress-icon-button congress-inline-dashicon dashicons-trash congress-danger"></button>
 						<?php
-						wp_nonce_field( 'delete-staffer_' . $this->rep_id . '-' . $this->staffer_id );
+						wp_nonce_field( 'delete-staffer' );
 						?>
 					</form>
 				</div>

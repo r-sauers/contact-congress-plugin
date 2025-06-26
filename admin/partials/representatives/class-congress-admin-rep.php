@@ -215,7 +215,7 @@ class Congress_Admin_Rep {
 				if ( '' === $this->rep_id ) {
 					wp_nonce_field( 'create-rep' );
 				} else {
-					wp_nonce_field( 'edit-rep_' . $this->rep_id );
+					wp_nonce_field( 'edit-rep' );
 				}
 
 				$district_text = '';
@@ -252,7 +252,7 @@ class Congress_Admin_Rep {
 					<form class="congress-official-delete-form congress-rep-delete-form">
 						<button class="congress-icon-button congress-inline-dashicon dashicons-trash congress-danger"></button>
 						<?php
-						wp_nonce_field( 'delete-rep_' . $this->rep_id );
+						wp_nonce_field( 'delete-rep' );
 						?>
 					</form>
 				</div>
@@ -270,7 +270,7 @@ class Congress_Admin_Rep {
 					class="button button-primary congress-add-staffer-button"
 					<?php
 					if ( '' !== $this->rep_id ) {
-						$nonce = wp_create_nonce( 'create-staffer_' . $this->rep_id );
+						$nonce = wp_create_nonce( 'create-staffer' );
 						?>
 						createNonce="<?php echo esc_attr( $nonce ); ?>"
 						<?php

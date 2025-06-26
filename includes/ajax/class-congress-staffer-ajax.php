@@ -243,8 +243,8 @@ class Congress_Staffer_AJAX implements Congress_AJAX_Collection {
 		wp_send_json(
 			array(
 				'rawID'       => $staffer_id,
-				'editNonce'   => wp_create_nonce( "edit-staffer_$rep_id-$staffer_id" ),
-				'deleteNonce' => wp_create_nonce( "delete-staffer_$rep_id-$staffer_id" ),
+				'editNonce'   => wp_create_nonce( 'edit-staffer' ),
+				'deleteNonce' => wp_create_nonce( 'delete-staffer' ),
 			)
 		);
 	}

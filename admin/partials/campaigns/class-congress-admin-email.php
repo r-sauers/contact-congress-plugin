@@ -169,7 +169,7 @@ class Congress_Admin_Email {
 					rows: 10,
 				);
 
-				wp_nonce_field( "edit-email-template_$this->str_campaign_id-$this->str_id" );
+				wp_nonce_field( 'edit-email-template' );
 				?>
 				<input type="hidden" name="id" value="<?php echo esc_attr( $this->id ); ?>" />
 				<input type="hidden" name="campaign_id" value="<?php echo esc_attr( $this->campaign_id ); ?>" />
