@@ -45,6 +45,12 @@ require_once plugin_dir_path( __DIR__ ) .
 	'class-congress-table-manager.php';
 
 /**
+ * Imports Congress_Table_Transaction
+ */
+require_once plugin_dir_path( __DIR__ ) .
+	'class-congress-table-transaction.php';
+
+/**
  * A collection of AJAX handlers for state settings.
  *
  * @since      1.0.0
@@ -231,65 +237,62 @@ class Congress_State_AJAX implements Congress_AJAX_Collection {
 
 				global $wpdb;
 
-				$email             = Congress_Table_Manager::get_table_name( 'email' );
-				$active_campaign   = Congress_Table_Manager::get_table_name( 'active_campaign' );
-				$archived_campaign = Congress_Table_Manager::get_table_name( 'archived_campaign' );
-				$campaign_state    = Congress_Table_Manager::get_table_name( 'campaign_state' );
+				$email_t    = Congress_Table_Manager::get_table_name( 'email' );
+				$active_t   = Congress_Table_Manager::get_table_name( 'active_campaign' );
+				$archived_t = Congress_Table_Manager::get_table_name( 'archived_campaign' );
+				$state_t    = Congress_Table_Manager::get_table_name( 'campaign_state' );
 
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				$wpdb->query( 'START TRANSACTION' );
-
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				$result = $wpdb->query(
-					$wpdb->prepare(
-						'INSERT INTO %i AS arch (id, email_count) ' .
-						'SELECT active.id, COUNT(email.id) FROM %i AS active ' .
-						'LEFT JOIN %i AS email ON email.campaign_id = active.id ' .
-						'WHERE active.id IN (' .
-							'SELECT state.campaign_id as id FROM %i AS state ' .
-							'WHERE state.state=%s' .
-						') ' .
-						'GROUP BY active.id',
-						array(
-							$archived_campaign,
-							$active_campaign,
-							$email,
-							$campaign_state,
-							$state->to_db_string(),
-						),
-					)
+				$res = ( new Congress_Table_Transaction() )->query(
+					function () use ( $wpdb, $archived_t, $active_t, $email_t, $state_t, $state ) {
+						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+						return $wpdb->query(
+							$wpdb->prepare(
+								'INSERT INTO %i AS arch (id, email_count) ' .
+								'SELECT active.id, COUNT(email.id) FROM %i AS active ' .
+								'LEFT JOIN %i AS email ON email.campaign_id = active.id ' .
+								'WHERE active.id IN (' .
+									'SELECT state.campaign_id as id FROM %i AS state ' .
+									'WHERE state.state=%s' .
+								') ' .
+								'GROUP BY active.id',
+								array(
+									$archived_t,
+									$active_t,
+									$email_t,
+									$state_t,
+									$state->to_db_string(),
+								),
+							)
+						);
+					}
+				)->query(
+					function () use ( $wpdb, $active_t, $state_t, $state ) {
+						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+						return $wpdb->query(
+							$wpdb->prepare(
+								'DELETE FROM %i AS active ' .
+								'WHERE active.id IN (' .
+									'SELECT state.campaign_id as id FROM %i AS state ' .
+									'WHERE state.state=%s' .
+								')',
+								array(
+									$active_t,
+									$state_t,
+									$state->to_db_string(),
+								),
+							)
+						);
+					}
+				)->submit(
+					error: function ( $query_return_value, $wpdb_error ) {
+						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+						error_log( $wpdb_error );
+					}
 				);
 
-				if ( false === $result ) {
-					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-					$wpdb->query( 'ROLLBACK' );
-					return new WP_Error( 'DB_ERROR', 'Failed to create archived campaign rows!' );
+				if ( false === $res ) {
+					return new WP_Error( 'DB_ERROR', 'Failed to delete state!' );
 				}
-
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				$result = $wpdb->query(
-					$wpdb->prepare(
-						'DELETE FROM %i AS active ' .
-						'WHERE active.id IN (' .
-							'SELECT state.campaign_id as id FROM %i AS state ' .
-							'WHERE state.state=%s' .
-						')',
-						array(
-							$active_campaign,
-							$campaign_state,
-							$state->to_db_string(),
-						),
-					)
-				);
-
-				if ( false === $result ) {
-					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-					$wpdb->query( 'ROLLBACK' );
-					return new WP_Error( 'DB_ERROR', 'Failed to remove active campaign rows!' );
-				}
-
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				$wpdb->query( 'COMMIT' );
 
 				return $setting->deactivate();
 			}

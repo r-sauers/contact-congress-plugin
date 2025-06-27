@@ -128,8 +128,18 @@ class Congress_Rep_Sync {
 					'%d',
 				)
 			);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$res2 = $wpdb->delete(
+				$staffer_t,
+				array(
+					'representative' => $rep->get_id(),
+				),
+				array(
+					'%d',
+				)
+			);
 
-			if ( false !== $res ) {
+			if ( ! $res && ! $res2 ) {
 				array_push( $reps_removed, $rep );
 			}
 		}

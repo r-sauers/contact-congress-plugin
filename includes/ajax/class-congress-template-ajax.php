@@ -322,35 +322,28 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 			wp_unslash( $_POST['campaign_id'] )
 		);
 
-		global $wpdb;
-
-		$email_template = Congress_Table_Manager::get_table_name( 'email_template' );
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$result = $wpdb->delete(
-			$email_template,
-			array(
-				'campaign_id' => $campaign_id,
-			),
-			array(
-				'%d',
-			)
-		);
-
-		if ( false === $result ) {
-			wp_send_json(
-				array(
-					'error' => $wpdb->last_error,
-				),
-				500
-			);
-			return;
-		}
-
-		wp_send_json(
-			array(
-				'success' => "Deleted $result templates.",
-			)
+		Congress_Table_Manager::delete_email_template(
+			campaign_id: $campaign_id,
+			error_on_0:  false
+		)->submit(
+			error: function ( $query_return_value, $wpdb_error ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( $wpdb_error );
+				wp_send_json(
+					array(
+						'error' => 'Failed to delete templates!',
+					),
+					500
+				);
+			},
+			success: function ( $results ) {
+				$num_deleted = $results[0];
+				wp_send_json(
+					array(
+						'success' => "Deleted $num_deleted templates.",
+					)
+				);
+			}
 		);
 	}
 
@@ -399,44 +392,37 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 			wp_unslash( $_POST['campaign_id'] )
 		);
 
-		global $wpdb;
-
-		$email_template = Congress_Table_Manager::get_table_name( 'email_template' );
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$result = $wpdb->delete(
-			$email_template,
-			array(
-				'campaign_id' => $campaign_id,
-				'id'          => $email_id,
-			),
-			array( '%d', '%d' )
-		);
-
-		if ( false === $result ) {
-			wp_send_json(
-				array(
-					'error' => $wpdb->last_error,
-				),
-				500
-			);
-			return;
-		}
-
-		if ( 0 === $result ) {
-			wp_send_json(
-				array(
-					'error' => 'Template not found.',
-				),
-				500
-			);
-			return;
-		}
-
-		wp_send_json(
-			array(
-				'success' => 'Deleted successfully.',
-			)
+		Congress_Table_Manager::delete_email_template(
+			id:          $email_id,
+			campaign_id: $campaign_id,
+			error_on_0:  true
+		)->submit(
+			error: function ( $query_return_value, $wpdb_error ) {
+				if ( 0 === $query_return_value ) {
+					wp_send_json(
+						array(
+							'error' => 'Template not found.',
+						),
+						400
+					);
+				} else {
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+					error_log( $wpdb_error );
+					wp_send_json(
+						array(
+							'error' => 'Failed to delete templates!',
+						),
+						500
+					);
+				}
+			},
+			success: function () {
+				wp_send_json(
+					array(
+						'success' => 'Deleted successfully.',
+					)
+				);
+			}
 		);
 	}
 

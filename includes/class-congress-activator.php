@@ -51,141 +51,178 @@ class Congress_Activator {
 	private static function init_tables(): void {
 
 		global $wpdb;
+		$charset_collate = $wpdb->get_charset_collate();
 
-		$referer = Congress_Table_Manager::create_table(
-			'referer',
-			array(
-				'id mediumint(9) NOT NULL AUTO_INCREMENT',
-				'campaign_id mediumint(9) NOT NULL',
-				'url_name varchar(32) UNIQUE NOT NULL',
-				'real_name tinytext NOT NULL',
-				'PRIMARY KEY (id, campaign_id)',
-				'CHECK (url_name <> "")',
-				'CHECK (real_name <> "")',
-			)
+		$referer = Congress_Table_Manager::get_table_name( 'referer' );
+		dbDelta(
+			$wpdb->prepare(
+				'CREATE TABLE %i(' .
+					'id mediumint(9) NOT NULL AUTO_INCREMENT, ' .
+					'campaign_id mediumint(9) NOT NULL, ' .
+					'url_name varchar(32) UNIQUE NOT NULL, ' .
+					'real_name tinytext NOT NULL, ' .
+					'PRIMARY KEY (id, campaign_id), ' .
+					'CHECK (url_name <> ""), ' .
+					'CHECK (real_name <> "") ' .
+				')',
+				array(
+					$referer,
+				)
+			) . " $charset_collate;"
 		);
 
-		$email = Congress_Table_Manager::create_table(
-			'email',
-			array(
-				'id mediumint(9) NOT NULL AUTO_INCREMENT',
-				'campaign_id mediumint(9) NOT NULL',
-				'referer_id mediumint(9)',
-				'sent_date DATE NOT NULL DEFAULT (CURRENT_DATE)',
-				"FOREIGN KEY (referer_id, campaign_id) REFERENCES $referer(id, campaign_id)",
-				'PRIMARY KEY (id, campaign_id)',
-			)
+		$email = Congress_Table_Manager::get_table_name( 'email' );
+		dbDelta(
+			$wpdb->prepare(
+				'CREATE TABLE %i(' .
+					'id mediumint(9) NOT NULL AUTO_INCREMENT, ' .
+					'campaign_id mediumint(9) NOT NULL, ' .
+					'referer_id mediumint(9), ' .
+					'sent_date DATE NOT NULL DEFAULT (CURRENT_DATE), ' .
+					'PRIMARY KEY (id, campaign_id), ' .
+				')',
+				array(
+					$email,
+				)
+			) . " $charset_collate;"
 		);
 
-		$campaign = Congress_Table_Manager::create_table(
-			'campaign',
-			array(
-				'id mediumint(9) NOT NULL AUTO_INCREMENT',
-				'name tinytext NOT NULL',
-				'created_date DATE NOT NULL DEFAULT (CURRENT_DATE)',
-				'PRIMARY KEY (id)',
-				'CHECK (name <> "")',
-			)
+		$campaign = Congress_Table_Manager::get_table_name( 'campaign' );
+		dbDelta(
+			$wpdb->prepare(
+				'CREATE TABLE %i(' .
+					'id mediumint(9) NOT NULL AUTO_INCREMENT, ' .
+					'name tinytext NOT NULL, ' .
+					'created_date DATE NOT NULL DEFAULT (CURRENT_DATE), ' .
+					'PRIMARY KEY (id), ' .
+					'CHECK (name <> ""), ' .
+				')',
+				array(
+					$campaign,
+				)
+			) . " $charset_collate;"
 		);
 
-		$campaign_state = Congress_Table_Manager::create_table(
-			'campaign_state',
-			array(
-				'campaign_id mediumint(9) NOT NULL UNIQUE',
-				'state tinytext NOT NULL',
-				'PRIMARY KEY (campaign_id)',
-				'CHECK (state <> "")',
-				"FOREIGN KEY (campaign_id) REFERENCES $campaign(id) ON DELETE CASCADE",
-			)
+		$campaign_state = Congress_Table_Manager::get_table_name( 'campaign_state' );
+		dbDelta(
+			$wpdb->prepare(
+				'CREATE TABLE %i(' .
+					'campaign_id mediumint(9) NOT NULL UNIQUE, ' .
+					'state tinytext NOT NULL, ' .
+					'PRIMARY KEY (campaign_id), ' .
+					'CHECK (state <> ""), ' .
+				')',
+				array(
+					$campaign_state,
+				)
+			) . " $charset_collate;"
 		);
 
 		$active_campaign = Congress_Table_Manager::get_table_name( 'active_campaign' );
-		Congress_Table_Manager::create_table(
-			'active_campaign',
-			array(
-				'id mediumint(9) NOT NULL',
-				'PRIMARY KEY (id)',
-				"FOREIGN KEY (id) REFERENCES $campaign(id) ON DELETE CASCADE",
-			)
+		dbDelta(
+			$wpdb->prepare(
+				'CREATE TABLE %i(' .
+					'id mediumint(9) NOT NULL, ' .
+					'PRIMARY KEY (id), ' .
+				')',
+				array(
+					$active_campaign,
+				)
+			) . " $charset_collate;"
 		);
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->query( "ALTER TABLE $referer ADD FOREIGN KEY (campaign_id) REFERENCES $active_campaign(id) ON DELETE CASCADE;" );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->query( "ALTER TABLE $email ADD FOREIGN KEY (campaign_id) REFERENCES $active_campaign(id) ON DELETE CASCADE;" );
-
-		$archived_campaign = Congress_Table_Manager::create_table(
-			'archived_campaign',
-			array(
-				'id mediumint(9) NOT NULL',
-				'email_count int NOT NULL',
-				'archived_date DATE NOT NULL DEFAULT (CURRENT_DATE)',
-				'PRIMARY KEY (id)',
-				"FOREIGN KEY (id) REFERENCES $campaign(id) ON DELETE CASCADE",
-			)
+		$archived_campaign = Congress_Table_Manager::get_table_name( 'archived_campaign' );
+		dbDelta(
+			$wpdb->prepare(
+				'CREATE TABLE %i(' .
+					'id mediumint(9) NOT NULL, ' .
+					'email_count int NOT NULL, ' .
+					'archived_date DATE NOT NULL DEFAULT (CURRENT_DATE), ' .
+					'PRIMARY KEY (id), ' .
+				')',
+				array(
+					$archived_campaign,
+				)
+			) . " $charset_collate;"
 		);
 
-		Congress_Table_Manager::create_table(
-			'email_template',
-			array(
-				'id mediumint(9) NOT NULL AUTO_INCREMENT',
-				'subject tinytext NOT NULL',
-				'favorable bool NOT NULL DEFAULT false',
-				'template text NOT NULL',
-				'campaign_id mediumint(9) NOT NULL',
-				'PRIMARY KEY (id, campaign_id)',
-				"FOREIGN KEY (campaign_id) REFERENCES $campaign(id) ON DELETE CASCADE",
-				'CHECK (template <> "")',
-				'CHECK (subject <> "")',
-			)
+		$email_template = Congress_Table_Manager::get_table_name( 'email_template' );
+		dbDelta(
+			$wpdb->prepare(
+				'CREATE TABLE %i(' .
+					'id mediumint(9) NOT NULL AUTO_INCREMENT, ' .
+					'subject tinytext NOT NULL, ' .
+					'favorable bool NOT NULL DEFAULT false, ' .
+					'template text NOT NULL, ' .
+					'campaign_id mediumint(9) NOT NULL, ' .
+					'PRIMARY KEY (id, campaign_id), ' .
+					'CHECK (template <> ""), ' .
+					'CHECK (subject <> ""), ' .
+				')',
+				array(
+					$email_template,
+				)
+			) . " $charset_collate;"
 		);
 
-		$representative = Congress_Table_Manager::create_table(
-			'representative',
-			array(
-				'id mediumint(9) NOT NULL AUTO_INCREMENT',
-				'title tinytext NOT NULL',
-				'state tinytext NOT NULL',
-				'district tinytext',
-				'first_name tinytext NOT NULL',
-				'last_name tinytext NOT NULL',
-				"level ENUM('federal', 'state') NOT NULL",
-				'PRIMARY KEY (id)',
-				'CHECK (district <> "")',
-				'CHECK (level <> "")',
-				'CHECK (title <> "")',
-				'CHECK (first_name <> "")',
-				'CHECK (last_name <> "")',
-			)
+		$representative = Congress_Table_Manager::get_table_name( 'representative' );
+		dbDelta(
+			$wpdb->prepare(
+				'CREATE TABLE %i(' .
+					'id mediumint(9) NOT NULL AUTO_INCREMENT, ' .
+					'title tinytext NOT NULL, ' .
+					'state tinytext NOT NULL, ' .
+					'district tinytext, ' .
+					'first_name tinytext NOT NULL, ' .
+					'last_name tinytext NOT NULL, ' .
+					"level ENUM('federal', 'state') NOT NULL" .
+					'PRIMARY KEY (id), ' .
+					'CHECK (district <> ""), ' .
+					'CHECK (level <> ""), ' .
+					'CHECK (title <> ""), ' .
+					'CHECK (first_name <> ""), ' .
+					'CHECK (last_name <> ""), ' .
+				')',
+				array(
+					$representative,
+				)
+			) . " $charset_collate;"
 		);
 
-		Congress_Table_Manager::create_table(
-			'staffer',
-			array(
-				'id mediumint(9) NOT NULL AUTO_INCREMENT',
-				'first_name tinytext NOT NULL',
-				'last_name tinytext NOT NULL',
-				'email tinytext NOT NULL',
-				'title tinytext NOT NULL',
-				'representative mediumint(9) NOT NULL',
-				'PRIMARY KEY (id, representative)',
-				"FOREIGN KEY (representative) REFERENCES $representative(id) ON DELETE CASCADE",
-				'CHECK (first_name <> "")',
-				'CHECK (last_name <> "")',
-				'CHECK (email <> "")',
-				'CHECK (title <> "")',
-			)
+		$staffer = Congress_Table_Manager::get_table_name( 'staffer' );
+		dbDelta(
+			$wpdb->prepare(
+				'CREATE TABLE %i(' .
+					'id mediumint(9) NOT NULL AUTO_INCREMENT, ' .
+					'first_name tinytext NOT NULL, ' .
+					'last_name tinytext NOT NULL, ' .
+					'email tinytext NOT NULL, ' .
+					'title tinytext NOT NULL, ' .
+					'representative mediumint(9) NOT NULL, ' .
+					'PRIMARY KEY (id, representative), ' .
+					'CHECK (first_name <> ""), ' .
+					'CHECK (last_name <> ""), ' .
+					'CHECK (email <> ""), ' .
+					'CHECK (title <> ""), ' .
+				')',
+				array(
+					$staffer,
+				)
+			) . " $charset_collate;"
 		);
 
-		Congress_Table_Manager::create_table(
-			'campaign_excludes_rep',
-			array(
-				'campaign mediumint(9) NOT NULL',
-				'representative mediumint(9) NOT NULL',
-				'PRIMARY KEY (campaign, representative)',
-				"FOREIGN KEY (representative) REFERENCES $representative(id) ON DELETE CASCADE",
-				"FOREIGN KEY (campaign) REFERENCES $campaign(id) ON DELETE CASCADE",
-			)
+		$campaign_excludes_rep = Congress_Table_Manager::get_table_name( 'campaign_excludes_rep' );
+		dbDelta(
+			$wpdb->prepare(
+				'CREATE TABLE %i(' .
+					'campaign mediumint(9) NOT NULL, ' .
+					'representative mediumint(9) NOT NULL, ' .
+					'PRIMARY KEY (campaign, representative), ' .
+				')',
+				array(
+					$campaign_excludes_rep,
+				)
+			) . " $charset_collate;"
 		);
 	}
 

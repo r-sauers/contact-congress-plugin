@@ -384,27 +384,30 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 			wp_unslash( $_POST['rep_id'] )
 		);
 
-		global $wpdb;
-
-		$tablename = Congress_Table_Manager::get_table_name( 'representative' );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$result = $wpdb->delete(
-			$tablename,
-			array(
-				'id' => $rep_id,
-			),
-			array( '%d' ),
+		Congress_Table_Manager::delete_representative( $rep_id )->submit(
+			error: function ( $query_res_value, $wpdb_error ) {
+				if ( 0 === $query_res_value ) {
+					wp_send_json(
+						array(
+							'error' => 'Could not find representative!',
+						),
+						400
+					);
+				} else {
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+					error_log( $wpdb_error );
+					wp_send_json(
+						array(
+							'error' => 'Failed to delete representative!',
+						),
+						500
+					);
+				}
+			},
+			success: function ( $results ) {
+				wp_send_json( $results[0] );
+			}
 		);
-
-		if ( false === $result ) {
-			wp_send_json(
-				array(
-					'error' => 'DB error',
-				),
-				500
-			);
-		}
-		wp_send_json( $result );
 	}
 
 	/**

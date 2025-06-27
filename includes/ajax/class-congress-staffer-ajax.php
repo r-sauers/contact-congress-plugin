@@ -291,28 +291,34 @@ class Congress_Staffer_AJAX implements Congress_AJAX_Collection {
 			wp_unslash( $_POST['staffer_id'] )
 		);
 
-		global $wpdb;
-
-		$tablename = Congress_Table_Manager::get_table_name( 'staffer' );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$result = $wpdb->delete(
-			$tablename,
-			array(
-				'id'             => $staffer_id,
-				'representative' => $rep_id,
-			),
-			array( '%d', '%d' ),
+		Congress_Table_Manager::delete_staffers(
+			id:         $staffer_id,
+			rep_id:     $rep_id,
+			error_on_0: true,
+		)->submit(
+			error: function ( $query_return_value, $wpdb_error ) {
+				if ( 0 === $query_return_value ) {
+					wp_send_json(
+						array(
+							'error' => 'Staffer does not exist!',
+						),
+						400
+					);
+				} else {
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+					error_log( $wpdb_error );
+					wp_send_json(
+						array(
+							'error' => 'Failed to delete staffer!',
+						),
+						500
+					);
+				}
+			},
+			success: function ( $results ) {
+				wp_send_json( $results[0] );
+			}
 		);
-
-		if ( false === $result ) {
-			wp_send_json(
-				array(
-					'error' => 'DB error',
-				),
-				500
-			);
-		}
-		wp_send_json( $result );
 	}
 
 	/**
