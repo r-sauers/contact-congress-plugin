@@ -47,42 +47,6 @@ class Congress_Table_Manager {
 	}
 
 	/**
-	 * Creates a WordPress MySQL table.
-	 *
-	 * @since    1.0.0
-	 * @param string $name is the name of the table.
-	 * @param array  $statements is an array of MySQL strings describing table columns.
-	 *
-	 * @return {string} the table name.
-	 */
-	public static function create_table( string $name, array $statements ): string {
-		global $wpdb;
-
-		$table_name      = self::get_table_name( $name );
-		$charset_collate = $wpdb->get_charset_collate();
-
-		$sql                = "CREATE TABLE $table_name (\n";
-		$foreign_statements = array();
-		foreach ( $statements as $statement ) {
-			if ( str_contains( $statement, 'FOREIGN' ) ) {
-				array_push( $foreign_statements, $statement );
-			} else {
-				$sql .= "$statement,\n";
-			}
-		}
-		$sql = substr( $sql, 0, strlen( $sql ) - 2 ) . "\n) $charset_collate;";
-		dbDelta( $sql );
-
-		foreach ( $foreign_statements as $statement ) {
-			$sql = "ALTER TABLE $table_name ADD $statement;";
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-			$wpdb->query( $sql );
-		}
-
-		return $table_name;
-	}
-
-	/**
 	 * Gets the real name of a WordPress MySQL table.
 	 *
 	 * @since    1.0.0
