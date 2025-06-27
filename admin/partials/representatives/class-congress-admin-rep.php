@@ -305,48 +305,33 @@ class Congress_Admin_Rep {
 		?Congress_Title $title = null
 	): array {
 		global $wpdb;
-		$tablename = Congress_Table_Manager::get_table_name( 'representative' );
-
-		$query      = "SELECT * FROM $tablename";
-		$query_args = array();
-		$first_arg  = true;
-
-		if ( null !== $state ) {
-			if ( $first_arg ) {
-				$query    .= ' WHERE';
-				$first_arg = false;
-			} else {
-				$query .= ' AND';
-			}
-			$query .= ' state=%s';
-			array_push( $query_args, $state->to_db_string() );
-		}
-
-		if ( null !== $level ) {
-			if ( $first_arg ) {
-				$query    .= ' WHERE';
-				$first_arg = false;
-			} else {
-				$query .= ' AND';
-			}
-			$query .= ' level=%s';
-			array_push( $query_args, $level->to_db_string() );
-		}
-
-		if ( null !== $title ) {
-			if ( $first_arg ) {
-				$query    .= ' WHERE';
-				$first_arg = false;
-			} else {
-				$query .= ' AND';
-			}
-			$query .= ' title=%s';
-			array_push( $query_args, $title->to_db_string() );
-		}
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->get_results(
-			$wpdb->prepare( $query, $query_args )
+			$wpdb->prepare(
+				'SELECT ' .
+					'r.id         AS rep_id, ' .
+					'r.title      AS rep_title, ' .
+					'r.first_name AS rep_first, ' .
+					'r.last_name  AS rep_last, ' .
+					'r.state      AS rep_state, ' .
+					'r.district   AS rep_district, ' .
+					'r.level,     AS rep_level' .
+				'FROM %i AS r' .
+				'WHERE ' .
+					'(0=%d OR r.state=%s) AND ' .
+					'(0=%d OR r.level=%s) AND ' .
+					'(0=%d OR r.title=%s)',
+				array(
+					Congress_Table_Manager::get_table_name( 'representative' ),
+					$state ? 1 : 0,
+					$state || '',
+					$level ? 1 : 0,
+					$level || '',
+					$title ? 1 : 0,
+					$title || '',
+				)
+			)
 		);
 
 		if ( null === $result ) {
@@ -358,13 +343,13 @@ class Congress_Admin_Rep {
 			array_push(
 				$reps,
 				new Congress_Admin_Rep(
-					$rep_result->id,
-					$rep_result->first_name,
-					$rep_result->last_name,
-					$rep_result->title,
-					$rep_result->district,
-					$rep_result->state,
-					$rep_result->level,
+					$rep_result->rep_id,
+					$rep_result->rep_first_name,
+					$rep_result->rep_last_name,
+					$rep_result->rep_title,
+					$rep_result->rep_district,
+					$rep_result->rep_state,
+					$rep_result->rep_level,
 				)
 			);
 		}
