@@ -118,30 +118,13 @@ class Congress_Rep_Sync {
 				continue;
 			}
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			$res = $wpdb->delete(
-				$rep_t,
-				array(
-					'id' => $rep->get_id(),
-				),
-				array(
-					'%d',
-				)
+			Congress_Table_Manager::delete_representative(
+				id: $rep->get_id()
+			)->submit(
+				success: function () use ( &$reps_removed, &$rep ) {
+					array_push( $reps_removed, $rep );
+				}
 			);
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			$res2 = $wpdb->delete(
-				$staffer_t,
-				array(
-					'representative' => $rep->get_id(),
-				),
-				array(
-					'%d',
-				)
-			);
-
-			if ( ! $res && ! $res2 ) {
-				array_push( $reps_removed, $rep );
-			}
 		}
 
 		$reps_inserted = array();
