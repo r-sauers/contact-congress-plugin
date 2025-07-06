@@ -210,7 +210,7 @@ class Congress_Admin_Email {
 	public static function get_from_db( $campaign_id ): array {
 
 		global $wpdb;
-		$email_t = Congress_Table_Manager::get_table_name( 'email' );
+		$email_t = Congress_Table_Manager::get_table_name( 'email_template' );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->get_results(
@@ -222,6 +222,16 @@ class Congress_Admin_Email {
 				)
 			)
 		);
+
+		if ( null === $result || $wpdb->last_error ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
+				'Contact Congress Failed Database Call: ' .
+				$wpdb->last_query . "\n\n" .
+				$wpdb->last_error
+			);
+			wp_die( 'Failed to get email templates.' );
+		}
 
 		$campaigns = array();
 		foreach ( $result as $email_result ) {

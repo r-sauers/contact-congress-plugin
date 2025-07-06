@@ -57,7 +57,7 @@ class Congress_Table_Manager {
 		$table_name = self::get_table_name( $name );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->query(
+		$res = $wpdb->query(
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
 				'DROP TABLE IF EXISTS %i',
@@ -66,6 +66,15 @@ class Congress_Table_Manager {
 				)
 			)
 		);
+
+		if ( false === $res || $wpdb->last_error ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
+				'Contact Congress Failed Database Call: ' .
+				$wpdb->last_query . "\n\n" .
+				$wpdb->last_error
+			);
+		}
 	}
 
 	/**

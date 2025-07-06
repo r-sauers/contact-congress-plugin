@@ -125,14 +125,19 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 			)
 		);
 
-		if ( false === $results ) {
+		if ( null === $results || $wpdb->last_error ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
+				'Contact Congress Failed Database Call: ' .
+				$wpdb->last_query . "\n\n" .
+				$wpdb->last_error
+			);
 			wp_send_json(
 				array(
-					'error' => $wpdb->last_error,
+					'error' => 'Failed to get campaign names.',
 				),
 				500
 			);
-			return;
 		}
 
 		wp_send_json( $results );
@@ -498,14 +503,19 @@ class Congress_Campaign_AJAX implements Congress_AJAX_Collection {
 			),
 		);
 
-		if ( false === $results ) {
+		if ( null === $results || $wpdb->last_error ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
+				'Contact Congress Failed Database Call: ' .
+				$wpdb->last_query . "\n\n" .
+				$wpdb->last_error
+			);
 			wp_send_json(
 				array(
-					'error' => $wpdb->last_error,
+					'error' => 'Failed to get archived campaign.',
 				),
 				500
 			);
-			return;
 		}
 
 		if ( 0 === count( $results ) ) {

@@ -316,8 +316,8 @@ class Congress_Admin_Rep {
 					'r.last_name  AS rep_last, ' .
 					'r.state      AS rep_state, ' .
 					'r.district   AS rep_district, ' .
-					'r.level,     AS rep_level' .
-				'FROM %i AS r' .
+					'r.level,     AS rep_level ' .
+				'FROM %i AS r ' .
 				'WHERE ' .
 					'(0=%d OR r.state=%s) AND ' .
 					'(0=%d OR r.level=%s) AND ' .
@@ -334,8 +334,14 @@ class Congress_Admin_Rep {
 			)
 		);
 
-		if ( null === $result ) {
-			wp_die();
+		if ( null === $result || $wpdb->last_error ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
+				'Contact Congress Failed Database Call: ' .
+				$wpdb->last_query . "\n\n" .
+				$wpdb->last_error
+			);
+			wp_die( 'Failed to get representatives' );
 		}
 
 		$reps = array();

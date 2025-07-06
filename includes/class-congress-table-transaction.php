@@ -80,7 +80,7 @@ class Congress_Table_Transaction {
 		}
 		global $wpdb;
 		$res = $query_handler( $wpdb->insert_id );
-		if ( null === $res || false === $res || is_wp_error( $res ) || ( $error_on_0 && 0 === $res ) ) {
+		if ( null === $res || false === $res || $wpdb->last_error || is_wp_error( $res ) || ( $error_on_0 && 0 === $res ) ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->query( 'ROLLBACK' );
 			$this->failed      = true;

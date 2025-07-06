@@ -168,13 +168,24 @@ class Congress_Form_Block_Utils {
 				)
 			)
 		);
-		if ( false === $results ) {
+
+		if ( null === $results || $wpdb->last_error ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
+				'Contact Congress Failed Database Call: ' .
+				$wpdb->last_query . "\n\n" .
+				$wpdb->last_error
+			);
 			return false;
 		}
-		if ( 0 === $results ) {
-			return false;
-		}
+
 		if ( count( $results ) === 0 ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
+				"Contact Congress Error: Campaign ${$campaign_id} has no email templates." .
+				$wpdb->last_query . "\n\n" .
+				$wpdb->last_error
+			);
 			return false;
 		}
 

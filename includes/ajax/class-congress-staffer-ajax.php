@@ -140,10 +140,16 @@ class Congress_Staffer_AJAX implements Congress_AJAX_Collection {
 			);
 		}
 
-		if ( false === $result ) {
+		if ( null === $result || $wpdb->last_error ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
+				'Contact Congress Failed Database Call: ' .
+				$wpdb->last_query . "\n\n" .
+				$wpdb->last_error
+			);
 			wp_send_json(
 				array(
-					'error' => 'DB error',
+					'error' => 'Failed to get staffers.',
 				),
 				500
 			);

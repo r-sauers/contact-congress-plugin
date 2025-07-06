@@ -399,11 +399,12 @@ class Congress_Rep_Sync {
 			)
 		);
 
-		if ( null === $db_reps ) {
+		if ( null === $db_reps || $wpdb->last_error ) {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log(
 				'Contact Congress Failed Database Call: ' .
-				$wpdb->last_query
+				$wpdb->last_query . "\n\n" .
+				$wpdb->last_error
 			);
 			array_push(
 				$errors,

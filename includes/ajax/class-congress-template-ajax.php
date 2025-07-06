@@ -146,16 +146,20 @@ class Congress_Template_AJAX implements Congress_AJAX_Collection {
 				)
 			)
 		);
-		// phpcs:enable
 
-		if ( false === $results ) {
+		if ( null === $results || $wpdb->last_error ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
+				'Contact Congress Failed Database Call: ' .
+				$wpdb->last_query . "\n\n" .
+				$wpdb->last_error
+			);
 			wp_send_json(
 				array(
-					'error' => $wpdb->last_error,
+					'error' => 'Failed to get email templates.',
 				),
 				500
 			);
-			return;
 		}
 
 		$return_results = array();

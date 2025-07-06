@@ -200,6 +200,16 @@ class Congress_Admin_Archived_Campaign {
 			)
 		);
 
+		if ( null === $result || $wpdb->last_error ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
+				'Contact Congress Failed Database Call: ' .
+				$wpdb->last_query . "\n\n" .
+				$wpdb->last_error
+			);
+			wp_die( 'Failed to get archived campaigns.' );
+		}
+
 		$campaigns = array();
 		foreach ( $result as $campaign_result ) {
 			$region = null;

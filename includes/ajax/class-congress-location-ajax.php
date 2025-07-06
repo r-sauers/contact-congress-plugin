@@ -508,8 +508,8 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 						'	r.last_name  AS rep_last_name, ' .
 						'	r.title      AS rep_title, ' .
 						'	r.state      AS rep_state,' .
-						'	r.district   AS rep_district,' .
-						'	r.level      AS rep_level,' .
+						'	r.district   AS rep_district, ' .
+						'	r.level      AS rep_level, ' .
 						'	s.id         AS staffer_id, ' .
 						'	s.first_name AS staffer_first_name, ' .
 						'	s.last_name  AS staffer_last_name, ' .
@@ -531,7 +531,15 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 
 				$db_reps = null === $results ? false : Congress_Rep_Interface::from_db_result( $results, true );
 
-				if ( false === $db_reps || count( $db_reps ) === 0 ) {
+				if ( false === $db_reps || $wpdb->last_error || count( $db_reps ) === 0 ) {
+					if ( $wpdb->last_error ) {
+						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+						error_log(
+							'Contact Congress Failed Database Call: ' .
+							$wpdb->last_query . "\n\n" .
+							$wpdb->last_error
+						);
+					}
 					$success = false;
 					break;
 				}
@@ -552,9 +560,9 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 					'	r.first_name AS rep_first_name, ' .
 					'	r.last_name  AS rep_last_name, ' .
 					'	r.title      AS rep_title, ' .
-					'	r.state      AS rep_state,' .
-					'	r.district   AS rep_district,' .
-					'	r.level      AS rep_level,' .
+					'	r.state      AS rep_state, ' .
+					'	r.district   AS rep_district, ' .
+					'	r.level      AS rep_level, ' .
 					'	s.id         AS staffer_id, ' .
 					'	s.first_name AS staffer_first_name, ' .
 					'	s.last_name  AS staffer_last_name, ' .
@@ -570,15 +578,20 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 				)
 			);
 
-			if ( false === $results ) {
-				wp_send_json(
-					array(
-						'error' => 'Failed to get reps',
-					),
-					500
-				);
-				return;
-			}
+		if ( null === $results || $wpdb->last_error ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
+				'Contact Congress Failed Database Call: ' .
+				$wpdb->last_query . "\n\n" .
+				$wpdb->last_error
+			);
+			wp_send_json(
+				array(
+					'error' => 'Failed to get representatives.',
+				),
+				500
+			);
+		}
 
 			$reps = Congress_Rep_Interface::from_db_result( $results, true );
 		}
@@ -654,9 +667,9 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 						'	r.first_name AS rep_first_name, ' .
 						'	r.last_name  AS rep_last_name, ' .
 						'	r.title      AS rep_title, ' .
-						'	r.state      AS rep_state,' .
-						'	r.district   AS rep_district,' .
-						'	r.level      AS rep_level,' .
+						'	r.state      AS rep_state, ' .
+						'	r.district   AS rep_district, ' .
+						'	r.level      AS rep_level, ' .
 						'	s.id         AS staffer_id, ' .
 						'	s.first_name AS staffer_first_name, ' .
 						'	s.last_name  AS staffer_last_name, ' .
@@ -678,7 +691,15 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 
 				$db_reps = null === $results ? false : Congress_Rep_Interface::from_db_result( $results, true );
 
-				if ( false === $db_reps || count( $db_reps ) === 0 ) {
+				if ( false === $db_reps || $wpdb->last_error || count( $db_reps ) === 0 ) {
+					if ( $wpdb->last_error ) {
+						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+						error_log(
+							'Contact Congress Failed Database Call: ' .
+							$wpdb->last_query . "\n\n" .
+							$wpdb->last_error
+						);
+					}
 					$house_success = false;
 					break;
 				}
@@ -702,9 +723,9 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 					'	r.first_name AS rep_first_name, ' .
 					'	r.last_name  AS rep_last_name, ' .
 					'	r.title      AS rep_title, ' .
-					'	r.state      AS rep_state,' .
-					'	r.district   AS rep_district,' .
-					'	r.level      AS rep_level,' .
+					'	r.state      AS rep_state, ' .
+					'	r.district   AS rep_district, ' .
+					'	r.level      AS rep_level, ' .
 					'	s.id         AS staffer_id, ' .
 					'	s.first_name AS staffer_first_name, ' .
 					'	s.last_name  AS staffer_last_name, ' .
@@ -721,7 +742,13 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 				)
 			);
 
-			if ( false === $results ) {
+			if ( null === $results || $wpdb->last_error ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log(
+					'Contact Congress Failed Database Call: ' .
+					$wpdb->last_query . "\n\n" .
+					$wpdb->last_error
+				);
 				return false;
 			}
 
@@ -794,8 +821,8 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 						'	r.last_name  AS rep_last_name, ' .
 						'	r.title      AS rep_title, ' .
 						'	r.state      AS rep_state,' .
-						'	r.district   AS rep_district,' .
-						'	r.level      AS rep_level,' .
+						'	r.district   AS rep_district, ' .
+						'	r.level      AS rep_level, ' .
 						'	s.id         AS staffer_id, ' .
 						'	s.first_name AS staffer_first_name, ' .
 						'	s.last_name  AS staffer_last_name, ' .
@@ -821,7 +848,15 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 
 				$db_reps = null === $results ? false : Congress_Rep_Interface::from_db_result( $results, true );
 
-				if ( false === $db_reps || count( $db_reps ) === 0 ) {
+				if ( false === $db_reps || $wpdb->last_error || count( $db_reps ) === 0 ) {
+					if ( $wpdb->last_error ) {
+						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+						error_log(
+							'Contact Congress Failed Database Call: ' .
+							$wpdb->last_query . "\n\n" .
+							$wpdb->last_error
+						);
+					}
 					$senator_success = false;
 					break;
 				}
@@ -845,9 +880,9 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 					'	r.first_name AS rep_first_name, ' .
 					'	r.last_name  AS rep_last_name, ' .
 					'	r.title      AS rep_title, ' .
-					'	r.state      AS rep_state,' .
-					'	r.district   AS rep_district,' .
-					'	r.level      AS rep_level,' .
+					'	r.state      AS rep_state, ' .
+					'	r.district   AS rep_district, ' .
+					'	r.level      AS rep_level, ' .
 					'	s.id         AS staffer_id, ' .
 					'	s.first_name AS staffer_first_name, ' .
 					'	s.last_name  AS staffer_last_name, ' .
@@ -864,7 +899,13 @@ class Congress_Location_AJAX implements Congress_AJAX_Collection {
 				)
 			);
 
-			if ( false === $results ) {
+			if ( null === $results || $wpdb->last_error ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log(
+					'Contact Congress Failed Database Call: ' .
+					$wpdb->last_query . "\n\n" .
+					$wpdb->last_error
+				);
 				return false;
 			}
 

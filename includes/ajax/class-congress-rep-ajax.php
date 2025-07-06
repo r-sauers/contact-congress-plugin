@@ -189,13 +189,13 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 					'r.last_name  AS rep_last, ' .
 					'r.state      AS rep_state, ' .
 					'r.district   AS rep_district, ' .
-					'r.level,     AS rep_level' .
+					'r.level      AS rep_level, ' .
 					's.id         AS staffer_id, ' .
 					's.title      AS staffer_title, ' .
 					's.first_name AS staffer_first, ' .
 					's.last_name  AS staffer_last, ' .
-					's.email      AS staffer_email' .
-				'FROM %i AS r' .
+					's.email      AS staffer_email ' .
+				'FROM %i AS r ' .
 				'LEFT JOIN %i AS s ON r.id = s.representative ' .
 				'WHERE ' .
 					'(0=%d OR r.state=%s) AND ' .
@@ -214,7 +214,13 @@ class Congress_Rep_AJAX implements Congress_AJAX_Collection {
 			)
 		);
 
-		if ( null === $result ) {
+		if ( null === $result || $wpdb->last_error ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log(
+				'Contact Congress Failed Database Call: ' .
+				$wpdb->last_query . "\n\n" .
+				$wpdb->last_error
+			);
 			wp_send_json(
 				array(
 					'error' => 'Failed to get representatives.',
