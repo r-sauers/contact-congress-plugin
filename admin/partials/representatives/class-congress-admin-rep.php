@@ -316,7 +316,7 @@ class Congress_Admin_Rep {
 					'r.last_name  AS rep_last, ' .
 					'r.state      AS rep_state, ' .
 					'r.district   AS rep_district, ' .
-					'r.level,     AS rep_level ' .
+					'r.level      AS rep_level ' .
 				'FROM %i AS r ' .
 				'WHERE ' .
 					'(0=%d OR r.state=%s) AND ' .
