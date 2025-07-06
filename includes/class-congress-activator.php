@@ -79,7 +79,7 @@ class Congress_Activator {
 					'campaign_id mediumint(9) NOT NULL, ' .
 					'referer_id mediumint(9), ' .
 					'sent_date DATE NOT NULL DEFAULT (CURRENT_DATE), ' .
-					'PRIMARY KEY (id, campaign_id), ' .
+					'PRIMARY KEY (id, campaign_id) ' .
 				')',
 				array(
 					$email,
@@ -95,7 +95,7 @@ class Congress_Activator {
 					'name tinytext NOT NULL, ' .
 					'created_date DATE NOT NULL DEFAULT (CURRENT_DATE), ' .
 					'PRIMARY KEY (id), ' .
-					'CHECK (name <> ""), ' .
+					'CHECK (name <> "") ' .
 				')',
 				array(
 					$campaign,
@@ -110,7 +110,7 @@ class Congress_Activator {
 					'campaign_id mediumint(9) NOT NULL UNIQUE, ' .
 					'state tinytext NOT NULL, ' .
 					'PRIMARY KEY (campaign_id), ' .
-					'CHECK (state <> ""), ' .
+					'CHECK (state <> "") ' .
 				')',
 				array(
 					$campaign_state,
@@ -123,7 +123,7 @@ class Congress_Activator {
 			$wpdb->prepare(
 				'CREATE TABLE %i(' .
 					'id mediumint(9) NOT NULL, ' .
-					'PRIMARY KEY (id), ' .
+					'PRIMARY KEY (id) ' .
 				')',
 				array(
 					$active_campaign,
@@ -138,7 +138,7 @@ class Congress_Activator {
 					'id mediumint(9) NOT NULL, ' .
 					'email_count int NOT NULL, ' .
 					'archived_date DATE NOT NULL DEFAULT (CURRENT_DATE), ' .
-					'PRIMARY KEY (id), ' .
+					'PRIMARY KEY (id) ' .
 				')',
 				array(
 					$archived_campaign,
@@ -157,7 +157,7 @@ class Congress_Activator {
 					'campaign_id mediumint(9) NOT NULL, ' .
 					'PRIMARY KEY (id, campaign_id), ' .
 					'CHECK (template <> ""), ' .
-					'CHECK (subject <> ""), ' .
+					'CHECK (subject <> "") ' .
 				')',
 				array(
 					$email_template,
@@ -181,7 +181,7 @@ class Congress_Activator {
 					'CHECK (level <> ""), ' .
 					'CHECK (title <> ""), ' .
 					'CHECK (first_name <> ""), ' .
-					'CHECK (last_name <> ""), ' .
+					'CHECK (last_name <> "") ' .
 				')',
 				array(
 					$representative,
@@ -203,7 +203,7 @@ class Congress_Activator {
 					'CHECK (first_name <> ""), ' .
 					'CHECK (last_name <> ""), ' .
 					'CHECK (email <> ""), ' .
-					'CHECK (title <> ""), ' .
+					'CHECK (title <> "") ' .
 				')',
 				array(
 					$staffer,
@@ -217,7 +217,7 @@ class Congress_Activator {
 				'CREATE TABLE %i(' .
 					'campaign mediumint(9) NOT NULL, ' .
 					'representative mediumint(9) NOT NULL, ' .
-					'PRIMARY KEY (campaign, representative), ' .
+					'PRIMARY KEY (campaign, representative) ' .
 				')',
 				array(
 					$campaign_excludes_rep,
